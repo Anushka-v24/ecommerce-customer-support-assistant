@@ -1,0 +1,9 @@
+﻿{
+  "data_type": "demonstration_only",
+  "notice": "Fictional demonstration records for chatbot testing only. These are not payments or refunds initiated with a payment provider.",
+  "refunds": [
+    {"order_id": "ORD-1001", "status": "not_initiated", "refund_id": "DEMO-REF-1001", "note": "No refund operation has been submitted in this demonstration."},
+    {"order_id": "ORD-1002", "status": "processing", "refund_id": "DEMO-REF-1002", "note": "Fictional status for response testing only."},
+    {"order_id": "ORD-1003", "status": "completed", "refund_id": "DEMO-REF-1003", "note": "Fictional status; no payment provider was contacted."}
+  ]
+}

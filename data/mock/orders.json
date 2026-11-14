@@ -1,0 +1,10 @@
+﻿{
+  "data_type": "demonstration_only",
+  "notice": "Fictional demonstration records only; not live customer data or retailer orders. ETA values are historical examples.",
+  "orders": [
+    {"order_id": "ORD-1001", "status": "Shipped", "eta": "2025-11-08", "product_id": "PROD-001"},
+    {"order_id": "ORD-1002", "status": "Processing", "eta": null, "product_id": "PROD-002"},
+    {"order_id": "ORD-1003", "status": "Delivered", "eta": "2025-11-01", "product_id": "PROD-003"},
+    {"order_id": "ORD-1004", "status": "Processing", "eta": null, "product_id": "PROD-001"}
+  ]
+}

@@ -1,0 +1,11 @@
+﻿{
+  "data_type": "demonstration_only",
+  "notice": "Policy examples copied from the reference project's mock data; not verified live retailer policy.",
+  "return": {"days": 30, "condition": "unopened", "form_url": "https://forms.gle/return-form-dummy-link"},
+  "refund": {"processing_time": "5-10 business days", "form_url": "https://forms.gle/refund-form-dummy-link"},
+  "products": {
+    "PROD-001": {"return": {"days": 30, "condition": "sealed box"}, "refund": {"processing_time": "7 business days"}},
+    "PROD-002": {"return": {"days": 14, "condition": "with receipt"}, "refund": {"processing_time": "5 business days"}},
+    "PROD-003": {"return": {"days": 30}, "refund": {"processing_time": "10 business days"}}
+  }
+}

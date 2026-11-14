@@ -1,0 +1,8 @@
+﻿{
+  "data_type": "demonstration_only",
+  "notice": "All offers and store details here are fictional examples for development; none are live or redeemable.",
+  "sales": [{"name": "Demo Weekend Sale", "discount": "10%", "code": "DEMO10", "status": "sample_only"}],
+  "promotions": [{"name": "Demo Free Shipping Promotion", "details": "Example promotion only; eligibility is not configured.", "status": "sample_only"}],
+  "discount_information": [{"code": "DEMO10", "details": "Illustrative 10% discount code; not redeemable.", "status": "sample_only"}],
+  "store_details": {"name": "Example Demo Store", "hours": "Not configured in demonstration data.", "contact": "No live store contact is configured."}
+}

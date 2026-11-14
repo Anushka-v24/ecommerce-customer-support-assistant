@@ -1,0 +1,9 @@
+﻿{
+  "data_type": "demonstration_only",
+  "notice": "Illustrative sample product records copied from the reference project's mock data. Stock and restock values are not live inventory.",
+  "products": [
+    {"product_id": "PROD-001", "name": "Laptop Pro", "stock": 8, "restock_date": "2025-11-15"},
+    {"product_id": "PROD-002", "name": "Galaxy S21", "stock": 0, "restock_date": "2025-11-20"},
+    {"product_id": "PROD-003", "name": "Noise-Cancelling Headphones", "stock": 45, "restock_date": null}
+  ]
+}

@@ -1,0 +1,32 @@
+
+{
+    "account_management": "Represents customer requests related to creating, accessing, updating, modifying, or deleting user accounts. It includes account registration, account type or subscription changes, profile information updates, password and PIN recovery, account access problems, and managing primary or secondary shipping addresses associated with the customer account.",
+
+    "order_management": "Represents customer requests concerning modifications or administrative actions on existing orders. It includes cancelling orders, changing purchased items, removing products from an order, and enquiring about order termination, withdrawal, or early cancellation penalties.",
+
+    "billing_and_payment": "Represents customer enquiries about invoices, bills, and accepted payment methods. It includes locating, retrieving, viewing, or downloading invoices and billing documents, checking bills associated with a person or transaction, and asking about supported payment options such as PayPal.",
+
+    "issue_support": "Represents customer requests for assistance with financial or payment-related problems. It includes reporting online payment errors, requesting refunds or reimbursements, checking refund status, and seeking resolution for unsuccessful or problematic monetary transactions.",
+
+    "customer_care_support": "Represents customer requests to communicate with a human customer service representative or support agent. It includes asking to speak with an operator, contact a live agent, connect with a support representative, and enquire about customer support availability and operating hours.",
+
+    "place_order": "Represents customer requests related to initiating a new purchase through the e-commerce platform. It includes asking how to buy products, acquire individual items, purchase multiple products, and obtain assistance with placing a new order.",
+
+    "order_tracking": "Represents customer enquiries about the current status and expected delivery of an existing order. It includes checking order progress, tracking purchased products or shipments, and requesting estimated arrival dates or delivery times for placed orders.",
+
+    "delivery_options": "Represents customer enquiries about the delivery and shipping services supported by the e-commerce platform. It includes asking about available delivery methods, shipping options, supported delivery destinations, and whether products can be shipped to particular cities or countries.",
+
+    "submit_feedback": "Represents customer requests to share opinions, submit feedback, or provide reviews about the e-commerce platform and its services. It includes asking how to leave a review, express satisfaction or dissatisfaction, submit comments, and communicate suggestions about the customer experience.",
+
+    "shipping_cost": "Represents customer enquiries about the monetary cost of shipping or delivering products to a particular destination. It includes requesting delivery charges, shipping fees, courier costs, and estimated freight rates for specific cities, localities, or geographical destinations.",
+
+    "product_inquiry": "Represents customer enquiries about product availability and stock status on the e-commerce platform. It includes asking whether a particular item or product is available, checking the availability of specific items, finding out which products are currently in stock, and enquiring when an out-of-stock item will become available again.",
+
+    "remove_from_cart": "Represents customer requests related to removing products or items from their shopping cart or basket. It includes asking how to delete a selected item, remove individual products or multiple products from the cart, eliminate unwanted items from the basket, and requesting assistance with modifying cart contents.",
+
+    "store_information": "Represents customer enquiries about information regarding store sales and promotional events. It includes asking about upcoming sales, winter sales, spring sales, clearance sales, and Boxing Day sales, as well as requesting details about sale periods, promotional schedules, and the duration of ongoing or upcoming sales.",
+
+    "out_of_scope": "Represents customer queries that are unrelated to the e-commerce platform's products, shopping activities, orders, payments, delivery services, or customer support functions. It includes general questions and personal requests concerning emotions, motivation, mental well-being, daily routines, productivity, personal habits, social behaviour, stress, sleep, and other topics outside the supported e-commerce services.",
+
+    "add_to_cart": "Represents customer requests related to adding products or items to their shopping cart or basket on the e-commerce platform. It includes asking how to add a single product or multiple items to the cart, requesting assistance with placing selected products in the basket, and enquiring about where or how to add products before proceeding with a purchase."
+}

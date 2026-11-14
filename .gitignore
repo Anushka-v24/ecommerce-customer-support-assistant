@@ -1,0 +1,63 @@
+# Local environment and credentials
+.env
+.env.*
+frontend/.env.local
+!.env.example
+!frontend/.env.example
+*.pem
+*.key
+secrets/
+
+# Python environments, bytecode, and test caches
+.venv/
+venv/
+env/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Local runtime data and logs
+*.sqlite
+*.sqlite3
+*.sqlite-*
+*.db
+*.db-*
+*.log
+
+# Build and editor artifacts
+build/
+dist/
+*.egg-info/
+.idea/
+.vscode/
+Thumbs.db
+Desktop.ini
+
+# Dependencies and build output
+node_modules/
+.next/
+frontend/out/
+
+# Local database exports/backups
+*.sql
+*.sql.gz
+*.dump
+*.dump.gz
+*.pgdump
+*.pgdump.gz
+*.bak
+*.backup
+
+# Runtime-generated demonstration support records
+data/runtime/
+
+# Classifier artifacts withheld pending training-data/model redistribution rights
+models/xlmr_intent_classifier/config.json
+models/xlmr_intent_classifier/label_mapping.json
+models/xlmr_intent_classifier/model.safetensors
+models/xlmr_intent_classifier/tokenizer.json
+models/xlmr_intent_classifier/tokenizer_config.json
+data/training/
+datasets/
