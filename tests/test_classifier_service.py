@@ -253,6 +253,28 @@ class ClassifierServiceTests(unittest.TestCase):
         self.assertEqual(result["verifier_status"], "CORRECT_INTENT")
         verify.assert_called_once()
 
+    def test_previous_turns_reach_groq_trimmed_to_the_last_four(self):
+        history = [{"role": "user", "content": f"turn {n}"} for n in range(6)]
+        history.append({"role": "assistant", "content": "x" * 500})
+        completion = MagicMock()
+        completion.choices[0].message.content = json.dumps(
+            verifier_result("CORRECT_INTENT", "order_tracking", "order_tracking")
+        )
+        client = MagicMock()
+        client.chat.completions.create.return_value = completion
+        with (
+            patch.object(service, "load_model", return_value=make_bundle(7, 0.80)),
+            patch.dict(os.environ, {"GROQ_API_KEY": "test-key", "XLMR_INTENT_DESCRIPTIONS_PATH": "app/classifier/intent_descriptions.json"}),
+            patch("groq.Groq", return_value=client),
+        ):
+            result = service.classify_and_verify("and that one?", history=history)
+
+        self.assertEqual(result["verifier_status"], "CORRECT_INTENT")
+        sent = client.chat.completions.create.call_args.kwargs["messages"][1]["content"]
+        payload = json.loads(sent.split("\n", 1)[1])
+        self.assertEqual([t["content"] for t in payload["previous_turns"][:3]], ["turn 3", "turn 4", "turn 5"])
+        self.assertEqual(len(payload["previous_turns"][3]["content"]), 300)
+
     def test_corrected_intent_is_used(self):
         bundle = make_bundle(7, 0.80)
         with (

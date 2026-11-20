@@ -1,0 +1,18 @@
+{
+  "data_type": "demonstration_only",
+  "notice": "Fictional shipping and payment terms for development; not a real store's delivery promise or payment policy.",
+  "shipping": {
+    "methods": [
+      {"name": "Standard delivery", "days": "3-5 business days", "fee": "₹49", "free_above": "₹499"},
+      {"name": "Express delivery", "days": "1-2 business days", "fee": "₹149", "free_above": null},
+      {"name": "Same-day delivery", "days": "same day for orders placed before 12 noon", "fee": "₹199", "free_above": null, "cities": ["Delhi", "Mumbai", "Bengaluru"]}
+    ],
+    "serviceable_cities": ["Delhi", "Mumbai", "Bengaluru", "Chennai", "Hyderabad", "Kolkata", "Pune", "Ahmedabad", "Jaipur", "Lucknow", "Chandigarh", "Noida", "Gurugram"],
+    "international": false
+  },
+  "payment": {
+    "methods": ["UPI", "credit and debit cards", "net banking", "PayPal", "cash on delivery"],
+    "cash_on_delivery_limit": "₹10,000",
+    "invoice": "An invoice is emailed after dispatch and can be downloaded from the order details page in your account."
+  }
+}

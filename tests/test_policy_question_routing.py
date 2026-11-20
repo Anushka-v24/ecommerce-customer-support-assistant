@@ -6,10 +6,14 @@ import unittest
 from uuid import uuid4
 from unittest.mock import patch
 
+from app.config import Config
+
 from app.graph import nodes
 from app.graph.workflow import build_graph, invoke_graph
 from app.rag.service import RAGConfigurationError
 from langgraph.checkpoint.memory import InMemorySaver
+# Tests never share the developer's PostgreSQL checkpoints; .env may select them.
+patch.object(Config, "CHECKPOINT_BACKEND", "memory").start()
 
 
 def issue_classification():

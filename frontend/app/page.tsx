@@ -2,10 +2,16 @@
 
 import { useEffect, useRef, useState } from "react";
 
+type Rating = "up" | "down";
+
 type ChatMessage = {
   id: number;
   role: "assistant" | "user" | "error";
   content: string;
+  // Set on server answers so the customer can rate them.
+  turnId?: string;
+  question?: string;
+  rating?: Rating;
 };
 
 const INITIAL_GREETING = "Hi! How can we help you today?";
@@ -24,7 +30,9 @@ type IconName =
   | "moon"
   | "sparkles"
   | "arrow"
-  | "close";
+  | "close"
+  | "thumbUp"
+  | "thumbDown";
 
 function Icon({ name, className = "" }: { name: IconName; className?: string }) {
   const shared = {
@@ -59,6 +67,10 @@ function Icon({ name, className = "" }: { name: IconName; className?: string }) 
       return <svg {...shared}><path d="M12 19V5M6 11l6-6 6 6" /></svg>;
     case "close":
       return <svg {...shared}><path d="m6 6 12 12M18 6 6 18" /></svg>;
+    case "thumbUp":
+      return <svg {...shared}><path d="M7 10v11H4V10h3Z" /><path d="M7 10l4-7a2 2 0 0 1 3 2l-1 5h6a2 2 0 0 1 2 2.3l-1.4 7A2 2 0 0 1 17.6 21H7" /></svg>;
+    case "thumbDown":
+      return <svg {...shared}><path d="M17 14V3h3v11h-3Z" /><path d="M17 14l-4 7a2 2 0 0 1-3-2l1-5H5a2 2 0 0 1-2-2.3l1.4-7A2 2 0 0 1 6.4 3H17" /></svg>;
   }
 }
 
@@ -216,9 +228,10 @@ export default function Home() {
         throw new Error("The chat service returned an invalid response. Please try again.");
       }
 
+      const turnId = typeof payload.turn_id === "string" ? payload.turn_id : undefined;
       setMessages((current) => [
         ...current,
-        { id: nextMessageId.current++, role: "assistant", content: payload.answer as string },
+        { id: nextMessageId.current++, role: "assistant", content: payload.answer as string, turnId, question: content },
       ]);
     } catch (error) {
       if (generation !== requestGenerationRef.current) return;
@@ -243,6 +256,30 @@ export default function Home() {
         abortControllerRef.current = null;
         setIsRequesting(false);
       }
+    }
+  }
+
+  async function rateAnswer(message: ChatMessage, rating: Rating) {
+    if (!CHAT_API_BASE_URL || !message.turnId || !sessionIdRef.current) return;
+    const previous = message.rating;
+    const setRating = (value: Rating | undefined) =>
+      setMessages((current) => current.map((item) => (item.id === message.id ? { ...item, rating: value } : item)));
+    setRating(rating);
+    try {
+      const response = await fetch(`${CHAT_API_BASE_URL}/api/feedback`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          session_id: sessionIdRef.current,
+          turn_id: message.turnId,
+          rating,
+          message: message.question,
+          answer: message.content,
+        }),
+      });
+      if (!response.ok) setRating(previous);
+    } catch {
+      setRating(previous);
     }
   }
 
@@ -290,9 +327,27 @@ export default function Home() {
                     <span className="welcome-icon flex size-9 shrink-0 items-center justify-center rounded-full">
                       <Icon name="sparkles" className="size-[18px]" />
                     </span>
-                    <p className="assistant-message max-w-[85%] whitespace-pre-wrap break-words rounded-2xl border px-4 py-3 text-[15px] leading-6">
-                      {message.content}
-                    </p>
+                    <div className="flex max-w-[85%] flex-col items-start gap-1">
+                      <p className="assistant-message whitespace-pre-wrap break-words rounded-2xl border px-4 py-3 text-[15px] leading-6">
+                        {message.content}
+                      </p>
+                      {message.turnId && (
+                        <div className="feedback-row flex gap-1 pl-1" role="group" aria-label="Rate this answer">
+                          {(["up", "down"] as const).map((rating) => (
+                            <button
+                              key={rating}
+                              type="button"
+                              className="feedback-button flex size-7 items-center justify-center rounded-lg transition-colors"
+                              aria-label={rating === "up" ? "Helpful answer" : "Unhelpful answer"}
+                              aria-pressed={message.rating === rating}
+                              onClick={() => rateAnswer(message, rating)}
+                            >
+                              <Icon name={rating === "up" ? "thumbUp" : "thumbDown"} className="size-[15px]" />
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                    </div>
                   </div>
                 ) : message.role === "user" ? (
                   <div className="flex justify-end" key={message.id}>

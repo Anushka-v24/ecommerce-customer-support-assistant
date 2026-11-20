@@ -50,6 +50,7 @@ ROUTE_TO_NODE = {
     "unknown_intent": "unknown_intent_node",
     "out_of_scope": "out_of_scope_node",
     "verification_error": "verification_error_node",
+    "order_cancellation": "order_cancellation_node",
 }
 _VERIFIED_STATUSES = {"ACCEPTED_BY_CLASSIFIER", "CORRECT_INTENT", "CORRECTED_INTENT"}
 
@@ -75,6 +76,16 @@ _GENERAL_POLICY_QUESTION = re.compile(
 )
 
 
+# Cancelling a specific order is supported; fee/policy questions and item
+# changes stay on the unsupported order_management reply.
+_CANCEL_REQUEST = re.compile(r"cancel|कैंसिल|कैंसल|रद्द|\bradd\b", re.IGNORECASE)
+_CANCEL_POLICY_QUESTION = re.compile(r"\b(?:fee|fees|charge|charges|penalty|policy)\b|शुल्क|चार्ज", re.IGNORECASE)
+
+
+def _is_order_cancellation_request(query: str | None) -> bool:
+    return isinstance(query, str) and bool(_CANCEL_REQUEST.search(query)) and not _CANCEL_POLICY_QUESTION.search(query)
+
+
 def _is_general_return_refund_policy_question(query: str | None) -> bool:
     if not isinstance(query, str) or _POLICY_ACTION_REQUEST.search(query):
         return False
@@ -98,6 +109,8 @@ def route_classifier_result(state: AgentState) -> str:
         return "unknown_intent"
     if final_intent == "out_of_scope":
         return "out_of_scope"
+    if final_intent == "order_management" and _is_order_cancellation_request(state.get("query")):
+        return "order_cancellation"
     if final_intent in UNSUPPORTED_INTENTS:
         return "unsupported"
     if final_intent == "issue_support" and _is_general_return_refund_policy_question(

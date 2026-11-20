@@ -10,6 +10,8 @@ from __future__ import annotations
 import re
 from typing import Any
 
+from app.services.llm_extraction import extract_issue_details
+
 
 ISSUE_PATTERNS: dict[str, tuple[re.Pattern[str], ...]] = {
     "refund_status": (
@@ -54,6 +56,15 @@ def resolve_issue_type(
         return {"outcome": "resolved", "issue_type": matches[0], "candidates": matches, "source": "phrase_rules", "error": None}
     if len(matches) > 1:
         return {"outcome": "clarification_required", "issue_type": None, "candidates": matches, "error": "The message describes more than one support issue."}
+
+    # Phrase rules are English-only; Hindi, Hinglish, and unusual phrasing go to
+    # the structured extractor, which can only answer with a known issue type.
+    extracted = extract_issue_details(query) or {}
+    if extracted.get("issue_type") in ISSUE_PATTERNS:
+        return {
+            "outcome": "resolved", "issue_type": extracted["issue_type"], "candidates": [extracted["issue_type"]],
+            "order_id": extracted.get("order_id"), "source": "llm_extraction", "error": None,
+        }
 
     prior_issue = (context or {}).get("issue_type")
     if prior_issue in ISSUE_PATTERNS:

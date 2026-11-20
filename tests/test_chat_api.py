@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 import unittest
 import tempfile
 from pathlib import Path
@@ -14,6 +15,8 @@ from app.graph.workflow import build_graph, invoke_graph
 from app.services import case_repository
 from app.services.case_repository import list_demo_records
 from langgraph.checkpoint.memory import InMemorySaver
+# Tests never share the developer's PostgreSQL checkpoints; .env may select them.
+patch.object(Config, "CHECKPOINT_BACKEND", "memory").start()
 
 
 class ApiTestConfig(Config):
@@ -23,6 +26,7 @@ class ApiTestConfig(Config):
     MAX_CHAT_MESSAGE_LENGTH = 32
     MAX_SESSION_ID_LENGTH = 24
     MAX_CONTENT_LENGTH = 65536
+    TURN_LOG_ENABLED = False
 
 
 class WildcardCorsConfig(ApiTestConfig):
@@ -53,7 +57,9 @@ class FlaskChatApiTests(unittest.TestCase):
         with patch("app.api.routes.invoke_graph", return_value=graph_result) as invoke:
             response = self.post({"session_id": "customer-a", "message": "Where is my order?"})
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.get_json(), {
+        body = response.get_json()
+        self.assertRegex(body.pop("turn_id"), r"^[0-9a-f]{32}$")
+        self.assertEqual(body, {
             "session_id": "customer-a",
             "answer": "Please provide your order ID.",
             "intent": "order_tracking",
@@ -205,6 +211,52 @@ class FlaskChatApiTests(unittest.TestCase):
         self.assertEqual(calls, ["My order arrived damaged"])
         self.assertEqual(len(records), 1)
         self.assertIn("screen is cracked", records[0]["reason"])
+
+
+class TurnLogAndFeedbackTests(unittest.TestCase):
+    def setUp(self):
+        self.log_dir = tempfile.TemporaryDirectory()
+        self.addCleanup(self.log_dir.cleanup)
+        config = type("LoggingConfig", (ApiTestConfig,), {"TURN_LOG_ENABLED": True, "TURN_LOG_DIR": self.log_dir.name})
+        self.client = create_app(config).test_client()
+
+    def records(self, filename):
+        path = Path(self.log_dir.name) / filename
+        return [json.loads(line) for line in path.read_text(encoding="utf-8").splitlines()]
+
+    def test_chat_turn_is_logged_with_monitoring_fields(self):
+        graph_result = {
+            "response": "Order ORD-1001 has shipped.", "final_intent": "order_tracking",
+            "predicted_intent": "order_tracking", "confidence_score": 99.1,
+            "verifier_status": "ACCEPTED_BY_CLASSIFIER", "selected_route": "order_tracking",
+            "workflow_status": "completed",
+        }
+        with patch("app.api.routes.invoke_graph", return_value=graph_result):
+            body = self.client.post("/api/chat", json={"session_id": "s1", "message": "where is ORD-1001"}).get_json()
+        [record] = self.records("turns.jsonl")
+        self.assertEqual(record["turn_id"], body["turn_id"])
+        self.assertEqual((record["final_intent"], record["confidence"], record["route"]), ("order_tracking", 99.1, "order_tracking"))
+        self.assertIn("latency_ms", record)
+
+    def test_thumbs_down_is_stored_with_message_and_answer(self):
+        response = self.client.post("/api/feedback", json={
+            "session_id": "s1", "turn_id": "abc123", "rating": "down",
+            "message": "i do not like my order", "answer": "Not supported.", "comment": "wrong",
+        })
+        self.assertEqual(response.status_code, 201)
+        [record] = self.records("feedback.jsonl")
+        self.assertEqual((record["rating"], record["message"], record["comment"]), ("down", "i do not like my order", "wrong"))
+
+    def test_invalid_feedback_is_rejected(self):
+        for body in (
+            {"session_id": "s1", "turn_id": "t", "rating": "meh"},
+            {"session_id": "s1", "rating": "up"},
+            {"session_id": "s1", "turn_id": "t", "rating": "up", "extra": 1},
+            {"session_id": "s1", "turn_id": "t", "rating": "up", "message": "x" * 33},
+        ):
+            with self.subTest(body=body):
+                self.assertEqual(self.client.post("/api/feedback", json=body).status_code, 400)
+        self.assertFalse((Path(self.log_dir.name) / "feedback.jsonl").exists())
 
 
 if __name__ == "__main__":

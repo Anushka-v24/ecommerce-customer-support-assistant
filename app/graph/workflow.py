@@ -24,6 +24,7 @@ def build_graph(checkpointer: Any | None = None):
         "pending_clarification_node": nodes.pending_clarification_node,
         "finalize_turn_node": nodes.finalize_turn_node,
         "order_tracking_node": nodes.order_tracking_node,
+        "order_cancellation_node": nodes.order_cancellation_node,
         "product_inquiry_node": nodes.product_inquiry_node,
         "payment_node": nodes.payment_node,
         "issue_resolver_node": nodes.issue_resolver_node,

@@ -5,6 +5,7 @@ from __future__ import annotations
 import logging
 import re
 from typing import Any
+from uuid import uuid4
 
 from app.classifier.classifier_service import classify_and_verify
 from app.config import Config
@@ -18,6 +19,7 @@ from app.rag.service import (
 from app.rag.workflow import run_agentic_rag
 from app.services.issue_resolver import resolve_issue_type
 from app.services.product_service import search_products
+from app.services.shipping_payment_service import answer_payment_question, answer_shipping_question
 from app.services.store_response import format_store_information
 from app.tools.customer_care_tools import customer_handoff_tool
 from app.tools.issue_tools import (
@@ -93,11 +95,17 @@ def _slot_answer_is_valid(slot: str | None, query: str) -> bool:
     return False
 
 
+def _classify(query: str, state: AgentState) -> dict[str, Any]:
+    """Classify the latest message; earlier turns only help the Groq verifier resolve references."""
+    history = list(state.get("messages") or [])
+    return classify_and_verify(query, history=history) if history else classify_and_verify(query)
+
+
 def _classify_pending_message(state: AgentState, pending: dict[str, Any]) -> dict[str, Any]:
     """Classify only when the current text does not validate against its pending slot."""
     query = (state.get("query") or "").strip()
     try:
-        result = classify_and_verify(query)
+        result = _classify(query, state)
     except Exception as exc:
         result = {"verifier_status": "CLASSIFICATION_ERROR", "final_intent": None, "error": str(exc)}
     result = {**result, "query": query}
@@ -358,6 +366,8 @@ def resume_pending_node(state: AgentState) -> dict[str, Any]:
         return product_inquiry_node(state)
     if workflow == "issue_support":
         return issue_resolver_node(state)
+    if workflow == "order_cancellation":
+        return order_cancellation_node(state)
     response = "I could not safely resume that pending request. Please describe what you need again."
     return {"selected_route": "pending:unsupported", "response": response, "tool_result": {"status": "not_executed"}, "pending_workflow": None, "workflow_status": "idle", "resuming_pending": False, "messages": _append_message(state, "assistant", response)}
 
@@ -457,7 +467,7 @@ def classify_intent_node(state: AgentState) -> dict[str, Any]:
     query = state.get("query") or ""
     messages = _append_message(state, "user", query)
     try:
-        result = state.get("preclassified_result") or classify_and_verify(query)
+        result = state.get("preclassified_result") or _classify(query, state)
     except Exception as exc:
         result = {
             "predicted_intent": None, "confidence_score": None, "final_intent": None,
@@ -540,6 +550,61 @@ def order_tracking_node(state: AgentState) -> dict[str, Any]:
     elif not state.get("pending_workflow"):
         output["workflow_status"] = "completed"
     return output
+
+
+_CANCELLABLE_STATUSES = {"processing"}
+
+
+def order_cancellation_node(state: AgentState) -> dict[str, Any]:
+    """Cancel a not-yet-shipped demo order, but only after an explicit yes."""
+    pending = state.get("pending_workflow") or {}
+    collected = dict(pending.get("collected") or {})
+    order_id = _order_id(state) or collected.get("order_id")
+    base = {"selected_route": "order_cancellation", "error": None}
+
+    def reply(response: str, tool_result: dict[str, Any], **extra: Any) -> dict[str, Any]:
+        return {**base, "tool_result": tool_result, "response": response,
+                "messages": _append_message(state, "assistant", response), **extra}
+
+    if not order_id:
+        prompt = "Which order would you like to cancel? Please share the order ID (for example, ORD-1002)."
+        return reply(prompt, {"outcome": "missing_order_id", "executed": False},
+                     pending_workflow=_pending("order_cancellation", "order_id", {}, prompt, required_slots=["order_id"], classifier_intent="order_management"),
+                     workflow_status="awaiting_input", pending_clarification=prompt, resuming_pending=False)
+
+    done = {"pending_workflow": None, "workflow_status": "completed", "pending_clarification": None,
+            "resuming_pending": False, "confirmation_required": False, "confirmation_status": None}
+    if state.get("confirmation_status") == "confirmed" and collected.get("order_id") == order_id:
+        reference = f"DEMO-CANCEL-{uuid4().hex[:10].upper()}"
+        response = (
+            f"Order {order_id} has been cancelled in this demonstration (reference {reference}). "
+            "Any payment would be refunded to the original method. No real order was changed."
+        )
+        return reply(response, {"outcome": "cancelled", "order_id": order_id, "reference": reference, "executed": True}, **done)
+
+    try:
+        result = lookup_order_status(order_id)
+    except Exception:
+        logger.exception("Order lookup for cancellation failed.")
+        result = {"outcome": "data_unavailable"}
+    if result["outcome"] != "found":
+        response = f"I could not find order {order_id} in the demonstration data, so nothing was cancelled. Please check the ID."
+        return reply(response, {"outcome": result["outcome"], "executed": False}, **done)
+
+    status = result["order_status"]
+    if status.casefold() not in _CANCELLABLE_STATUSES:
+        response = (
+            f"Order {order_id} is already {status.lower()}, so it can no longer be cancelled. "
+            "Once it arrives, I can help you start a return instead."
+        )
+        return reply(response, {"outcome": "not_cancellable", "order_id": order_id, "order_status": status, "executed": False}, **done)
+
+    prompt = f"Order {order_id} is still {status.lower()}. Do you want me to cancel it? Reply 'yes' to cancel or 'no' to keep it."
+    awaiting = _pending("order_cancellation", "confirmation", {"order_id": order_id}, prompt, classifier_intent="order_management")
+    awaiting["status"] = "awaiting_confirmation"
+    return reply(prompt, {"outcome": "awaiting_confirmation", "order_id": order_id, "executed": False},
+                 pending_workflow=awaiting, workflow_status="awaiting_confirmation", pending_clarification=prompt,
+                 resuming_pending=False, confirmation_required=True, confirmation_status="requested")
 
 
 def product_inquiry_node(state: AgentState) -> dict[str, Any]:
@@ -676,7 +741,7 @@ def issue_resolver_node(state: AgentState) -> dict[str, Any]:
         }
 
     issue_type = resolution["issue_type"]
-    order_id = _order_id(state) or collected.get("order_id")
+    order_id = _order_id(state) or collected.get("order_id") or resolution.get("order_id")
     if order_id:
         collected["order_id"] = order_id
     if issue_type == "return_order":
@@ -925,19 +990,29 @@ def store_information_node(state: AgentState) -> dict[str, Any]:
     }
 
 
+def _information_result(state: AgentState, route: str, result: dict[str, Any]) -> dict[str, Any]:
+    response = result["response"]
+    return {
+        "selected_route": route,
+        "tool_result": {**result, "executed": result["outcome"] == "answered"},
+        "response": response, "error": None,
+        "workflow_status": "completed",
+        "messages": _append_message(state, "assistant", response),
+    }
+
+
 def payment_node(state: AgentState) -> dict[str, Any]:
-    route = "payment_support" if state.get("final_intent") == "issue_support" else "payment"
-    return _workflow_pending(
-        state, route,
-        f"The {route.replace('_', ' ')} workflow was selected, but its business integration is pending. No payment operation was performed.",
-    )
+    if state.get("final_intent") == "issue_support":
+        return _workflow_pending(
+            state, "payment_support",
+            "The payment support workflow was selected, but its business integration is pending. No payment operation was performed.",
+        )
+    return _information_result(state, "payment", answer_payment_question(state.get("query")))
 
 
 def shipping_node(state: AgentState) -> dict[str, Any]:
-    return _workflow_pending(
-        state, "shipping",
-        "Shipping information was selected, but its business integration is pending. No shipping lookup was performed.",
-    )
+    result = answer_shipping_question(state.get("query"), state.get("final_intent"))
+    return _information_result(state, "shipping", result)
 
 
 def rag_node(state: AgentState) -> dict[str, Any]:
@@ -954,7 +1029,7 @@ SUPPORTED_ALTERNATIVES = (
 UNSUPPORTED_RESPONSES = {
     "account_management": "I can't make changes to your account here yet.",
     "add_to_cart": "I can't add items to your cart from this chat yet.",
-    "order_management": "I can't cancel or change orders from this chat yet.",
+    "order_management": "I can cancel an order that hasn't shipped yet, but I can't change the items in an order from this chat.",
     "place_order": "I can't place orders from this chat yet.",
     "remove_from_cart": "I can't change your cart from this chat yet.",
     "submit_feedback": "Thanks for sharing that. I can't record feedback from this chat yet.",

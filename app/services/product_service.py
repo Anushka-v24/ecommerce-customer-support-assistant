@@ -2,14 +2,31 @@
 
 from __future__ import annotations
 
+import difflib
 import re
 from typing import Any
 
 from app.services.data_repository import load_products
+from app.services.llm_extraction import match_catalog_product
 
 
 PRODUCT_ID_PATTERN = re.compile(r"^PROD-\d{3}$", re.IGNORECASE)
 _WORD_PATTERN = re.compile(r"[\w]+", re.UNICODE)
+
+
+def _stem(word: str) -> str:
+    return word[:-1] if len(word) > 3 and word.endswith("s") and not word.endswith("ss") else word
+
+
+def _close_token_match(query_words: set[str], name_words: set[str]) -> bool:
+    """Match plurals ("laptops") and small typos ("headphnes") on meaningful words only."""
+    query_stems = {_stem(word) for word in query_words if len(word) >= 4}
+    for name_word in (_stem(word) for word in name_words if len(word) >= 4):
+        if name_word in query_stems:
+            return True
+        if difflib.get_close_matches(name_word, query_stems, n=1, cutoff=0.85):
+            return True
+    return False
 
 
 def _normalise_product_id(product_id: str) -> str:
@@ -72,10 +89,15 @@ def search_products(query: str | None) -> dict[str, Any]:
         exact_id = normalized_query == " ".join(_WORD_PATTERN.findall(product_id.casefold()))
         exact_name = normalized_query == normalized_name
         name_in_query = bool(normalized_name and normalized_name in normalized_query)
-        token_match = bool(query_words & name_words)
+        token_match = bool(query_words & name_words) or _close_token_match(query_words, name_words)
         if exact_id or exact_name or name_in_query or token_match:
             candidates.append(_public_product(record))
 
+    if not candidates:
+        # Category words ("phone", "earphones", "laptop wala") need meaning, not tokens.
+        names = tuple(sorted(r["name"] for r in products.values() if isinstance(r.get("name"), str)))
+        matched_name = match_catalog_product(query, names)
+        candidates = [_public_product(r) for r in products.values() if r.get("name") == matched_name]
     if not candidates:
         return {"outcome": "not_found", "matches": [], "error": "No matching demonstration product was found."}
     if len(candidates) > 1:

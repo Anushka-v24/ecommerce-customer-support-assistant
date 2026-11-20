@@ -107,6 +107,20 @@ textarea:focus-visible {
   background: var(--hover);
 }
 
+.feedback-button {
+  color: var(--text-muted);
+}
+
+.feedback-button:hover {
+  background: var(--hover);
+  color: var(--text);
+}
+
+.feedback-button[aria-pressed="true"] {
+  background: var(--accent-soft);
+  color: var(--accent-text);
+}
+
 .section-label {
   color: var(--text-muted);
 }

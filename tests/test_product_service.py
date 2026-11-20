@@ -8,6 +8,8 @@ from app.services.product_service import get_product_by_id, get_product_stock, s
 
 
 patch.object(Config, "BUSINESS_DATA_BACKEND", "json").start()
+# Unit tests stay offline; the Groq extraction fallback has its own mocked tests.
+patch.object(Config, "LLM_EXTRACTION_ENABLED", False).start()
 
 
 class ProductServiceTests(unittest.TestCase):

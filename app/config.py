@@ -26,6 +26,10 @@ class Config:
     MAX_CHAT_MESSAGE_LENGTH = int(os.getenv("MAX_CHAT_MESSAGE_LENGTH", "10000"))
     MAX_SESSION_ID_LENGTH = int(os.getenv("MAX_SESSION_ID_LENGTH", "128"))
     MAX_CONTENT_LENGTH = int(os.getenv("MAX_CONTENT_LENGTH", str(64 * 1024)))
+    # Per-turn monitoring records and thumbs up/down feedback (JSONL, Git-ignored).
+    TURN_LOG_ENABLED = _as_bool(os.getenv("TURN_LOG_ENABLED"), default=True)
+    TURN_LOG_DIR = os.getenv("TURN_LOG_DIR", str(PROJECT_ROOT / "data" / "runtime"))
+    MAX_FEEDBACK_COMMENT_LENGTH = int(os.getenv("MAX_FEEDBACK_COMMENT_LENGTH", "1000"))
     # Optional read-only FakeStore catalog. No inventory quantities are exposed by the API.
     FAKESTORE_ENABLED = _as_bool(os.getenv("FAKESTORE_ENABLED"), default=False)
     FAKESTORE_API_BASE_URL = os.getenv("FAKESTORE_API_BASE_URL", "https://fakestoreapi.com").rstrip("/")
@@ -60,6 +64,9 @@ class Config:
         os.getenv("INTENT_CONFIDENCE_THRESHOLD", "95.0")
     )
     GROQ_MODEL = os.getenv("GROQ_MODEL", "openai/gpt-oss-20b")
+    # Structured Groq fallback for issue types and product names the rules miss.
+    LLM_EXTRACTION_ENABLED = _as_bool(os.getenv("LLM_EXTRACTION_ENABLED"), default=True)
+    LLM_EXTRACTION_TIMEOUT_SECONDS = float(os.getenv("LLM_EXTRACTION_TIMEOUT_SECONDS", "8"))
 
     # RAG providers are configured separately and instantiated only on demand.
     OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "").strip() or None

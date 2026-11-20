@@ -16,6 +16,8 @@ from app.integrations import fakestore_client
 from app.integrations.fakestore_client import FakeStoreClient, FakeStoreError
 from langgraph.checkpoint.memory import InMemorySaver
 from app.tools import fakestore_tools
+# Tests never share the developer's PostgreSQL checkpoints; .env may select them.
+patch.object(Config, "CHECKPOINT_BACKEND", "memory").start()
 
 
 PRODUCT = {
@@ -211,7 +213,7 @@ class FakeStoreClientTests(unittest.TestCase):
 
     def test_flask_api_runs_graph_with_fake_http_catalog_response(self):
         fakestore_client.get_fakestore_client.cache_clear()
-        config = type("TestConfig", (Config,), {"TESTING": True, "FAKESTORE_ENABLED": True})
+        config = type("TestConfig", (Config,), {"TESTING": True, "FAKESTORE_ENABLED": True, "TURN_LOG_ENABLED": False})
         app = create_app(config)
         fake_opener = lambda *_args, **_kwargs: FakeResponse([PRODUCT])
         classification = {

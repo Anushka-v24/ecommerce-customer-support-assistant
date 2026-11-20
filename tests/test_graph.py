@@ -13,7 +13,11 @@ from app.rag.service import RAGConfigurationError
 
 
 patch.object(Config, "BUSINESS_DATA_BACKEND", "json").start()
+# Unit tests stay offline; the Groq extraction fallback has its own mocked tests.
+patch.object(Config, "LLM_EXTRACTION_ENABLED", False).start()
 patch.object(nodes, "get_rag_service", side_effect=RAGConfigurationError("OPENAI_API_KEY is not configured")).start()
+# Tests never share the developer's PostgreSQL checkpoints; .env may select them.
+patch.object(Config, "CHECKPOINT_BACKEND", "memory").start()
 
 
 def classifier_result(
@@ -39,14 +43,6 @@ class LangGraphRoutingTests(unittest.TestCase):
         with patch.object(nodes, "classify_and_verify", return_value=result):
             return invoke_graph(query, session_id or str(uuid4()), graph)
 
-    def assert_pending_route(self, intent, expected_route, query="test query"):
-        result = self.run_result(classifier_result(intent, intent), query=query)
-        self.assertEqual(result["selected_route"], expected_route)
-        self.assertEqual(result["tool_result"]["status"], "pending")
-        self.assertFalse(result["tool_result"]["executed"])
-        self.assertIn("pending", result["response"].lower())
-        return result
-
     def test_order_tracking_route(self):
         result = self.run_result(
             classifier_result("order_tracking", "order_tracking"),
@@ -67,8 +63,13 @@ class LangGraphRoutingTests(unittest.TestCase):
         self.assertEqual(result["tool_result"]["name"], "Laptop Pro")
         self.assertTrue(result["tool_result"]["lookup_performed"])
 
-    def test_billing_and_payment_route(self):
-        self.assert_pending_route("billing_and_payment", "payment")
+    def test_billing_and_payment_route_answers_methods_and_invoices(self):
+        result = self.run_result(classifier_result("billing_and_payment", "billing_and_payment"), query="Can I pay with UPI?")
+        self.assertEqual(result["selected_route"], "payment")
+        self.assertEqual(result["tool_result"]["outcome"], "answered")
+        self.assertIn("UPI", result["response"])
+        invoice = self.run_result(classifier_result("billing_and_payment", "billing_and_payment"), query="mujhe invoice chahiye")
+        self.assertIn("invoice is emailed", invoice["response"])
 
     def test_issue_support_asks_for_problem_type_when_ambiguous(self):
         result = self.run_result(
@@ -77,11 +78,19 @@ class LangGraphRoutingTests(unittest.TestCase):
         self.assertEqual(result["selected_route"], "issue_support:clarification")
         self.assertEqual(result["tool_result"]["outcome"], "clarification_required")
         self.assertIn("Which issue", result["response"])
-    def test_delivery_options_route(self):
-        self.assert_pending_route("delivery_options", "shipping")
+    def test_delivery_options_route_answers_by_city(self):
+        result = self.run_result(classifier_result("delivery_options", "delivery_options"), query="क्या आप बैंगलोर में डिलीवरी करते हैं?")
+        self.assertEqual(result["selected_route"], "shipping")
+        self.assertIn("Yes, we deliver to Bengaluru", result["response"])
+        self.assertIn("Same-day delivery", result["response"])
+        abroad = self.run_result(classifier_result("delivery_options", "delivery_options"), query="can you deliver internationally?")
+        self.assertIn("only within India", abroad["response"])
 
-    def test_shipping_cost_route(self):
-        self.assert_pending_route("shipping_cost", "shipping")
+    def test_shipping_cost_route_includes_fees(self):
+        result = self.run_result(classifier_result("shipping_cost", "shipping_cost"), query="shipping fee for Chennai?")
+        self.assertEqual(result["selected_route"], "shipping")
+        self.assertIn("₹49", result["response"])
+        self.assertNotIn("Same-day", result["response"])
 
     def test_store_information_route(self):
         result = self.run_result(
@@ -172,7 +181,7 @@ class LangGraphRoutingTests(unittest.TestCase):
     def test_separate_thread_ids_keep_conversations_isolated(self):
         graph = build_graph()
 
-        def classify_by_query(query):
+        def classify_by_query(query, history=None):
             intent = "order_tracking" if "order" in query.lower() else "product_inquiry"
             return classifier_result(intent, intent)
 

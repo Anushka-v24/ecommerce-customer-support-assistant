@@ -14,7 +14,11 @@ from app.services.case_repository import list_demo_records
 
 
 patch.object(Config, "BUSINESS_DATA_BACKEND", "json").start()
+# Unit tests stay offline; the Groq extraction fallback has its own mocked tests.
+patch.object(Config, "LLM_EXTRACTION_ENABLED", False).start()
 patch.object(nodes, "get_rag_service", side_effect=RAGConfigurationError("OPENAI_API_KEY is not configured")).start()
+# Tests never share the developer's PostgreSQL checkpoints; .env may select them.
+patch.object(Config, "CHECKPOINT_BACKEND", "memory").start()
 
 
 def classified(intent, status="ACCEPTED_BY_CLASSIFIER"):
@@ -93,7 +97,8 @@ class ConversationContinuityTests(unittest.TestCase):
     def test_new_request_calls_classifier_once_and_valid_slot_answer_skips_it(self):
         with patch.object(nodes, "classify_and_verify", return_value=classified("order_tracking")) as classifier:
             first = self.turn("count-thread", "Where is my order?")
-        classifier.assert_called_once_with("Where is my order?")
+        classifier.assert_called_once()
+        self.assertEqual(classifier.call_args.args[0], "Where is my order?")
         self.assertEqual(first["pending_workflow"]["awaiting_slot"], "order_id")
         with patch.object(nodes, "classify_and_verify") as classifier:
             self.turn("count-thread", "ORD-1001")
@@ -103,7 +108,8 @@ class ConversationContinuityTests(unittest.TestCase):
         self.turn("invalid-slot", "Where is my order?", "order_tracking")
         with patch.object(nodes, "classify_and_verify", return_value=classified(None, "UNVERIFIED")) as classifier:
             result = self.turn("invalid-slot", "ORD-ABC")
-        classifier.assert_called_once_with("ORD-ABC")
+        classifier.assert_called_once()
+        self.assertEqual(classifier.call_args.args[0], "ORD-ABC")
         self.assertEqual(result["selected_route"], "pending:order_tracking")
         self.assertEqual(result["pending_workflow"]["status"], "awaiting_input")
         self.assertIn("format is not recognized", result["response"])
@@ -112,7 +118,8 @@ class ConversationContinuityTests(unittest.TestCase):
         self.turn("interrupt-stack", "Where is my order?", "order_tracking")
         with patch.object(nodes, "classify_and_verify", return_value=classified("issue_support")) as classifier:
             refund_start = self.turn("interrupt-stack", "Where is my refund?")
-        classifier.assert_called_once_with("Where is my refund?")
+        classifier.assert_called_once()
+        self.assertEqual(classifier.call_args.args[0], "Where is my refund?")
         self.assertEqual(refund_start["pending_workflow"]["workflow"], "issue_support")
         self.assertEqual(len(refund_start["suspended_workflows"]), 1)
 
@@ -149,7 +156,8 @@ class ConversationContinuityTests(unittest.TestCase):
         self.turn("ambiguous-product", "Do you have an item in stock?", "product_inquiry")
         with patch.object(nodes, "classify_and_verify", return_value=classified(None, "UNVERIFIED")) as classifier, patch.object(nodes, "check_product_stock") as stock_lookup:
             result = self.turn("ambiguous-product", "Laptop Pro or Galaxy S21", None)
-        classifier.assert_called_once_with("Laptop Pro or Galaxy S21")
+        classifier.assert_called_once()
+        self.assertEqual(classifier.call_args.args[0], "Laptop Pro or Galaxy S21")
         self.assertEqual(result["selected_route"], "pending:product_inquiry")
         self.assertIn("multiple sample products", result["response"])
         stock_lookup.assert_not_called()
@@ -165,7 +173,8 @@ class ConversationContinuityTests(unittest.TestCase):
         self.turn("invalid-id", "Where is my order?", "order_tracking")
         with patch.object(nodes, "classify_and_verify", return_value=classified(None, "UNVERIFIED")) as classifier, patch.object(nodes, "lookup_order_status") as lookup:
             result = self.turn("invalid-id", "ORD-ABC")
-        classifier.assert_called_once_with("ORD-ABC")
+        classifier.assert_called_once()
+        self.assertEqual(classifier.call_args.args[0], "ORD-ABC")
         self.assertEqual(result["selected_route"], "pending:order_tracking")
         self.assertIn("format is not recognized", result["response"])
         lookup.assert_not_called()
@@ -209,7 +218,8 @@ class ConversationContinuityTests(unittest.TestCase):
                 },
                 config,
             )
-        classifier.assert_called_once_with("maybe")
+        classifier.assert_called_once()
+        self.assertEqual(classifier.call_args.args[0], "maybe")
         self.assertIn("explicit confirmation", initial["response"])
         self.assertEqual(initial["confirmation_status"], "pending")
         with patch.object(nodes, "classify_and_verify") as classifier:

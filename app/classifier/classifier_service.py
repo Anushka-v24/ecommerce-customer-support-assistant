@@ -61,6 +61,33 @@ verified_intent must be null.
 The query is unrelated to e-commerce customer support.
 verified_intent must be null.
 
+The query may also be Hinglish (Hindi written in Latin letters).
+previous_turns, when present, are the most recent messages of the same
+conversation. Use them only to understand references such as "it" or
+"that order"; always classify the latest original query.
+
+Boundary rules learned from real conversations:
+- A complaint or problem with an order the customer already received
+  (disliked, wrong, broken, missing) is issue_support, not submit_feedback
+  or order_management.
+- Questions about sales, offers, discounts, or promotions (including when
+  a sale starts or ends) are store_information, not order_tracking.
+- Asking for a human, agent, or person, including angrily, is
+  customer_care_support.
+- Cancelling or changing an existing order is order_management; buying
+  something new is place_order.
+- Opinions, suggestions, or reviews about the website or service are
+  submit_feedback, not account_management.
+
+Worked examples:
+- "the headphones I got stopped working after one day" -> issue_support
+- "is the festive discount still on?" -> store_information
+- "stop answering me with a robot, I need a real agent" -> customer_care_support
+- "please cancel the phone I ordered yesterday" -> order_management
+- "mujhe ek naya laptop lena hai, order kaise karu" -> place_order
+- "basket se headphones nikal do" -> remove_from_cart
+- "your checkout page is confusing, you should simplify it" -> submit_feedback
+
 IMPORTANT:
 - Never invent a new intent label.
 - Never modify the original intent labels.
@@ -180,7 +207,8 @@ def _validate_verification(
 
 
 def _verify_with_groq(
-    query: str, predicted_intent: str, confidence_score: float, labels: list[str]
+    query: str, predicted_intent: str, confidence_score: float, labels: list[str],
+    history: list[dict[str, Any]] | None = None,
 ) -> dict[str, Any]:
     """Call the existing Groq verification contract only when needed."""
     api_key = os.getenv("GROQ_API_KEY")
@@ -205,6 +233,9 @@ def _verify_with_groq(
         "known_intent_labels": labels,
         "intent_descriptions": descriptions,
     }
+    previous_turns = _previous_turns(history)
+    if previous_turns:
+        user_payload["previous_turns"] = previous_turns
     response = Groq(api_key=api_key).chat.completions.create(
         model=os.getenv("GROQ_MODEL", Config.GROQ_MODEL),
         messages=[
@@ -252,7 +283,16 @@ def _response(
     }
 
 
-def classify_and_verify(query: str) -> dict[str, Any]:
+def _previous_turns(history: list[dict[str, Any]] | None, limit: int = 4) -> list[dict[str, str]]:
+    """Keep the last few text turns, trimmed, so context stays small and cheap."""
+    turns = []
+    for message in (history or [])[-limit:]:
+        if isinstance(message, dict) and isinstance(message.get("content"), str):
+            turns.append({"role": str(message.get("role", "user")), "content": message["content"][:300]})
+    return turns
+
+
+def classify_and_verify(query: str, history: list[dict[str, Any]] | None = None) -> dict[str, Any]:
     """Predict with XLM-R, then use Groq at confidence <= configured threshold."""
     started_at = time.perf_counter()
     if not isinstance(query, str) or not query.strip():
@@ -278,7 +318,7 @@ def classify_and_verify(query: str) -> dict[str, Any]:
 
         try:
             verification = _verify_with_groq(
-                query.strip(), predicted_intent, confidence, labels
+                query.strip(), predicted_intent, confidence, labels, history
             )
             status = verification["status"]
             if status == "CORRECT_INTENT":
