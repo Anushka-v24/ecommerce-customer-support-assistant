@@ -98,3 +98,8 @@ def load_store_information(data_dir: str | Path | None = None) -> dict[str, Any]
 def load_shipping_payment(data_dir: str | Path | None = None) -> dict[str, Any]:
     """Return demonstration delivery methods, serviceable cities, fees, and payment terms."""
     return _load_document("shipping_payment.json", data_dir)
+
+
+def load_warranty(data_dir: str | Path | None = None) -> dict[str, Any]:
+    """Return demonstration warranty periods, coverage, and the claim process."""
+    return _load_document("warranty.json", data_dir)

@@ -1,0 +1,12 @@
+{
+  "data_type": "demonstration_only",
+  "notice": "Fictional warranty terms for development; not a real manufacturer's warranty.",
+  "default_months": 12,
+  "products": {
+    "PROD-001": {"months": 24, "covers": "manufacturing defects, battery and display faults"},
+    "PROD-002": {"months": 12, "covers": "manufacturing defects; accidental and liquid damage are not covered"},
+    "PROD-003": {"months": 12, "covers": "manufacturing defects and charging faults"}
+  },
+  "claim_process": "Keep your order ID and invoice ready; a support agent books a pickup or a visit to the nearest authorised service centre.",
+  "exchange_window_days": 10
+}

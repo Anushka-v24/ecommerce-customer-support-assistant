@@ -324,6 +324,38 @@ python -m evals.run_eval --lang hinglish --tag refund      # filter by language 
 
 Requires the local model and `GROQ_API_KEY`. Add a case for every bug you fix so it cannot regress.
 
+### Accuracy and coverage enhancements
+
+| Feature | Where | Notes |
+| --- | --- | --- |
+| Structured LLM extraction | `app/services/llm_extraction.py` | When the English phrase rules find nothing, one strict-JSON Groq call returns the issue type (and an order ID only if literally present) or a catalogue product name. Values outside the closed sets, and provider failures, fall back to the existing clarification. `LLM_EXTRACTION_ENABLED`, `LLM_EXTRACTION_TIMEOUT_SECONDS`. |
+| Product matching | `app/services/product_service.py` | Plurals and small typos match catalogue words before the LLM fallback is tried. |
+| Context-aware verification | `app/classifier/classifier_service.py` | The Groq verifier receives boundary rules, worked examples, and the last four turns of the conversation. |
+| Shipping and payment answers | `app/services/shipping_payment_service.py`, `data/mock/shipping_payment.json` | Delivery methods, city coverage (English/Hindi spellings), fees, payment methods, and invoices from fictional demo terms. |
+| Order cancellation | `order_cancellation_node` in `app/graph/nodes.py` | Only `Processing` orders; asks for the order ID if missing and cancels only after an explicit yes. Cancellation-fee questions and item changes stay unsupported. |
+| Monitoring and feedback | `app/api/routes.py`, `app/services/turn_log.py` | Each chat reply carries a `turn_id`; intent, confidence, route, and latency are logged and appended to `data/runtime/turns.jsonl`. `POST /api/feedback` (`session_id`, `turn_id`, `rating` = `up`/`down`, optional `message`, `answer`, `comment`) appends to `data/runtime/feedback.jsonl`; the UI shows thumbs up/down under each answer. `TURN_LOG_ENABLED`, `TURN_LOG_DIR`. |
+
+Unit tests pin `CHECKPOINT_BACKEND=memory` and disable the LLM fallback, so they stay offline even when `.env` selects PostgreSQL checkpoints.
+
+When Groq is unavailable (outage or daily token quota), predictions at or above `VERIFIER_FALLBACK_MIN_CONFIDENCE` (default 80) are served with routing `CLASSIFIER_FALLBACK_VERIFIER_UNAVAILABLE`; lower-confidence messages still fail closed. Groq now receives descriptions only for the classifier's five likeliest labels (all labels stay selectable), roughly a third of the previous tokens per call.
+
+### 20-intent classifier: dataset, training, and evaluation
+
+Five intents were added to the original 15: `greeting`, `goodbye_thanks`, `product_recommendation`, `warranty_inquiry`, and `exchange_request` (label ids 15-19). Each has a graph node (`greeting_node`, `goodbye_node`, `product_recommendation_node`, `warranty_node`, `exchange_node`); warranty terms are fictional demo data in `data/mock/warranty.json`.
+
+| Step | Command | Output |
+| --- | --- | --- |
+| Templates | hand-written, `scripts/intent_templates/{en,hi,hinglish}.json` | ~32 templates per intent per language |
+| Dataset | `python scripts/build_intent_dataset.py --original data/training/source/original_153k.csv --per-cell 200` | ~11.9k balanced generated rows (≈600 per intent, ≈4k per language) plus 6k sampled original rows; `data/training/{train,val,test,test_original}.jsonl` |
+| Train | `python scripts/train_intent_classifier.py --epochs 3` | `models/xlmr_intent_classifier_v2/` with `calibration.json` (temperature scaling) and `training_report.json` |
+| Compare | `python scripts/evaluate_classifier.py --model models/xlmr_intent_classifier --model models/xlmr_intent_classifier_v2` | offline accuracy, macro-F1, per-language accuracy, calibration error, confidently-wrong rate |
+
+Templates are assigned to train/val/test by a stable hash, so no test sentence shares a template with training data (the build prints this check). The original CSV is the dataset the base model was trained on (`monish-sd-7/E-Commerce-Customer-Intent-Detection-Dataset`); `data/training/` and the model directories are Git-ignored. Switch the app to the new model with `XLMR_MODEL_PATH=models/xlmr_intent_classifier_v2`.
+
+### LangGraph architecture
+
+`docs/langgraph_architecture.mmd` is generated from the compiled graph (`build_graph(...).get_graph().draw_mermaid()`), so it always matches the code. Paste it into mermaid.live to export an image.
+
 ## Phase status
 
 | Phase | Status | Notes |

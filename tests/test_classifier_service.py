@@ -81,6 +81,9 @@ class FakeModel:
             logits=FakeProbabilities(self.index, self.confidence)
         )
 
+# Added in the 20-label model; ids 15-19 follow the original 15 in this order.
+NEW_LABELS = ["exchange_request", "goodbye_thanks", "greeting", "product_recommendation", "warranty_inquiry"]
+
 
 def make_bundle(index: int, confidence: float):
     return model_loader.ModelBundle(
@@ -161,7 +164,7 @@ class ModelLoaderTests(unittest.TestCase):
             {"XLMR_INTENT_DESCRIPTIONS_PATH": "app/classifier/intent_descriptions.json"},
             clear=True,
         ):
-            self.assertEqual(set(service._load_descriptions()), set(LABELS))
+            self.assertEqual(set(service._load_descriptions()), set(LABELS) | set(NEW_LABELS))
 
     def test_issue_support_description_covers_resolver_subtypes(self):
         # Groq picks labels from these descriptions, so issue_support must name
@@ -320,8 +323,8 @@ class ClassifierServiceTests(unittest.TestCase):
         self.assertIsNone(result["final_intent"])
         self.assertEqual(result["verifier_status"], "OUT_OF_SCOPE")
 
-    def test_groq_failure_fails_closed(self):
-        bundle = make_bundle(7, 0.80)
+    def test_groq_failure_fails_closed_below_fallback_confidence(self):
+        bundle = make_bundle(7, 0.70)
         with (
             patch.object(service, "load_model", return_value=bundle),
             patch.object(service, "_verify_with_groq", side_effect=RuntimeError("network unavailable")),
@@ -333,7 +336,7 @@ class ClassifierServiceTests(unittest.TestCase):
         self.assertIn("network unavailable", result["error"])
 
     def test_groq_configuration_is_checked_only_when_needed(self):
-        bundle = make_bundle(7, 0.80)
+        bundle = make_bundle(7, 0.70)
         with (
             patch.object(service, "load_model", return_value=bundle),
             patch.dict("os.environ", {"GROQ_API_KEY": ""}),
@@ -343,6 +346,50 @@ class ClassifierServiceTests(unittest.TestCase):
         self.assertEqual(result["verifier_status"], "UNVERIFIED")
         self.assertIsNone(result["final_intent"])
         self.assertIn("GROQ_API_KEY is not configured", result["error"])
+
+    def test_verifier_describes_only_likely_labels_but_allows_all(self):
+        completion = MagicMock()
+        completion.choices[0].message.content = json.dumps(
+            verifier_result("CORRECT_INTENT", "order_tracking", "order_tracking")
+        )
+        client = MagicMock()
+        client.chat.completions.create.return_value = completion
+        with (
+            patch.dict(os.environ, {"GROQ_API_KEY": "test-key", "XLMR_INTENT_DESCRIPTIONS_PATH": "app/classifier/intent_descriptions.json"}),
+            patch("groq.Groq", return_value=client),
+        ):
+            service._verify_with_groq("where is it", "order_tracking", 70.0, LABELS, candidates=["issue_support", "delivery_options"])
+
+        kwargs = client.chat.completions.create.call_args.kwargs
+        payload = json.loads(kwargs["messages"][1]["content"].split("\n", 1)[1])
+        self.assertEqual(set(payload["intent_descriptions"]), {"order_tracking", "issue_support", "delivery_options"})
+        self.assertEqual(payload["known_intent_labels"], LABELS)
+        schema_labels = kwargs["response_format"]["json_schema"]["schema"]["properties"]["predicted_intent"]["enum"]
+        self.assertEqual(schema_labels, LABELS)
+
+    def test_groq_failure_accepts_confident_prediction(self):
+        bundle = make_bundle(7, 0.85)
+        with (
+            patch.object(service, "load_model", return_value=bundle),
+            patch.object(service, "_verify_with_groq", side_effect=RuntimeError("rate limit")),
+        ):
+            result = service.classify_and_verify("track my parcel")
+
+        self.assertEqual(result["verifier_status"], "ACCEPTED_BY_CLASSIFIER")
+        self.assertEqual(result["routing"], "CLASSIFIER_FALLBACK_VERIFIER_UNAVAILABLE")
+        self.assertEqual(result["final_intent"], "order_tracking")
+        self.assertIn("rate limit", result["error"])
+
+    def test_fallback_can_be_disabled(self):
+        bundle = make_bundle(7, 0.90)
+        with (
+            patch.object(service, "load_model", return_value=bundle),
+            patch.object(service, "_verify_with_groq", side_effect=RuntimeError("rate limit")),
+            patch.object(service.Config, "VERIFIER_FALLBACK_MIN_CONFIDENCE", 101.0),
+        ):
+            result = service.classify_and_verify("track my parcel")
+
+        self.assertEqual(result["verifier_status"], "UNVERIFIED")
 
 
 if __name__ == "__main__":

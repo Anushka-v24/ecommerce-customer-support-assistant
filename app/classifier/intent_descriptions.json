@@ -28,5 +28,15 @@
 
     "out_of_scope": "Represents customer queries that are unrelated to the e-commerce platform's products, shopping activities, orders, payments, delivery services, or customer support functions. It includes general questions and personal requests concerning emotions, motivation, mental well-being, daily routines, productivity, personal habits, social behaviour, stress, sleep, and other topics outside the supported e-commerce services.",
 
-    "add_to_cart": "Represents customer requests related to adding products or items to their shopping cart or basket on the e-commerce platform. It includes asking how to add a single product or multiple items to the cart, requesting assistance with placing selected products in the basket, and enquiring about where or how to add products before proceeding with a purchase."
+    "add_to_cart": "Represents customer requests related to adding products or items to their shopping cart or basket on the e-commerce platform. It includes asking how to add a single product or multiple items to the cart, requesting assistance with placing selected products in the basket, and enquiring about where or how to add products before proceeding with a purchase.",
+
+    "greeting": "Represents customers opening the conversation without a request yet. It includes saying hello, hi, namaste, good morning, or asking whether anyone is available to help.",
+
+    "goodbye_thanks": "Represents customers thanking the assistant or ending the conversation. It includes saying thank you, that is all, bye, goodnight, or confirming they need nothing further.",
+
+    "product_recommendation": "Represents customer requests for advice on which product to buy. It includes asking for suggestions or the best option for a need or budget, comparing two products, and asking which model suits a purpose. Checking the stock or availability of a named product belongs to product_inquiry.",
+
+    "warranty_inquiry": "Represents customer enquiries about product warranty or guarantee. It includes asking how long the warranty lasts, what it covers, whether an item is still under warranty, how to make a warranty claim, and where to find a repair or service centre.",
+
+    "exchange_request": "Represents customer requests to swap an item they already received for a different size, colour, or model, or to receive a replacement unit instead of a refund. Reporting that an item arrived damaged or defective belongs to issue_support; changing an order that has not shipped belongs to order_management."
 }

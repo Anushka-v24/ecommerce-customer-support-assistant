@@ -36,10 +36,11 @@ You receive:
 1. Original user query.
 2. XLM-R predicted intent.
 3. XLM-R confidence score.
-4. All 15 known intent labels.
-5. Descriptions of all 15 intents.
+4. All known intent labels.
+5. Descriptions of the intents the classifier found most likely.
 
-Compare the query against all 15 intent descriptions.
+Compare the query against the supplied descriptions. You may still choose
+any known label when none of the described ones fits.
 
 Choose exactly one of these four statuses:
 
@@ -50,11 +51,11 @@ verified_intent must equal predicted_intent.
 2. CORRECTED_INTENT:
 The predicted intent is incorrect, but another supplied
 known intent matches the query.
-verified_intent must be one of the original 15 labels.
+verified_intent must be one of the known labels.
 
 3. UNKNOWN_ECOMMERCE_INTENT:
 The query concerns e-commerce customer support, but none
-of the 15 known intents adequately covers it.
+of the known intents adequately covers it.
 verified_intent must be null.
 
 4. OUT_OF_SCOPE:
@@ -139,6 +140,8 @@ def _predict(query: str, bundle: ModelBundle) -> dict[str, Any]:
 
     with bundle.torch.inference_mode():
         logits = bundle.model(**inputs).logits
+    if bundle.temperature != 1.0:
+        logits = logits / bundle.temperature
     probabilities = bundle.torch.softmax(logits, dim=-1)
     confidence, predicted_index = probabilities.max(dim=-1)
     index = int(predicted_index.item())
@@ -148,7 +151,16 @@ def _predict(query: str, bundle: ModelBundle) -> dict[str, Any]:
     return {
         "predicted_intent": bundle.id2label[index],
         "confidence_score": round(float(confidence.item()) * 100, 2),
+        "top_candidates": _top_candidates(probabilities, bundle),
     }
+
+
+def _top_candidates(probabilities: Any, bundle: ModelBundle, k: int = 5) -> list[str]:
+    """Labels the model found most likely; lets the verifier see only relevant descriptions."""
+    if not hasattr(probabilities, "topk"):
+        return []
+    indices = probabilities.topk(min(k, len(bundle.id2label)), dim=-1).indices[0].tolist()
+    return [bundle.id2label[i] for i in indices if i in bundle.id2label]
 
 
 def _json_schema(labels: list[str]) -> dict[str, Any]:
@@ -208,7 +220,7 @@ def _validate_verification(
 
 def _verify_with_groq(
     query: str, predicted_intent: str, confidence_score: float, labels: list[str],
-    history: list[dict[str, Any]] | None = None,
+    history: list[dict[str, Any]] | None = None, candidates: list[str] | None = None,
 ) -> dict[str, Any]:
     """Call the existing Groq verification contract only when needed."""
     api_key = os.getenv("GROQ_API_KEY")
@@ -216,11 +228,18 @@ def _verify_with_groq(
         raise RuntimeError("GROQ_API_KEY is not configured for low-confidence verification.")
 
     descriptions = _load_descriptions()
-    if set(descriptions) != set(labels) or any(
+    if not set(labels) <= set(descriptions) or any(
         not isinstance(text, str) or not text.strip()
         for text in descriptions.values()
     ):
-        raise ValueError("Intent descriptions must match the model's 15 labels.")
+        raise ValueError("Intent descriptions must match the model's labels.")
+    # Every label stays selectable, but only the likeliest ones are described,
+    # which keeps each call to roughly a third of the tokens.
+    described = [label for label in labels if label in set(candidates or []) | {predicted_intent}]
+    if len(described) > 1:
+        descriptions = {label: descriptions[label] for label in described}
+    else:
+        descriptions = {label: descriptions[label] for label in labels}
 
     # Import the SDK only for a low-confidence query so Flask imports do not
     # require Groq credentials or even initialize the Groq client.
@@ -318,7 +337,8 @@ def classify_and_verify(query: str, history: list[dict[str, Any]] | None = None)
 
         try:
             verification = _verify_with_groq(
-                query.strip(), predicted_intent, confidence, labels, history
+                query.strip(), predicted_intent, confidence, labels, history,
+                prediction.get("top_candidates"),
             )
             status = verification["status"]
             if status == "CORRECT_INTENT":
@@ -337,6 +357,18 @@ def classify_and_verify(query: str, history: list[dict[str, Any]] | None = None)
             )
         except Exception as error:
             logger.warning("Groq intent verification failed (%s).", type(error).__name__)
+            if confidence >= Config.VERIFIER_FALLBACK_MIN_CONFIDENCE:
+                # Verifier outage or quota: keep serving reasonably confident
+                # predictions instead of refusing every borderline message.
+                return _response(
+                    predicted_intent,
+                    confidence,
+                    predicted_intent,
+                    "ACCEPTED_BY_CLASSIFIER",
+                    "CLASSIFIER_FALLBACK_VERIFIER_UNAVAILABLE",
+                    started_at,
+                    "Groq verification failed: " + str(error),
+                )
             return _response(
                 predicted_intent,
                 confidence,

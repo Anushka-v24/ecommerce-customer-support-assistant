@@ -64,6 +64,9 @@ class Config:
         os.getenv("INTENT_CONFIDENCE_THRESHOLD", "95.0")
     )
     GROQ_MODEL = os.getenv("GROQ_MODEL", "openai/gpt-oss-20b")
+    # When Groq is unavailable (outage or quota), accept the classifier at or
+    # above this confidence instead of refusing; set above 100 to always refuse.
+    VERIFIER_FALLBACK_MIN_CONFIDENCE = float(os.getenv("VERIFIER_FALLBACK_MIN_CONFIDENCE", "80.0"))
     # Structured Groq fallback for issue types and product names the rules miss.
     LLM_EXTRACTION_ENABLED = _as_bool(os.getenv("LLM_EXTRACTION_ENABLED"), default=True)
     LLM_EXTRACTION_TIMEOUT_SECONDS = float(os.getenv("LLM_EXTRACTION_TIMEOUT_SECONDS", "8"))

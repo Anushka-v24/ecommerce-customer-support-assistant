@@ -324,3 +324,48 @@
 {"id": "oos-hg-03", "lang": "hinglish", "turns": ["gym jaane ka motivation nahi milta"], "intent": "out_of_scope", "route": "out_of_scope"}
 {"id": "oos-hg-04", "lang": "hinglish", "turns": ["aaj ka match kaun jeeta"], "intent": "out_of_scope", "route": "out_of_scope"}
 {"id": "oos-hg-05", "lang": "hinglish", "turns": ["mera dost mujhse naraz hai kya karu"], "intent": "out_of_scope", "route": "out_of_scope"}
+{"id": "gr-en-01", "lang": "en", "turns": ["hey there, is this the support chat?"], "intent": "greeting", "route": "greeting", "tags": ["new_intent"]}
+{"id": "gr-en-02", "lang": "en", "turns": ["good evening"], "intent": "greeting", "route": "greeting", "tags": ["new_intent"]}
+{"id": "gr-en-03", "lang": "en", "turns": ["hello hello, anybody around to help"], "intent": "greeting", "route": "greeting", "tags": ["new_intent"]}
+{"id": "gr-hi-01", "lang": "hi", "turns": ["नमस्कार, क्या आप मेरी मदद कर सकते हैं?"], "intent": "greeting", "route": "greeting", "tags": ["new_intent"]}
+{"id": "gr-hi-02", "lang": "hi", "turns": ["सुप्रभात"], "intent": "greeting", "route": "greeting", "tags": ["new_intent"]}
+{"id": "gr-hi-03", "lang": "hi", "turns": ["हेलो जी, कोई ऑनलाइन है?"], "intent": "greeting", "route": "greeting", "tags": ["new_intent"]}
+{"id": "gr-hg-01", "lang": "hinglish", "turns": ["hii kaise ho, koi hai?"], "intent": "greeting", "route": "greeting", "tags": ["new_intent"]}
+{"id": "gr-hg-02", "lang": "hinglish", "turns": ["namaskar ji"], "intent": "greeting", "route": "greeting", "tags": ["new_intent"]}
+{"id": "gr-hg-03", "lang": "hinglish", "turns": ["helo sir good morning"], "intent": "greeting", "route": "greeting", "tags": ["new_intent"]}
+{"id": "gb-en-01", "lang": "en", "turns": ["ok that solves it, cheers"], "intent": "goodbye_thanks", "route": "goodbye", "tags": ["new_intent"]}
+{"id": "gb-en-02", "lang": "en", "turns": ["nothing else, have a nice day"], "intent": "goodbye_thanks", "route": "goodbye", "tags": ["new_intent"]}
+{"id": "gb-en-03", "lang": "en", "turns": ["thank you so much for the quick help!"], "intent": "goodbye_thanks", "route": "goodbye", "tags": ["new_intent"]}
+{"id": "gb-hi-01", "lang": "hi", "turns": ["शुक्रिया, अब सब ठीक है"], "intent": "goodbye_thanks", "route": "goodbye", "tags": ["new_intent"]}
+{"id": "gb-hi-02", "lang": "hi", "turns": ["बस इतना ही था, अलविदा"], "intent": "goodbye_thanks", "route": "goodbye", "tags": ["new_intent"]}
+{"id": "gb-hi-03", "lang": "hi", "turns": ["आपका बहुत बहुत धन्यवाद"], "intent": "goodbye_thanks", "route": "goodbye", "tags": ["new_intent"]}
+{"id": "gb-hg-01", "lang": "hinglish", "turns": ["thik hai thanks bhai, bas itna hi"], "intent": "goodbye_thanks", "route": "goodbye", "tags": ["new_intent"]}
+{"id": "gb-hg-02", "lang": "hinglish", "turns": ["chalo bye, shukriya"], "intent": "goodbye_thanks", "route": "goodbye", "tags": ["new_intent"]}
+{"id": "gb-hg-03", "lang": "hinglish", "turns": ["mast, problem solve ho gayi, thank u"], "intent": "goodbye_thanks", "route": "goodbye", "tags": ["new_intent"]}
+{"id": "pr-en-01", "lang": "en", "turns": ["I need a laptop for video editing, what do you suggest?"], "intent": "product_recommendation", "route": "product_recommendation", "tags": ["new_intent"], "contains": ["Laptop Pro"]}
+{"id": "pr-en-02", "lang": "en", "turns": ["which is better for gym, earbuds or over-ear headphones?"], "intent": "product_recommendation", "route": "product_recommendation", "tags": ["new_intent"]}
+{"id": "pr-en-03", "lang": "en", "turns": ["can you recommend a gift for my dad under 5000 rupees"], "intent": "product_recommendation", "route": "product_recommendation", "tags": ["new_intent"]}
+{"id": "pr-hi-01", "lang": "hi", "turns": ["पढ़ाई के लिए कौन सा लैपटॉप सही रहेगा?"], "intent": "product_recommendation", "route": "product_recommendation", "tags": ["new_intent"], "contains": ["Laptop Pro"]}
+{"id": "pr-hi-02", "lang": "hi", "turns": ["मुझे अच्छे हेडफ़ोन सुझाइए"], "intent": "product_recommendation", "route": "product_recommendation", "tags": ["new_intent"]}
+{"id": "pr-hi-03", "lang": "hi", "turns": ["Galaxy S21 लूँ या कोई और फ़ोन बेहतर है?"], "intent": "product_recommendation", "route": "product_recommendation", "tags": ["new_intent"]}
+{"id": "pr-hg-01", "lang": "hinglish", "turns": ["gaming ke liye konsa laptop lena chahiye"], "intent": "product_recommendation", "route": "product_recommendation", "tags": ["new_intent"], "contains": ["Laptop Pro"]}
+{"id": "pr-hg-02", "lang": "hinglish", "turns": ["20k ke andar best phone batao"], "intent": "product_recommendation", "route": "product_recommendation", "tags": ["new_intent"]}
+{"id": "pr-hg-03", "lang": "hinglish", "turns": ["mummy ke liye koi accha gift suggest karo"], "intent": "product_recommendation", "route": "product_recommendation", "tags": ["new_intent"]}
+{"id": "wa-en-01", "lang": "en", "turns": ["how many years of warranty does the Laptop Pro come with?"], "intent": "warranty_inquiry", "route": "warranty", "tags": ["new_intent"], "contains": ["24-month"]}
+{"id": "wa-en-02", "lang": "en", "turns": ["my headphones stopped charging after 8 months, is that covered by guarantee?"], "intent": "warranty_inquiry", "route": "warranty", "tags": ["new_intent"]}
+{"id": "wa-en-03", "lang": "en", "turns": ["where is the nearest authorised service center"], "intent": "warranty_inquiry", "route": "warranty", "tags": ["new_intent"]}
+{"id": "wa-hi-01", "lang": "hi", "turns": ["इस फ़ोन पर कितनी गारंटी मिलती है?"], "intent": "warranty_inquiry", "route": "warranty", "tags": ["new_intent"]}
+{"id": "wa-hi-02", "lang": "hi", "turns": ["वारंटी क्लेम करने का तरीका क्या है?"], "intent": "warranty_inquiry", "route": "warranty", "tags": ["new_intent"]}
+{"id": "wa-hi-03", "lang": "hi", "turns": ["क्या Laptop Pro की वारंटी बढ़ाई जा सकती है?"], "intent": "warranty_inquiry", "route": "warranty", "tags": ["new_intent"]}
+{"id": "wa-hg-01", "lang": "hinglish", "turns": ["headphones ki warranty kitne mahine ki hai"], "intent": "warranty_inquiry", "route": "warranty", "tags": ["new_intent"]}
+{"id": "wa-hg-02", "lang": "hinglish", "turns": ["guarantee period khatam to nahi hua, check karo na"], "intent": "warranty_inquiry", "route": "warranty", "tags": ["new_intent"]}
+{"id": "wa-hg-03", "lang": "hinglish", "turns": ["service center kaha hai Pune me, warranty claim karna hai"], "intent": "warranty_inquiry", "route": "warranty", "tags": ["new_intent"]}
+{"id": "ex-en-01", "lang": "en", "turns": ["the shoes fit too tight, can I swap them for one size up?", "ORD-1003"], "intent": "exchange_request", "route": "exchange", "tags": ["new_intent", "multi_turn"], "contains": ["DEMO-EXCH"]}
+{"id": "ex-en-02", "lang": "en", "turns": ["I'd rather get a replacement than a refund for ORD-1003"], "intent": "exchange_request", "route": "exchange", "tags": ["new_intent"], "contains": ["DEMO-EXCH"]}
+{"id": "ex-en-03", "lang": "en", "turns": ["can I exchange the black one I got for white"], "intent": "exchange_request", "route": "exchange", "tags": ["new_intent"]}
+{"id": "ex-hi-01", "lang": "hi", "turns": ["मुझे यह कुर्ता बड़े साइज़ में बदलना है", "ORD-1003"], "intent": "exchange_request", "route": "exchange", "tags": ["new_intent", "multi_turn"], "contains": ["DEMO-EXCH"]}
+{"id": "ex-hi-02", "lang": "hi", "turns": ["पैसे वापस नहीं चाहिए, दूसरा पीस भेज दीजिए"], "intent": "exchange_request", "route": "exchange", "tags": ["new_intent"]}
+{"id": "ex-hi-03", "lang": "hi", "turns": ["ORD-1003 का रंग बदलवाना है"], "intent": "exchange_request", "route": "exchange", "tags": ["new_intent"], "contains": ["DEMO-EXCH"]}
+{"id": "ex-hg-01", "lang": "hinglish", "turns": ["size chhota aa gaya, exchange karwana hai"], "intent": "exchange_request", "route": "exchange", "tags": ["new_intent"]}
+{"id": "ex-hg-02", "lang": "hinglish", "turns": ["ORD-1003 wala product dusre color me badal do"], "intent": "exchange_request", "route": "exchange", "tags": ["new_intent"], "contains": ["DEMO-EXCH"]}
+{"id": "ex-hg-03", "lang": "hinglish", "turns": ["refund nahi chahiye bhai, replacement bhejo"], "intent": "exchange_request", "route": "exchange", "tags": ["new_intent"]}

@@ -213,8 +213,11 @@ class LangGraphRoutingTests(unittest.TestCase):
         self.assertEqual(result["messages"][0], {"role": "user", "content": query})
         self.assertEqual(result["final_intent"], "order_tracking")
 
-    def test_route_table_covers_all_fifteen_model_labels(self):
-        self.assertEqual(len(INTENT_LABELS), 15)
+    def test_route_table_covers_original_and_new_labels(self):
+        self.assertEqual(len(INTENT_LABELS), 20)
+        self.assertEqual(INTENT_LABELS[15:], [
+            "exchange_request", "goodbye_thanks", "greeting", "product_recommendation", "warranty_inquiry",
+        ])
 
 
 @unittest.skipUnless(

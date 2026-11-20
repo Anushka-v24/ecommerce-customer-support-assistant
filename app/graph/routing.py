@@ -29,6 +29,11 @@ INTENT_TO_ROUTE = {
     "delivery_options": "shipping",
     "shipping_cost": "shipping",
     "store_information": "store_information",
+    "greeting": "greeting",
+    "goodbye_thanks": "goodbye",
+    "product_recommendation": "product_recommendation",
+    "warranty_inquiry": "warranty",
+    "exchange_request": "exchange",
 }
 UNSUPPORTED_INTENTS = {
     "account_management", "add_to_cart", "order_management",
@@ -51,6 +56,11 @@ ROUTE_TO_NODE = {
     "out_of_scope": "out_of_scope_node",
     "verification_error": "verification_error_node",
     "order_cancellation": "order_cancellation_node",
+    "greeting": "greeting_node",
+    "goodbye": "goodbye_node",
+    "product_recommendation": "product_recommendation_node",
+    "warranty": "warranty_node",
+    "exchange": "exchange_node",
 }
 _VERIFIED_STATUSES = {"ACCEPTED_BY_CLASSIFIER", "CORRECT_INTENT", "CORRECTED_INTENT"}
 

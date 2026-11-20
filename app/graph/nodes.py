@@ -19,6 +19,7 @@ from app.rag.service import (
 from app.rag.workflow import run_agentic_rag
 from app.services.issue_resolver import resolve_issue_type
 from app.services.product_service import search_products
+from app.services.catalog_help_service import answer_warranty_question, recommend_products
 from app.services.shipping_payment_service import answer_payment_question, answer_shipping_question
 from app.services.store_response import format_store_information
 from app.tools.customer_care_tools import customer_handoff_tool
@@ -368,6 +369,8 @@ def resume_pending_node(state: AgentState) -> dict[str, Any]:
         return issue_resolver_node(state)
     if workflow == "order_cancellation":
         return order_cancellation_node(state)
+    if workflow == "exchange":
+        return exchange_node(state)
     response = "I could not safely resume that pending request. Please describe what you need again."
     return {"selected_route": "pending:unsupported", "response": response, "tool_result": {"status": "not_executed"}, "pending_workflow": None, "workflow_status": "idle", "resuming_pending": False, "messages": _append_message(state, "assistant", response)}
 
@@ -1083,6 +1086,67 @@ def verification_error_node(state: AgentState) -> dict[str, Any]:
         "error": state.get("error") or "Intent classification or verification failed.",
         "messages": _append_message(state, "assistant", response),
     }
+
+
+def greeting_node(state: AgentState) -> dict[str, Any]:
+    response = f"Hello! How can I help you today? {SUPPORTED_ALTERNATIVES}"
+    return _information_result(state, "greeting", {"outcome": "answered", "response": response})
+
+
+def goodbye_node(state: AgentState) -> dict[str, Any]:
+    response = "You're welcome! If anything else comes up with your order, just message me here. Have a great day!"
+    return _information_result(state, "goodbye", {"outcome": "answered", "response": response})
+
+
+def product_recommendation_node(state: AgentState) -> dict[str, Any]:
+    return _information_result(state, "product_recommendation", recommend_products(state.get("query")))
+
+
+def warranty_node(state: AgentState) -> dict[str, Any]:
+    return _information_result(state, "warranty", answer_warranty_question(state.get("query")))
+
+
+def exchange_node(state: AgentState) -> dict[str, Any]:
+    """Prepare a demo exchange for a delivered order; earlier stages get the right alternative."""
+    pending = state.get("pending_workflow") or {}
+    collected = dict(pending.get("collected") or {})
+    order_id = _order_id(state) or collected.get("order_id")
+    request_text = collected.get("exchange_details") or _ORDER_ID_IN_TEXT.sub("", state.get("query") or "").strip(" .,!?")
+    base = {"selected_route": "exchange", "error": None}
+
+    def reply(response: str, tool_result: dict[str, Any], **extra: Any) -> dict[str, Any]:
+        return {**base, "tool_result": tool_result, "response": response,
+                "messages": _append_message(state, "assistant", response), **extra}
+
+    if not order_id:
+        prompt = "I can help with an exchange. Which order is it for? Please share the order ID (for example, ORD-1003)."
+        return reply(prompt, {"outcome": "missing_order_id", "executed": False},
+                     pending_workflow=_pending("exchange", "order_id", {"exchange_details": request_text}, prompt,
+                                               required_slots=["order_id"], classifier_intent="exchange_request"),
+                     workflow_status="awaiting_input", pending_clarification=prompt, resuming_pending=False)
+
+    done = {"pending_workflow": None, "workflow_status": "completed", "pending_clarification": None, "resuming_pending": False}
+    try:
+        result = lookup_order_status(order_id)
+    except Exception:
+        logger.exception("Order lookup for exchange failed.")
+        result = {"outcome": "data_unavailable"}
+    if result["outcome"] != "found":
+        return reply(f"I could not find order {order_id} in the demonstration data. Please check the ID.",
+                     {"outcome": result["outcome"], "executed": False}, **done)
+    status = result["order_status"]
+    if status.casefold() != "delivered":
+        alternative = "cancel it" if status.casefold() == "processing" else "wait for it to arrive"
+        response = (f"Order {order_id} is {status.lower()}, so it can't be exchanged yet. "
+                    f"You can {alternative}, and once it is delivered I can arrange an exchange.")
+        return reply(response, {"outcome": "not_delivered", "order_id": order_id, "order_status": status, "executed": False}, **done)
+
+    reference = f"DEMO-EXCH-{uuid4().hex[:10].upper()}"
+    detail = f" Requested change: {request_text}." if request_text else ""
+    response = (f"Exchange request {reference} is prepared for order {order_id}.{detail} "
+                "A pickup of the original item would be scheduled and the replacement shipped once it is checked. "
+                "This is a demonstration; no real exchange was arranged.")
+    return reply(response, {"outcome": "exchange_prepared", "order_id": order_id, "reference": reference, "executed": True}, **done)
 
 
 def respond_to_query(state: AgentState) -> dict[str, str]:

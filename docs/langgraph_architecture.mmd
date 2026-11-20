@@ -1,0 +1,75 @@
+---
+config:
+  flowchart:
+    curve: linear
+---
+graph TD;
+	__start__(<p>__start__</p>)
+	continuity_node(continuity_node)
+	classify_intent(classify_intent)
+	resume_pending_node(resume_pending_node)
+	pending_clarification_node(pending_clarification_node)
+	finalize_turn_node(finalize_turn_node)
+	order_tracking_node(order_tracking_node)
+	order_cancellation_node(order_cancellation_node)
+	greeting_node(greeting_node)
+	goodbye_node(goodbye_node)
+	product_recommendation_node(product_recommendation_node)
+	warranty_node(warranty_node)
+	exchange_node(exchange_node)
+	product_inquiry_node(product_inquiry_node)
+	payment_node(payment_node)
+	issue_resolver_node(issue_resolver_node)
+	customer_care_node(customer_care_node)
+	store_information_node(store_information_node)
+	shipping_node(shipping_node)
+	rag_node(rag_node)
+	unsupported_node(unsupported_node)
+	unknown_intent_node(unknown_intent_node)
+	out_of_scope_node(out_of_scope_node)
+	verification_error_node(verification_error_node)
+	__end__(<p>__end__</p>)
+	__start__ --> continuity_node;
+	classify_intent -. &nbsp;customer_care&nbsp; .-> customer_care_node;
+	classify_intent -. &nbsp;exchange&nbsp; .-> exchange_node;
+	classify_intent -. &nbsp;goodbye&nbsp; .-> goodbye_node;
+	classify_intent -. &nbsp;greeting&nbsp; .-> greeting_node;
+	classify_intent -. &nbsp;issue_support&nbsp; .-> issue_resolver_node;
+	classify_intent -. &nbsp;order_cancellation&nbsp; .-> order_cancellation_node;
+	classify_intent -. &nbsp;order_tracking&nbsp; .-> order_tracking_node;
+	classify_intent -. &nbsp;out_of_scope&nbsp; .-> out_of_scope_node;
+	classify_intent -. &nbsp;payment&nbsp; .-> payment_node;
+	classify_intent -. &nbsp;product_inquiry&nbsp; .-> product_inquiry_node;
+	classify_intent -. &nbsp;product_recommendation&nbsp; .-> product_recommendation_node;
+	classify_intent -. &nbsp;shipping&nbsp; .-> shipping_node;
+	classify_intent -. &nbsp;store_information&nbsp; .-> store_information_node;
+	classify_intent -. &nbsp;unknown_intent&nbsp; .-> unknown_intent_node;
+	classify_intent -. &nbsp;unsupported&nbsp; .-> unsupported_node;
+	classify_intent -. &nbsp;verification_error&nbsp; .-> verification_error_node;
+	classify_intent -. &nbsp;warranty&nbsp; .-> warranty_node;
+	continuity_node -. &nbsp;classify&nbsp; .-> classify_intent;
+	continuity_node -. &nbsp;clarify_pending&nbsp; .-> pending_clarification_node;
+	continuity_node -. &nbsp;resume_pending&nbsp; .-> resume_pending_node;
+	customer_care_node --> finalize_turn_node;
+	exchange_node --> finalize_turn_node;
+	goodbye_node --> finalize_turn_node;
+	greeting_node --> finalize_turn_node;
+	issue_resolver_node --> finalize_turn_node;
+	order_cancellation_node --> finalize_turn_node;
+	order_tracking_node --> finalize_turn_node;
+	out_of_scope_node --> finalize_turn_node;
+	payment_node --> finalize_turn_node;
+	pending_clarification_node --> finalize_turn_node;
+	product_inquiry_node --> finalize_turn_node;
+	product_recommendation_node --> finalize_turn_node;
+	resume_pending_node --> finalize_turn_node;
+	shipping_node --> finalize_turn_node;
+	store_information_node --> finalize_turn_node;
+	unknown_intent_node --> finalize_turn_node;
+	unsupported_node --> finalize_turn_node;
+	verification_error_node --> finalize_turn_node;
+	warranty_node --> finalize_turn_node;
+	finalize_turn_node --> __end__;
+	classDef default fill:#f2f0ff,line-height:1.2
+	classDef first fill-opacity:0
+	classDef last fill:#bfb6fc
