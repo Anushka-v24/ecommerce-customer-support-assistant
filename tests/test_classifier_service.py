@@ -163,6 +163,19 @@ class ModelLoaderTests(unittest.TestCase):
         ):
             self.assertEqual(set(service._load_descriptions()), set(LABELS))
 
+    def test_issue_support_description_covers_resolver_subtypes(self):
+        # Groq picks labels from these descriptions, so issue_support must name
+        # every problem its resolver handles or low-confidence queries drift away.
+        with patch.dict(
+            os.environ,
+            {"XLMR_INTENT_DESCRIPTIONS_PATH": "app/classifier/intent_descriptions.json"},
+            clear=True,
+        ):
+            description = service._load_descriptions()["issue_support"].lower()
+        for phrase in ("refund status", "return an item", "damaged", "has not arrived", "dissatisfaction"):
+            with self.subTest(phrase=phrase):
+                self.assertIn(phrase, description)
+
     def test_missing_model_files_report_actionable_error(self):
         with tempfile.TemporaryDirectory() as temp_dir:
             model_path = Path(temp_dir)

@@ -2,11 +2,11 @@
 {
     "account_management": "Represents customer requests related to creating, accessing, updating, modifying, or deleting user accounts. It includes account registration, account type or subscription changes, profile information updates, password and PIN recovery, account access problems, and managing primary or secondary shipping addresses associated with the customer account.",
 
-    "order_management": "Represents customer requests concerning modifications or administrative actions on existing orders. It includes cancelling orders, changing purchased items, removing products from an order, and enquiring about order termination, withdrawal, or early cancellation penalties.",
+    "order_management": "Represents customer requests concerning modifications or administrative actions on existing orders. It includes cancelling orders, changing purchased items, removing products from an order, and enquiring about order termination, withdrawal, or early cancellation penalties. Complaints about a received order, returns, and damaged or missing items belong to issue_support.",
 
     "billing_and_payment": "Represents customer enquiries about invoices, bills, and accepted payment methods. It includes locating, retrieving, viewing, or downloading invoices and billing documents, checking bills associated with a person or transaction, and asking about supported payment options such as PayPal.",
 
-    "issue_support": "Represents customer requests for assistance with financial or payment-related problems. It includes reporting online payment errors, requesting refunds or reimbursements, checking refund status, and seeking resolution for unsuccessful or problematic monetary transactions.",
+    "issue_support": "Represents customer requests for help with a problem affecting an order or purchase they already made, including financial or payment-related problems. It includes reporting online payment errors, requesting refunds or reimbursements, checking refund status, seeking resolution for unsuccessful or problematic monetary transactions, wanting to return an item, reporting a damaged, defective, or wrong item, reporting an order that has not arrived, and expressing dissatisfaction with a received order or product.",
 
     "customer_care_support": "Represents customer requests to communicate with a human customer service representative or support agent. It includes asking to speak with an operator, contact a live agent, connect with a support representative, and enquire about customer support availability and operating hours.",
 
@@ -16,7 +16,7 @@
 
     "delivery_options": "Represents customer enquiries about the delivery and shipping services supported by the e-commerce platform. It includes asking about available delivery methods, shipping options, supported delivery destinations, and whether products can be shipped to particular cities or countries.",
 
-    "submit_feedback": "Represents customer requests to share opinions, submit feedback, or provide reviews about the e-commerce platform and its services. It includes asking how to leave a review, express satisfaction or dissatisfaction, submit comments, and communicate suggestions about the customer experience.",
+    "submit_feedback": "Represents customer requests to share opinions, submit feedback, or provide reviews about the e-commerce platform and its services. It includes asking how to leave a review, express satisfaction or dissatisfaction, submit comments, and communicate suggestions about the customer experience. Dissatisfaction with a specific received order or product that needs resolution belongs to issue_support.",
 
     "shipping_cost": "Represents customer enquiries about the monetary cost of shipping or delivering products to a particular destination. It includes requesting delivery charges, shipping fees, courier costs, and estimated freight rates for specific cities, localities, or geographical destinations.",
 

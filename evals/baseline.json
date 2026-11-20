@@ -1,0 +1,3617 @@
+{
+  "created_at": "2026-11-21T00:11:19",
+  "cases_file": "/Users/abcom/Downloads/pr/ecommerce-customer-support-assistant/evals/cases.jsonl",
+  "filters": {
+    "lang": null,
+    "tag": null,
+    "ids": null,
+    "limit": null
+  },
+  "summary": {
+    "cases": 133,
+    "pass_rate": 84.2,
+    "intent_acc": 92.5,
+    "xlmr_only_acc": 90.2,
+    "route_acc": 85.7,
+    "response_acc": 85.2,
+    "groq_rate": 11.3,
+    "groq_changed": 3,
+    "groq_fixed": 3,
+    "groq_broke": 0,
+    "verification_errors": 0,
+    "latency_p50_ms": 17.8,
+    "latency_p95_ms": 12889.1,
+    "by_intent": {
+      "account_management": {
+        "n": 7,
+        "intent_acc": 100.0,
+        "route_acc": 100.0,
+        "pass_rate": 100.0
+      },
+      "add_to_cart": {
+        "n": 5,
+        "intent_acc": 100.0,
+        "route_acc": 100.0,
+        "pass_rate": 100.0
+      },
+      "billing_and_payment": {
+        "n": 8,
+        "intent_acc": 100.0,
+        "route_acc": 100.0,
+        "pass_rate": 100.0
+      },
+      "customer_care_support": {
+        "n": 8,
+        "intent_acc": 87.5,
+        "route_acc": 87.5,
+        "pass_rate": 87.5
+      },
+      "delivery_options": {
+        "n": 7,
+        "intent_acc": 100.0,
+        "route_acc": 100.0,
+        "pass_rate": 100.0
+      },
+      "issue_support": {
+        "n": 29,
+        "intent_acc": 100.0,
+        "route_acc": 69.0,
+        "pass_rate": 69.0
+      },
+      "order_management": {
+        "n": 7,
+        "intent_acc": 85.7,
+        "route_acc": 85.7,
+        "pass_rate": 85.7
+      },
+      "order_tracking": {
+        "n": 13,
+        "intent_acc": 92.3,
+        "route_acc": 92.3,
+        "pass_rate": 92.3
+      },
+      "out_of_scope": {
+        "n": 8,
+        "intent_acc": 100.0,
+        "route_acc": 100.0,
+        "pass_rate": 100.0
+      },
+      "place_order": {
+        "n": 6,
+        "intent_acc": 83.3,
+        "route_acc": 83.3,
+        "pass_rate": 83.3
+      },
+      "product_inquiry": {
+        "n": 11,
+        "intent_acc": 100.0,
+        "route_acc": 100.0,
+        "pass_rate": 81.8
+      },
+      "remove_from_cart": {
+        "n": 5,
+        "intent_acc": 80.0,
+        "route_acc": 80.0,
+        "pass_rate": 80.0
+      },
+      "shipping_cost": {
+        "n": 7,
+        "intent_acc": 100.0,
+        "route_acc": 100.0,
+        "pass_rate": 100.0
+      },
+      "store_information": {
+        "n": 6,
+        "intent_acc": 50.0,
+        "route_acc": 50.0,
+        "pass_rate": 50.0
+      },
+      "submit_feedback": {
+        "n": 6,
+        "intent_acc": 66.7,
+        "route_acc": 66.7,
+        "pass_rate": 66.7
+      }
+    },
+    "by_lang": {
+      "en": {
+        "n": 88,
+        "intent_acc": 95.5,
+        "route_acc": 92.0,
+        "pass_rate": 89.8
+      },
+      "hi": {
+        "n": 21,
+        "intent_acc": 81.0,
+        "route_acc": 66.7,
+        "pass_rate": 66.7
+      },
+      "hinglish": {
+        "n": 24,
+        "intent_acc": 91.7,
+        "route_acc": 79.2,
+        "pass_rate": 79.2
+      }
+    },
+    "by_tag": {
+      "casual": {
+        "n": 4,
+        "intent_acc": 75.0,
+        "route_acc": 75.0,
+        "pass_rate": 75.0
+      },
+      "damaged": {
+        "n": 5,
+        "intent_acc": 100.0,
+        "route_acc": 60.0,
+        "pass_rate": 60.0
+      },
+      "dissatisfaction": {
+        "n": 4,
+        "intent_acc": 100.0,
+        "route_acc": 100.0,
+        "pass_rate": 100.0
+      },
+      "fuzzy_product": {
+        "n": 4,
+        "intent_acc": 100.0,
+        "route_acc": 100.0,
+        "pass_rate": 50.0
+      },
+      "handler_pending": {
+        "n": 22,
+        "intent_acc": 100.0,
+        "route_acc": 100.0,
+        "pass_rate": 100.0
+      },
+      "missing": {
+        "n": 4,
+        "intent_acc": 100.0,
+        "route_acc": 25.0,
+        "pass_rate": 25.0
+      },
+      "multi_turn": {
+        "n": 6,
+        "intent_acc": 83.3,
+        "route_acc": 83.3,
+        "pass_rate": 83.3
+      },
+      "payment_problem": {
+        "n": 1,
+        "intent_acc": 100.0,
+        "route_acc": 100.0,
+        "pass_rate": 100.0
+      },
+      "policy": {
+        "n": 4,
+        "intent_acc": 100.0,
+        "route_acc": 100.0,
+        "pass_rate": 100.0
+      },
+      "refund": {
+        "n": 6,
+        "intent_acc": 100.0,
+        "route_acc": 50.0,
+        "pass_rate": 50.0
+      },
+      "regression": {
+        "n": 1,
+        "intent_acc": 100.0,
+        "route_acc": 100.0,
+        "pass_rate": 100.0
+      },
+      "return": {
+        "n": 4,
+        "intent_acc": 100.0,
+        "route_acc": 75.0,
+        "pass_rate": 75.0
+      },
+      "wrong_item": {
+        "n": 1,
+        "intent_acc": 100.0,
+        "route_acc": 100.0,
+        "pass_rate": 100.0
+      }
+    },
+    "top_confusions": [
+      {
+        "expected": "store_information",
+        "got": "order_tracking",
+        "count": 3
+      },
+      {
+        "expected": "order_tracking",
+        "got": "billing_and_payment",
+        "count": 1
+      },
+      {
+        "expected": "customer_care_support",
+        "got": "account_management",
+        "count": 1
+      },
+      {
+        "expected": "order_management",
+        "got": "place_order",
+        "count": 1
+      },
+      {
+        "expected": "place_order",
+        "got": "product_inquiry",
+        "count": 1
+      },
+      {
+        "expected": "remove_from_cart",
+        "got": "issue_support",
+        "count": 1
+      },
+      {
+        "expected": "submit_feedback",
+        "got": "account_management",
+        "count": 1
+      },
+      {
+        "expected": "submit_feedback",
+        "got": "billing_and_payment",
+        "count": 1
+      }
+    ]
+  },
+  "results": [
+    {
+      "id": "ot-en-01",
+      "lang": "en",
+      "tags": [],
+      "turns": [
+        "where is my order ORD-1001"
+      ],
+      "expected_intent": "order_tracking",
+      "expected_route": "order_tracking",
+      "predicted_intent": "order_tracking",
+      "confidence": 99.56,
+      "final_intent": "order_tracking",
+      "verifier_status": "ACCEPTED_BY_CLASSIFIER",
+      "used_groq": false,
+      "route": "order_tracking",
+      "response": "Demonstration data: order ORD-1001 has status Shipped. The recorded ETA is 2025-11-08. The recorded ETA has passed; the sample suggests a delay, but contains no carrier scans. This is not a live carrier lookup.",
+      "latency_ms": 2416.4,
+      "xlmr_ok": true,
+      "intent_ok": true,
+      "route_ok": true,
+      "response_ok": true,
+      "error": false,
+      "passed": true
+    },
+    {
+      "id": "ot-en-02",
+      "lang": "en",
+      "tags": [],
+      "turns": [
+        "track my package ORD-1002"
+      ],
+      "expected_intent": "order_tracking",
+      "expected_route": "order_tracking",
+      "predicted_intent": "order_tracking",
+      "confidence": 99.56,
+      "final_intent": "order_tracking",
+      "verifier_status": "ACCEPTED_BY_CLASSIFIER",
+      "used_groq": false,
+      "route": "order_tracking",
+      "response": "Demonstration data: order ORD-1002 has status Processing. No ETA is recorded. The demonstration record says processing; it contains no carrier scans. This is not a live carrier lookup.",
+      "latency_ms": 17.5,
+      "xlmr_ok": true,
+      "intent_ok": true,
+      "route_ok": true,
+      "response_ok": true,
+      "error": false,
+      "passed": true
+    },
+    {
+      "id": "ot-en-03",
+      "lang": "en",
+      "tags": [],
+      "turns": [
+        "when will my order ORD-1003 arrive?"
+      ],
+      "expected_intent": "order_tracking",
+      "expected_route": "order_tracking",
+      "predicted_intent": "order_tracking",
+      "confidence": 99.6,
+      "final_intent": "order_tracking",
+      "verifier_status": "ACCEPTED_BY_CLASSIFIER",
+      "used_groq": false,
+      "route": "order_tracking",
+      "response": "Demonstration data: order ORD-1003 has status Delivered. The recorded ETA is 2025-11-01. The demonstration record marks this order delivered; no delivery event details are stored. This is not a live carrier lookup.",
+      "latency_ms": 15.9,
+      "xlmr_ok": true,
+      "intent_ok": true,
+      "route_ok": true,
+      "response_ok": true,
+      "error": false,
+      "passed": true
+    },
+    {
+      "id": "ot-en-04",
+      "lang": "en",
+      "tags": [
+        "multi_turn"
+      ],
+      "turns": [
+        "I want to track my order",
+        "ORD-1001"
+      ],
+      "expected_intent": "order_tracking",
+      "expected_route": "order_tracking",
+      "predicted_intent": "order_tracking",
+      "confidence": 99.54,
+      "final_intent": "order_tracking",
+      "verifier_status": "ACCEPTED_BY_CLASSIFIER",
+      "used_groq": false,
+      "route": "order_tracking",
+      "response": "Demonstration data: order ORD-1001 has status Shipped. The recorded ETA is 2025-11-08. The recorded ETA has passed; the sample suggests a delay, but contains no carrier scans. This is not a live carrier lookup.",
+      "latency_ms": 18.2,
+      "xlmr_ok": true,
+      "intent_ok": true,
+      "route_ok": true,
+      "response_ok": true,
+      "error": false,
+      "passed": true
+    },
+    {
+      "id": "ot-en-05",
+      "lang": "en",
+      "tags": [],
+      "turns": [
+        "has my order shipped yet? order number ORD-1002"
+      ],
+      "expected_intent": "order_tracking",
+      "expected_route": "order_tracking",
+      "predicted_intent": "order_tracking",
+      "confidence": 99.54,
+      "final_intent": "order_tracking",
+      "verifier_status": "ACCEPTED_BY_CLASSIFIER",
+      "used_groq": false,
+      "route": "order_tracking",
+      "response": "Demonstration data: order ORD-1002 has status Processing. No ETA is recorded. The demonstration record says processing; it contains no carrier scans. This is not a live carrier lookup.",
+      "latency_ms": 15.9,
+      "xlmr_ok": true,
+      "intent_ok": true,
+      "route_ok": true,
+      "response_ok": true,
+      "error": false,
+      "passed": true
+    },
+    {
+      "id": "ot-en-06",
+      "lang": "en",
+      "tags": [],
+      "turns": [
+        "my order is running late, can you check ORD-1001"
+      ],
+      "expected_intent": "order_tracking",
+      "expected_route": "order_tracking",
+      "predicted_intent": "order_tracking",
+      "confidence": 98.97,
+      "final_intent": "order_tracking",
+      "verifier_status": "ACCEPTED_BY_CLASSIFIER",
+      "used_groq": false,
+      "route": "order_tracking",
+      "response": "Demonstration data: order ORD-1001 has status Shipped. The recorded ETA is 2025-11-08. The recorded ETA has passed; the sample suggests a delay, but contains no carrier scans. This is not a live carrier lookup.",
+      "latency_ms": 17.6,
+      "xlmr_ok": true,
+      "intent_ok": true,
+      "route_ok": true,
+      "response_ok": true,
+      "error": false,
+      "passed": true
+    },
+    {
+      "id": "ot-en-07",
+      "lang": "en",
+      "tags": [
+        "multi_turn",
+        "casual"
+      ],
+      "turns": [
+        "whats the status of my order",
+        "ORD-1003"
+      ],
+      "expected_intent": "order_tracking",
+      "expected_route": "order_tracking",
+      "predicted_intent": "order_tracking",
+      "confidence": 99.63,
+      "final_intent": "order_tracking",
+      "verifier_status": "ACCEPTED_BY_CLASSIFIER",
+      "used_groq": false,
+      "route": "order_tracking",
+      "response": "Demonstration data: order ORD-1003 has status Delivered. The recorded ETA is 2025-11-01. The demonstration record marks this order delivered; no delivery event details are stored. This is not a live carrier lookup.",
+      "latency_ms": 19.0,
+      "xlmr_ok": true,
+      "intent_ok": true,
+      "route_ok": true,
+      "response_ok": true,
+      "error": false,
+      "passed": true
+    },
+    {
+      "id": "ot-hi-01",
+      "lang": "hi",
+      "tags": [],
+      "turns": [
+        "मेरा ऑर्डर ORD-1001 कहाँ है?"
+      ],
+      "expected_intent": "order_tracking",
+      "expected_route": "order_tracking",
+      "predicted_intent": "order_tracking",
+      "confidence": 99.43,
+      "final_intent": "order_tracking",
+      "verifier_status": "ACCEPTED_BY_CLASSIFIER",
+      "used_groq": false,
+      "route": "order_tracking",
+      "response": "Demonstration data: order ORD-1001 has status Shipped. The recorded ETA is 2025-11-08. The recorded ETA has passed; the sample suggests a delay, but contains no carrier scans. This is not a live carrier lookup.",
+      "latency_ms": 16.4,
+      "xlmr_ok": true,
+      "intent_ok": true,
+      "route_ok": true,
+      "response_ok": true,
+      "error": false,
+      "passed": true
+    },
+    {
+      "id": "ot-hi-02",
+      "lang": "hi",
+      "tags": [],
+      "turns": [
+        "मेरा ऑर्डर कब तक आएगा? ORD-1002"
+      ],
+      "expected_intent": "order_tracking",
+      "expected_route": "order_tracking",
+      "predicted_intent": "order_tracking",
+      "confidence": 99.58,
+      "final_intent": "order_tracking",
+      "verifier_status": "ACCEPTED_BY_CLASSIFIER",
+      "used_groq": false,
+      "route": "order_tracking",
+      "response": "Demonstration data: order ORD-1002 has status Processing. No ETA is recorded. The demonstration record says processing; it contains no carrier scans. This is not a live carrier lookup.",
+      "latency_ms": 14.8,
+      "xlmr_ok": true,
+      "intent_ok": true,
+      "route_ok": true,
+      "response_ok": true,
+      "error": false,
+      "passed": true
+    },
+    {
+      "id": "ot-hi-03",
+      "lang": "hi",
+      "tags": [
+        "multi_turn"
+      ],
+      "turns": [
+        "मुझे अपना ऑर्डर ट्रैक करना है",
+        "ORD-1003"
+      ],
+      "expected_intent": "order_tracking",
+      "expected_route": "order_tracking",
+      "predicted_intent": "billing_and_payment",
+      "confidence": 96.59,
+      "final_intent": "billing_and_payment",
+      "verifier_status": "ACCEPTED_BY_CLASSIFIER",
+      "used_groq": false,
+      "route": "product_inquiry",
+      "response": "I could not identify that product in the demonstration catalog. Please provide its exact name or ID.",
+      "latency_ms": 34.0,
+      "xlmr_ok": false,
+      "intent_ok": false,
+      "route_ok": false,
+      "response_ok": false,
+      "error": false,
+      "passed": false
+    },
+    {
+      "id": "ot-hg-01",
+      "lang": "hinglish",
+      "tags": [],
+      "turns": [
+        "mera order kab aayega ORD-1001"
+      ],
+      "expected_intent": "order_tracking",
+      "expected_route": "order_tracking",
+      "predicted_intent": "order_tracking",
+      "confidence": 99.57,
+      "final_intent": "order_tracking",
+      "verifier_status": "ACCEPTED_BY_CLASSIFIER",
+      "used_groq": false,
+      "route": "order_tracking",
+      "response": "Demonstration data: order ORD-1001 has status Shipped. The recorded ETA is 2025-11-08. The recorded ETA has passed; the sample suggests a delay, but contains no carrier scans. This is not a live carrier lookup.",
+      "latency_ms": 14.2,
+      "xlmr_ok": true,
+      "intent_ok": true,
+      "route_ok": true,
+      "response_ok": true,
+      "error": false,
+      "passed": true
+    },
+    {
+      "id": "ot-hg-02",
+      "lang": "hinglish",
+      "tags": [],
+      "turns": [
+        "order ORD-1002 ka status kya hai"
+      ],
+      "expected_intent": "order_tracking",
+      "expected_route": "order_tracking",
+      "predicted_intent": "order_tracking",
+      "confidence": 99.5,
+      "final_intent": "order_tracking",
+      "verifier_status": "ACCEPTED_BY_CLASSIFIER",
+      "used_groq": false,
+      "route": "order_tracking",
+      "response": "Demonstration data: order ORD-1002 has status Processing. No ETA is recorded. The demonstration record says processing; it contains no carrier scans. This is not a live carrier lookup.",
+      "latency_ms": 14.4,
+      "xlmr_ok": true,
+      "intent_ok": true,
+      "route_ok": true,
+      "response_ok": true,
+      "error": false,
+      "passed": true
+    },
+    {
+      "id": "ot-hg-03",
+      "lang": "hinglish",
+      "tags": [
+        "casual"
+      ],
+      "turns": [
+        "bhai mera parcel kahan hai, order id ORD-1003"
+      ],
+      "expected_intent": "order_tracking",
+      "expected_route": "order_tracking",
+      "predicted_intent": "order_tracking",
+      "confidence": 99.58,
+      "final_intent": "order_tracking",
+      "verifier_status": "ACCEPTED_BY_CLASSIFIER",
+      "used_groq": false,
+      "route": "order_tracking",
+      "response": "Demonstration data: order ORD-1003 has status Delivered. The recorded ETA is 2025-11-01. The demonstration record marks this order delivered; no delivery event details are stored. This is not a live carrier lookup.",
+      "latency_ms": 15.0,
+      "xlmr_ok": true,
+      "intent_ok": true,
+      "route_ok": true,
+      "response_ok": true,
+      "error": false,
+      "passed": true
+    },
+    {
+      "id": "pi-en-01",
+      "lang": "en",
+      "tags": [],
+      "turns": [
+        "is Laptop Pro in stock?"
+      ],
+      "expected_intent": "product_inquiry",
+      "expected_route": "product_inquiry",
+      "predicted_intent": "product_inquiry",
+      "confidence": 99.61,
+      "final_intent": "product_inquiry",
+      "verifier_status": "ACCEPTED_BY_CLASSIFIER",
+      "used_groq": false,
+      "route": "product_inquiry",
+      "response": "Demonstration catalog: Laptop Pro (PROD-001) is in stock with 8 unit(s) recorded in sample stock. Sample restock date: 2025-11-15. This is not live inventory.",
+      "latency_ms": 16.7,
+      "xlmr_ok": true,
+      "intent_ok": true,
+      "route_ok": true,
+      "response_ok": true,
+      "error": false,
+      "passed": true
+    },
+    {
+      "id": "pi-en-02",
+      "lang": "en",
+      "tags": [],
+      "turns": [
+        "do you have the Galaxy S21 available?"
+      ],
+      "expected_intent": "product_inquiry",
+      "expected_route": "product_inquiry",
+      "predicted_intent": "product_inquiry",
+      "confidence": 99.56,
+      "final_intent": "product_inquiry",
+      "verifier_status": "ACCEPTED_BY_CLASSIFIER",
+      "used_groq": false,
+      "route": "product_inquiry",
+      "response": "Demonstration catalog: Galaxy S21 (PROD-002) is out of stock with 0 unit(s) recorded in sample stock. Sample restock date: 2025-11-20. This is not live inventory.",
+      "latency_ms": 14.5,
+      "xlmr_ok": true,
+      "intent_ok": true,
+      "route_ok": true,
+      "response_ok": true,
+      "error": false,
+      "passed": true
+    },
+    {
+      "id": "pi-en-03",
+      "lang": "en",
+      "tags": [],
+      "turns": [
+        "when will Galaxy S21 be back in stock?"
+      ],
+      "expected_intent": "product_inquiry",
+      "expected_route": "product_inquiry",
+      "predicted_intent": "product_inquiry",
+      "confidence": 99.45,
+      "final_intent": "product_inquiry",
+      "verifier_status": "ACCEPTED_BY_CLASSIFIER",
+      "used_groq": false,
+      "route": "product_inquiry",
+      "response": "Demonstration catalog: Galaxy S21 (PROD-002) is out of stock with 0 unit(s) recorded in sample stock. Sample restock date: 2025-11-20. This is not live inventory.",
+      "latency_ms": 14.6,
+      "xlmr_ok": true,
+      "intent_ok": true,
+      "route_ok": true,
+      "response_ok": true,
+      "error": false,
+      "passed": true
+    },
+    {
+      "id": "pi-en-04",
+      "lang": "en",
+      "tags": [
+        "fuzzy_product"
+      ],
+      "turns": [
+        "are the noise cancelling headphones available"
+      ],
+      "expected_intent": "product_inquiry",
+      "expected_route": "product_inquiry",
+      "predicted_intent": "product_inquiry",
+      "confidence": 99.59,
+      "final_intent": "product_inquiry",
+      "verifier_status": "ACCEPTED_BY_CLASSIFIER",
+      "used_groq": false,
+      "route": "product_inquiry",
+      "response": "Demonstration catalog: Noise-Cancelling Headphones (PROD-003) is in stock with 45 unit(s) recorded in sample stock. This is not live inventory.",
+      "latency_ms": 14.7,
+      "xlmr_ok": true,
+      "intent_ok": true,
+      "route_ok": true,
+      "response_ok": true,
+      "error": false,
+      "passed": true
+    },
+    {
+      "id": "pi-en-05",
+      "lang": "en",
+      "tags": [
+        "fuzzy_product"
+      ],
+      "turns": [
+        "is the wireless headphone in stock?"
+      ],
+      "expected_intent": "product_inquiry",
+      "expected_route": "product_inquiry",
+      "predicted_intent": "product_inquiry",
+      "confidence": 99.62,
+      "final_intent": "product_inquiry",
+      "verifier_status": "ACCEPTED_BY_CLASSIFIER",
+      "used_groq": false,
+      "route": "product_inquiry",
+      "response": "I could not identify that product in the demonstration catalog. Please provide its exact name or ID.",
+      "latency_ms": 16.7,
+      "xlmr_ok": true,
+      "intent_ok": true,
+      "route_ok": true,
+      "response_ok": false,
+      "error": false,
+      "passed": false
+    },
+    {
+      "id": "pi-en-06",
+      "lang": "en",
+      "tags": [
+        "multi_turn"
+      ],
+      "turns": [
+        "check product availability",
+        "Laptop Pro"
+      ],
+      "expected_intent": "product_inquiry",
+      "expected_route": "product_inquiry",
+      "predicted_intent": "product_inquiry",
+      "confidence": 99.58,
+      "final_intent": "product_inquiry",
+      "verifier_status": "ACCEPTED_BY_CLASSIFIER",
+      "used_groq": false,
+      "route": "product_inquiry",
+      "response": "Demonstration catalog: Laptop Pro (PROD-001) is in stock with 8 unit(s) recorded in sample stock. Sample restock date: 2025-11-15. This is not live inventory.",
+      "latency_ms": 18.0,
+      "xlmr_ok": true,
+      "intent_ok": true,
+      "route_ok": true,
+      "response_ok": true,
+      "error": false,
+      "passed": true
+    },
+    {
+      "id": "pi-en-07",
+      "lang": "en",
+      "tags": [
+        "fuzzy_product"
+      ],
+      "turns": [
+        "do you sell laptops?"
+      ],
+      "expected_intent": "product_inquiry",
+      "expected_route": "product_inquiry",
+      "predicted_intent": "product_inquiry",
+      "confidence": 99.06,
+      "final_intent": "product_inquiry",
+      "verifier_status": "ACCEPTED_BY_CLASSIFIER",
+      "used_groq": false,
+      "route": "product_inquiry",
+      "response": "I could not identify that product in the demonstration catalog. Please provide its exact name or ID.",
+      "latency_ms": 18.0,
+      "xlmr_ok": true,
+      "intent_ok": true,
+      "route_ok": true,
+      "response_ok": false,
+      "error": false,
+      "passed": false
+    },
+    {
+      "id": "pi-hi-01",
+      "lang": "hi",
+      "tags": [],
+      "turns": [
+        "क्या Laptop Pro स्टॉक में है?"
+      ],
+      "expected_intent": "product_inquiry",
+      "expected_route": "product_inquiry",
+      "predicted_intent": "product_inquiry",
+      "confidence": 99.61,
+      "final_intent": "product_inquiry",
+      "verifier_status": "ACCEPTED_BY_CLASSIFIER",
+      "used_groq": false,
+      "route": "product_inquiry",
+      "response": "Demonstration catalog: Laptop Pro (PROD-001) is in stock with 8 unit(s) recorded in sample stock. Sample restock date: 2025-11-15. This is not live inventory.",
+      "latency_ms": 17.8,
+      "xlmr_ok": true,
+      "intent_ok": true,
+      "route_ok": true,
+      "response_ok": true,
+      "error": false,
+      "passed": true
+    },
+    {
+      "id": "pi-hi-02",
+      "lang": "hi",
+      "tags": [],
+      "turns": [
+        "Galaxy S21 कब तक उपलब्ध होगा?"
+      ],
+      "expected_intent": "product_inquiry",
+      "expected_route": "product_inquiry",
+      "predicted_intent": "product_inquiry",
+      "confidence": 98.26,
+      "final_intent": "product_inquiry",
+      "verifier_status": "ACCEPTED_BY_CLASSIFIER",
+      "used_groq": false,
+      "route": "product_inquiry",
+      "response": "Demonstration catalog: Galaxy S21 (PROD-002) is out of stock with 0 unit(s) recorded in sample stock. Sample restock date: 2025-11-20. This is not live inventory.",
+      "latency_ms": 17.7,
+      "xlmr_ok": true,
+      "intent_ok": true,
+      "route_ok": true,
+      "response_ok": true,
+      "error": false,
+      "passed": true
+    },
+    {
+      "id": "pi-hg-01",
+      "lang": "hinglish",
+      "tags": [],
+      "turns": [
+        "Laptop Pro stock me hai kya?"
+      ],
+      "expected_intent": "product_inquiry",
+      "expected_route": "product_inquiry",
+      "predicted_intent": "product_inquiry",
+      "confidence": 99.6,
+      "final_intent": "product_inquiry",
+      "verifier_status": "ACCEPTED_BY_CLASSIFIER",
+      "used_groq": false,
+      "route": "product_inquiry",
+      "response": "Demonstration catalog: Laptop Pro (PROD-001) is in stock with 8 unit(s) recorded in sample stock. Sample restock date: 2025-11-15. This is not live inventory.",
+      "latency_ms": 17.5,
+      "xlmr_ok": true,
+      "intent_ok": true,
+      "route_ok": true,
+      "response_ok": true,
+      "error": false,
+      "passed": true
+    },
+    {
+      "id": "pi-hg-02",
+      "lang": "hinglish",
+      "tags": [
+        "fuzzy_product"
+      ],
+      "turns": [
+        "headphones available hai?"
+      ],
+      "expected_intent": "product_inquiry",
+      "expected_route": "product_inquiry",
+      "predicted_intent": "product_inquiry",
+      "confidence": 99.62,
+      "final_intent": "product_inquiry",
+      "verifier_status": "ACCEPTED_BY_CLASSIFIER",
+      "used_groq": false,
+      "route": "product_inquiry",
+      "response": "Demonstration catalog: Noise-Cancelling Headphones (PROD-003) is in stock with 45 unit(s) recorded in sample stock. This is not live inventory.",
+      "latency_ms": 17.7,
+      "xlmr_ok": true,
+      "intent_ok": true,
+      "route_ok": true,
+      "response_ok": true,
+      "error": false,
+      "passed": true
+    },
+    {
+      "id": "bp-en-01",
+      "lang": "en",
+      "tags": [
+        "handler_pending"
+      ],
+      "turns": [
+        "what payment methods do you accept?"
+      ],
+      "expected_intent": "billing_and_payment",
+      "expected_route": "payment",
+      "predicted_intent": "billing_and_payment",
+      "confidence": 99.22,
+      "final_intent": "billing_and_payment",
+      "verifier_status": "ACCEPTED_BY_CLASSIFIER",
+      "used_groq": false,
+      "route": "payment",
+      "response": "The payment workflow was selected, but its business integration is pending. No payment operation was performed.",
+      "latency_ms": 16.8,
+      "xlmr_ok": true,
+      "intent_ok": true,
+      "route_ok": true,
+      "response_ok": null,
+      "error": false,
+      "passed": true
+    },
+    {
+      "id": "bp-en-02",
+      "lang": "en",
+      "tags": [
+        "handler_pending"
+      ],
+      "turns": [
+        "can I pay with PayPal?"
+      ],
+      "expected_intent": "billing_and_payment",
+      "expected_route": "payment",
+      "predicted_intent": "billing_and_payment",
+      "confidence": 99.25,
+      "final_intent": "billing_and_payment",
+      "verifier_status": "ACCEPTED_BY_CLASSIFIER",
+      "used_groq": false,
+      "route": "payment",
+      "response": "The payment workflow was selected, but its business integration is pending. No payment operation was performed.",
+      "latency_ms": 18.0,
+      "xlmr_ok": true,
+      "intent_ok": true,
+      "route_ok": true,
+      "response_ok": null,
+      "error": false,
+      "passed": true
+    },
+    {
+      "id": "bp-en-03",
+      "lang": "en",
+      "tags": [
+        "handler_pending"
+      ],
+      "turns": [
+        "how do I download my invoice?"
+      ],
+      "expected_intent": "billing_and_payment",
+      "expected_route": "payment",
+      "predicted_intent": "billing_and_payment",
+      "confidence": 99.17,
+      "final_intent": "billing_and_payment",
+      "verifier_status": "ACCEPTED_BY_CLASSIFIER",
+      "used_groq": false,
+      "route": "payment",
+      "response": "The payment workflow was selected, but its business integration is pending. No payment operation was performed.",
+      "latency_ms": 15.6,
+      "xlmr_ok": true,
+      "intent_ok": true,
+      "route_ok": true,
+      "response_ok": null,
+      "error": false,
+      "passed": true
+    },
+    {
+      "id": "bp-en-04",
+      "lang": "en",
+      "tags": [
+        "handler_pending"
+      ],
+      "turns": [
+        "where can I find the bill for my last purchase"
+      ],
+      "expected_intent": "billing_and_payment",
+      "expected_route": "payment",
+      "predicted_intent": "billing_and_payment",
+      "confidence": 98.85,
+      "final_intent": "billing_and_payment",
+      "verifier_status": "ACCEPTED_BY_CLASSIFIER",
+      "used_groq": false,
+      "route": "payment",
+      "response": "The payment workflow was selected, but its business integration is pending. No payment operation was performed.",
+      "latency_ms": 14.6,
+      "xlmr_ok": true,
+      "intent_ok": true,
+      "route_ok": true,
+      "response_ok": null,
+      "error": false,
+      "passed": true
+    },
+    {
+      "id": "bp-en-05",
+      "lang": "en",
+      "tags": [
+        "handler_pending"
+      ],
+      "turns": [
+        "do you accept cash on delivery?"
+      ],
+      "expected_intent": "billing_and_payment",
+      "expected_route": "payment",
+      "predicted_intent": "billing_and_payment",
+      "confidence": 58.56,
+      "final_intent": "billing_and_payment",
+      "verifier_status": "CORRECT_INTENT",
+      "used_groq": true,
+      "route": "payment",
+      "response": "The payment workflow was selected, but its business integration is pending. No payment operation was performed.",
+      "latency_ms": 828.9,
+      "xlmr_ok": true,
+      "intent_ok": true,
+      "route_ok": true,
+      "response_ok": null,
+      "error": false,
+      "passed": true
+    },
+    {
+      "id": "bp-hi-01",
+      "lang": "hi",
+      "tags": [
+        "handler_pending"
+      ],
+      "turns": [
+        "आप कौन से पेमेंट तरीके स्वीकार करते हैं?"
+      ],
+      "expected_intent": "billing_and_payment",
+      "expected_route": "payment",
+      "predicted_intent": "billing_and_payment",
+      "confidence": 98.82,
+      "final_intent": "billing_and_payment",
+      "verifier_status": "ACCEPTED_BY_CLASSIFIER",
+      "used_groq": false,
+      "route": "payment",
+      "response": "The payment workflow was selected, but its business integration is pending. No payment operation was performed.",
+      "latency_ms": 30.7,
+      "xlmr_ok": true,
+      "intent_ok": true,
+      "route_ok": true,
+      "response_ok": null,
+      "error": false,
+      "passed": true
+    },
+    {
+      "id": "bp-hg-01",
+      "lang": "hinglish",
+      "tags": [
+        "handler_pending"
+      ],
+      "turns": [
+        "UPI se payment kar sakte hai kya?"
+      ],
+      "expected_intent": "billing_and_payment",
+      "expected_route": "payment",
+      "predicted_intent": "billing_and_payment",
+      "confidence": 99.16,
+      "final_intent": "billing_and_payment",
+      "verifier_status": "ACCEPTED_BY_CLASSIFIER",
+      "used_groq": false,
+      "route": "payment",
+      "response": "The payment workflow was selected, but its business integration is pending. No payment operation was performed.",
+      "latency_ms": 17.8,
+      "xlmr_ok": true,
+      "intent_ok": true,
+      "route_ok": true,
+      "response_ok": null,
+      "error": false,
+      "passed": true
+    },
+    {
+      "id": "bp-hg-02",
+      "lang": "hinglish",
+      "tags": [
+        "handler_pending"
+      ],
+      "turns": [
+        "mujhe apne order ka invoice chahiye"
+      ],
+      "expected_intent": "billing_and_payment",
+      "expected_route": "payment",
+      "predicted_intent": "billing_and_payment",
+      "confidence": 98.84,
+      "final_intent": "billing_and_payment",
+      "verifier_status": "ACCEPTED_BY_CLASSIFIER",
+      "used_groq": false,
+      "route": "payment",
+      "response": "The payment workflow was selected, but its business integration is pending. No payment operation was performed.",
+      "latency_ms": 18.6,
+      "xlmr_ok": true,
+      "intent_ok": true,
+      "route_ok": true,
+      "response_ok": null,
+      "error": false,
+      "passed": true
+    },
+    {
+      "id": "is-en-01",
+      "lang": "en",
+      "tags": [
+        "multi_turn",
+        "refund"
+      ],
+      "turns": [
+        "where is my refund",
+        "ORD-1001"
+      ],
+      "expected_intent": "issue_support",
+      "expected_route": "issue_support:refund_status",
+      "predicted_intent": "issue_support",
+      "confidence": 99.61,
+      "final_intent": "issue_support",
+      "verifier_status": "ACCEPTED_BY_CLASSIFIER",
+      "used_groq": false,
+      "route": "issue_support:refund_status",
+      "response": "Demonstration data records refund status 'not initiated' for order ORD-1001. This is not a live payment-system check.",
+      "latency_ms": 18.1,
+      "xlmr_ok": true,
+      "intent_ok": true,
+      "route_ok": true,
+      "response_ok": true,
+      "error": false,
+      "passed": true
+    },
+    {
+      "id": "is-en-02",
+      "lang": "en",
+      "tags": [
+        "refund"
+      ],
+      "turns": [
+        "what is the status of my refund for ORD-1002"
+      ],
+      "expected_intent": "issue_support",
+      "expected_route": "issue_support:refund_status",
+      "predicted_intent": "issue_support",
+      "confidence": 64.78,
+      "final_intent": "issue_support",
+      "verifier_status": "CORRECT_INTENT",
+      "used_groq": true,
+      "route": "issue_support:clarification",
+      "response": "I can help with a refund status, a return, a damaged item, or an order that has not arrived. Which issue are you contacting us about?",
+      "latency_ms": 3945.7,
+      "xlmr_ok": true,
+      "intent_ok": true,
+      "route_ok": false,
+      "response_ok": false,
+      "error": false,
+      "passed": false
+    },
+    {
+      "id": "is-en-03",
+      "lang": "en",
+      "tags": [
+        "refund"
+      ],
+      "turns": [
+        "has my refund been processed? ORD-1003"
+      ],
+      "expected_intent": "issue_support",
+      "expected_route": "issue_support:refund_status",
+      "predicted_intent": "issue_support",
+      "confidence": 99.26,
+      "final_intent": "issue_support",
+      "verifier_status": "ACCEPTED_BY_CLASSIFIER",
+      "used_groq": false,
+      "route": "issue_support:refund_status",
+      "response": "Demonstration data records refund status 'completed' for order ORD-1003. This is not a live payment-system check.",
+      "latency_ms": 27.1,
+      "xlmr_ok": true,
+      "intent_ok": true,
+      "route_ok": true,
+      "response_ok": true,
+      "error": false,
+      "passed": true
+    },
+    {
+      "id": "is-en-04",
+      "lang": "en",
+      "tags": [
+        "refund"
+      ],
+      "turns": [
+        "I am still waiting for my money back"
+      ],
+      "expected_intent": "issue_support",
+      "expected_route": "issue_support:refund_status",
+      "predicted_intent": "issue_support",
+      "confidence": 99.68,
+      "final_intent": "issue_support",
+      "verifier_status": "ACCEPTED_BY_CLASSIFIER",
+      "used_groq": false,
+      "route": "issue_support:refund_status",
+      "response": "Please provide the order ID so I can check for a refund record in the demonstration data.",
+      "latency_ms": 19.2,
+      "xlmr_ok": true,
+      "intent_ok": true,
+      "route_ok": true,
+      "response_ok": null,
+      "error": false,
+      "passed": true
+    },
+    {
+      "id": "is-en-05",
+      "lang": "en",
+      "tags": [
+        "return"
+      ],
+      "turns": [
+        "I want to return my order"
+      ],
+      "expected_intent": "issue_support",
+      "expected_route": "issue_support:return_order",
+      "predicted_intent": "issue_support",
+      "confidence": 99.69,
+      "final_intent": "issue_support",
+      "verifier_status": "ACCEPTED_BY_CLASSIFIER",
+      "used_groq": false,
+      "route": "issue_support:return_order",
+      "response": "Please provide your order ID to review the demonstration return policy.",
+      "latency_ms": 16.7,
+      "xlmr_ok": true,
+      "intent_ok": true,
+      "route_ok": true,
+      "response_ok": null,
+      "error": false,
+      "passed": true
+    },
+    {
+      "id": "is-en-06",
+      "lang": "en",
+      "tags": [
+        "return"
+      ],
+      "turns": [
+        "I'd like to return the headphones I bought"
+      ],
+      "expected_intent": "issue_support",
+      "expected_route": "issue_support:return_order",
+      "predicted_intent": "issue_support",
+      "confidence": 99.72,
+      "final_intent": "issue_support",
+      "verifier_status": "ACCEPTED_BY_CLASSIFIER",
+      "used_groq": false,
+      "route": "issue_support:return_order",
+      "response": "Please provide your order ID to review the demonstration return policy.",
+      "latency_ms": 15.6,
+      "xlmr_ok": true,
+      "intent_ok": true,
+      "route_ok": true,
+      "response_ok": null,
+      "error": false,
+      "passed": true
+    },
+    {
+      "id": "is-en-07",
+      "lang": "en",
+      "tags": [
+        "return"
+      ],
+      "turns": [
+        "can I send this item back? it doesn't fit"
+      ],
+      "expected_intent": "issue_support",
+      "expected_route": "issue_support:return_order",
+      "predicted_intent": "issue_support",
+      "confidence": 99.69,
+      "final_intent": "issue_support",
+      "verifier_status": "ACCEPTED_BY_CLASSIFIER",
+      "used_groq": false,
+      "route": "issue_support:return_order",
+      "response": "Please provide your order ID to review the demonstration return policy.",
+      "latency_ms": 15.7,
+      "xlmr_ok": true,
+      "intent_ok": true,
+      "route_ok": true,
+      "response_ok": null,
+      "error": false,
+      "passed": true
+    },
+    {
+      "id": "is-en-08",
+      "lang": "en",
+      "tags": [
+        "damaged"
+      ],
+      "turns": [
+        "my order arrived damaged"
+      ],
+      "expected_intent": "issue_support",
+      "expected_route": "issue_support:damaged_order",
+      "predicted_intent": "issue_support",
+      "confidence": 99.67,
+      "final_intent": "issue_support",
+      "verifier_status": "ACCEPTED_BY_CLASSIFIER",
+      "used_groq": false,
+      "route": "issue_support:damaged_order",
+      "response": "Please provide your order ID so I can prepare a demonstration damaged-item report.",
+      "latency_ms": 16.5,
+      "xlmr_ok": true,
+      "intent_ok": true,
+      "route_ok": true,
+      "response_ok": null,
+      "error": false,
+      "passed": true
+    },
+    {
+      "id": "is-en-09",
+      "lang": "en",
+      "tags": [
+        "damaged"
+      ],
+      "turns": [
+        "the item I received is broken"
+      ],
+      "expected_intent": "issue_support",
+      "expected_route": "issue_support:damaged_order",
+      "predicted_intent": "issue_support",
+      "confidence": 99.69,
+      "final_intent": "issue_support",
+      "verifier_status": "ACCEPTED_BY_CLASSIFIER",
+      "used_groq": false,
+      "route": "issue_support:clarification",
+      "response": "I can help with a refund status, a return, a damaged item, or an order that has not arrived. Which issue are you contacting us about?",
+      "latency_ms": 17.0,
+      "xlmr_ok": true,
+      "intent_ok": true,
+      "route_ok": false,
+      "response_ok": null,
+      "error": false,
+      "passed": false
+    },
+    {
+      "id": "is-en-10",
+      "lang": "en",
+      "tags": [
+        "damaged"
+      ],
+      "turns": [
+        "the laptop screen was cracked when I opened the box"
+      ],
+      "expected_intent": "issue_support",
+      "expected_route": "issue_support:damaged_order",
+      "predicted_intent": "out_of_scope",
+      "confidence": 72.16,
+      "final_intent": "issue_support",
+      "verifier_status": "CORRECTED_INTENT",
+      "used_groq": true,
+      "route": "issue_support:damaged_order",
+      "response": "Please provide your order ID so I can prepare a demonstration damaged-item report.",
+      "latency_ms": 9849.3,
+      "xlmr_ok": false,
+      "intent_ok": true,
+      "route_ok": true,
+      "response_ok": null,
+      "error": false,
+      "passed": true
+    },
+    {
+      "id": "is-en-11",
+      "lang": "en",
+      "tags": [
+        "multi_turn",
+        "damaged"
+      ],
+      "turns": [
+        "My order arrived damaged",
+        "ORD-1001",
+        "The box was crushed and the screen is cracked."
+      ],
+      "expected_intent": "issue_support",
+      "expected_route": "issue_support:damaged_order",
+      "predicted_intent": "issue_support",
+      "confidence": 99.67,
+      "final_intent": "issue_support",
+      "verifier_status": "ACCEPTED_BY_CLASSIFIER",
+      "used_groq": false,
+      "route": "issue_support:damaged_order",
+      "response": "I recorded demonstration case DEMO-DAMAGED-ORDER-C5DF3C117B for order ORD-1001. A support representative would review it; no retailer or courier claim was submitted.",
+      "latency_ms": 43.6,
+      "xlmr_ok": true,
+      "intent_ok": true,
+      "route_ok": true,
+      "response_ok": null,
+      "error": false,
+      "passed": true
+    },
+    {
+      "id": "is-en-12",
+      "lang": "en",
+      "tags": [
+        "missing"
+      ],
+      "turns": [
+        "my package never arrived"
+      ],
+      "expected_intent": "issue_support",
+      "expected_route": "issue_support:missing_order",
+      "predicted_intent": "issue_support",
+      "confidence": 99.61,
+      "final_intent": "issue_support",
+      "verifier_status": "ACCEPTED_BY_CLASSIFIER",
+      "used_groq": false,
+      "route": "issue_support:missing_order",
+      "response": "Please provide your order ID so I can review its demonstration status.",
+      "latency_ms": 23.0,
+      "xlmr_ok": true,
+      "intent_ok": true,
+      "route_ok": true,
+      "response_ok": null,
+      "error": false,
+      "passed": true
+    },
+    {
+      "id": "is-en-13",
+      "lang": "en",
+      "tags": [
+        "missing"
+      ],
+      "turns": [
+        "it says delivered but I didn't receive anything"
+      ],
+      "expected_intent": "issue_support",
+      "expected_route": "issue_support:missing_order",
+      "predicted_intent": "issue_support",
+      "confidence": 99.59,
+      "final_intent": "issue_support",
+      "verifier_status": "ACCEPTED_BY_CLASSIFIER",
+      "used_groq": false,
+      "route": "issue_support:clarification",
+      "response": "I can help with a refund status, a return, a damaged item, or an order that has not arrived. Which issue are you contacting us about?",
+      "latency_ms": 21.9,
+      "xlmr_ok": true,
+      "intent_ok": true,
+      "route_ok": false,
+      "response_ok": null,
+      "error": false,
+      "passed": false
+    },
+    {
+      "id": "is-en-14",
+      "lang": "en",
+      "tags": [
+        "wrong_item"
+      ],
+      "turns": [
+        "I received the wrong item"
+      ],
+      "expected_intent": "issue_support",
+      "expected_route": "issue_support:*",
+      "predicted_intent": "issue_support",
+      "confidence": 99.66,
+      "final_intent": "issue_support",
+      "verifier_status": "ACCEPTED_BY_CLASSIFIER",
+      "used_groq": false,
+      "route": "issue_support:clarification",
+      "response": "I can help with a refund status, a return, a damaged item, or an order that has not arrived. Which issue are you contacting us about?",
+      "latency_ms": 17.9,
+      "xlmr_ok": true,
+      "intent_ok": true,
+      "route_ok": true,
+      "response_ok": null,
+      "error": false,
+      "passed": true
+    },
+    {
+      "id": "is-en-15",
+      "lang": "en",
+      "tags": [
+        "dissatisfaction",
+        "regression"
+      ],
+      "turns": [
+        "i do not like my order"
+      ],
+      "expected_intent": "issue_support",
+      "expected_route": "issue_support:*",
+      "predicted_intent": "issue_support",
+      "confidence": 49.54,
+      "final_intent": "issue_support",
+      "verifier_status": "CORRECT_INTENT",
+      "used_groq": true,
+      "route": "issue_support:clarification",
+      "response": "I can help with a refund status, a return, a damaged item, or an order that has not arrived. Which issue are you contacting us about?",
+      "latency_ms": 10654.7,
+      "xlmr_ok": true,
+      "intent_ok": true,
+      "route_ok": true,
+      "response_ok": null,
+      "error": false,
+      "passed": true
+    },
+    {
+      "id": "is-en-16",
+      "lang": "en",
+      "tags": [
+        "dissatisfaction"
+      ],
+      "turns": [
+        "I am not happy with the product I received"
+      ],
+      "expected_intent": "issue_support",
+      "expected_route": "issue_support:*",
+      "predicted_intent": "issue_support",
+      "confidence": 77.42,
+      "final_intent": "issue_support",
+      "verifier_status": "CORRECT_INTENT",
+      "used_groq": true,
+      "route": "issue_support:clarification",
+      "response": "I can help with a refund status, a return, a damaged item, or an order that has not arrived. Which issue are you contacting us about?",
+      "latency_ms": 14834.4,
+      "xlmr_ok": true,
+      "intent_ok": true,
+      "route_ok": true,
+      "response_ok": null,
+      "error": false,
+      "passed": true
+    },
+    {
+      "id": "is-en-17",
+      "lang": "en",
+      "tags": [
+        "payment_problem"
+      ],
+      "turns": [
+        "my payment failed but the money was deducted"
+      ],
+      "expected_intent": "issue_support",
+      "expected_route": [
+        "issue_support:*",
+        "payment_support"
+      ],
+      "predicted_intent": "issue_support",
+      "confidence": 98.83,
+      "final_intent": "issue_support",
+      "verifier_status": "ACCEPTED_BY_CLASSIFIER",
+      "used_groq": false,
+      "route": "issue_support:clarification",
+      "response": "I can help with a refund status, a return, a damaged item, or an order that has not arrived. Which issue are you contacting us about?",
+      "latency_ms": 25.2,
+      "xlmr_ok": true,
+      "intent_ok": true,
+      "route_ok": true,
+      "response_ok": null,
+      "error": false,
+      "passed": true
+    },
+    {
+      "id": "is-hi-01",
+      "lang": "hi",
+      "tags": [
+        "refund"
+      ],
+      "turns": [
+        "मेरा रिफंड कहाँ है?"
+      ],
+      "expected_intent": "issue_support",
+      "expected_route": "issue_support:refund_status",
+      "predicted_intent": "issue_support",
+      "confidence": 81.06,
+      "final_intent": "issue_support",
+      "verifier_status": "CORRECT_INTENT",
+      "used_groq": true,
+      "route": "issue_support:clarification",
+      "response": "I can help with a refund status, a return, a damaged item, or an order that has not arrived. Which issue are you contacting us about?",
+      "latency_ms": 9934.1,
+      "xlmr_ok": true,
+      "intent_ok": true,
+      "route_ok": false,
+      "response_ok": null,
+      "error": false,
+      "passed": false
+    },
+    {
+      "id": "is-hi-02",
+      "lang": "hi",
+      "tags": [
+        "dissatisfaction"
+      ],
+      "turns": [
+        "मुझे मेरा ऑर्डर पसंद नहीं आया"
+      ],
+      "expected_intent": "issue_support",
+      "expected_route": "issue_support:*",
+      "predicted_intent": "issue_support",
+      "confidence": 99.6,
+      "final_intent": "issue_support",
+      "verifier_status": "ACCEPTED_BY_CLASSIFIER",
+      "used_groq": false,
+      "route": "issue_support:clarification",
+      "response": "I can help with a refund status, a return, a damaged item, or an order that has not arrived. Which issue are you contacting us about?",
+      "latency_ms": 43.2,
+      "xlmr_ok": true,
+      "intent_ok": true,
+      "route_ok": true,
+      "response_ok": null,
+      "error": false,
+      "passed": true
+    },
+    {
+      "id": "is-hi-03",
+      "lang": "hi",
+      "tags": [
+        "damaged"
+      ],
+      "turns": [
+        "मेरा पार्सल टूटा हुआ आया है"
+      ],
+      "expected_intent": "issue_support",
+      "expected_route": "issue_support:damaged_order",
+      "predicted_intent": "issue_support",
+      "confidence": 99.26,
+      "final_intent": "issue_support",
+      "verifier_status": "ACCEPTED_BY_CLASSIFIER",
+      "used_groq": false,
+      "route": "issue_support:clarification",
+      "response": "I can help with a refund status, a return, a damaged item, or an order that has not arrived. Which issue are you contacting us about?",
+      "latency_ms": 18.6,
+      "xlmr_ok": true,
+      "intent_ok": true,
+      "route_ok": false,
+      "response_ok": null,
+      "error": false,
+      "passed": false
+    },
+    {
+      "id": "is-hi-04",
+      "lang": "hi",
+      "tags": [
+        "missing"
+      ],
+      "turns": [
+        "मेरा ऑर्डर अभी तक नहीं पहुँचा"
+      ],
+      "expected_intent": [
+        "issue_support",
+        "order_tracking"
+      ],
+      "expected_route": [
+        "issue_support:missing_order",
+        "order_tracking"
+      ],
+      "predicted_intent": "issue_support",
+      "confidence": 99.43,
+      "final_intent": "issue_support",
+      "verifier_status": "ACCEPTED_BY_CLASSIFIER",
+      "used_groq": false,
+      "route": "issue_support:clarification",
+      "response": "I can help with a refund status, a return, a damaged item, or an order that has not arrived. Which issue are you contacting us about?",
+      "latency_ms": 17.6,
+      "xlmr_ok": true,
+      "intent_ok": true,
+      "route_ok": false,
+      "response_ok": null,
+      "error": false,
+      "passed": false
+    },
+    {
+      "id": "is-hg-01",
+      "lang": "hinglish",
+      "tags": [
+        "refund"
+      ],
+      "turns": [
+        "mera refund kab aayega"
+      ],
+      "expected_intent": "issue_support",
+      "expected_route": "issue_support:refund_status",
+      "predicted_intent": "issue_support",
+      "confidence": 99.41,
+      "final_intent": "issue_support",
+      "verifier_status": "ACCEPTED_BY_CLASSIFIER",
+      "used_groq": false,
+      "route": "issue_support:clarification",
+      "response": "I can help with a refund status, a return, a damaged item, or an order that has not arrived. Which issue are you contacting us about?",
+      "latency_ms": 17.4,
+      "xlmr_ok": true,
+      "intent_ok": true,
+      "route_ok": false,
+      "response_ok": null,
+      "error": false,
+      "passed": false
+    },
+    {
+      "id": "is-hg-02",
+      "lang": "hinglish",
+      "tags": [
+        "return"
+      ],
+      "turns": [
+        "product kharab nikla, return karna hai"
+      ],
+      "expected_intent": "issue_support",
+      "expected_route": [
+        "issue_support:return_order",
+        "issue_support:damaged_order"
+      ],
+      "predicted_intent": "issue_support",
+      "confidence": 99.71,
+      "final_intent": "issue_support",
+      "verifier_status": "ACCEPTED_BY_CLASSIFIER",
+      "used_groq": false,
+      "route": "issue_support:clarification",
+      "response": "I can help with a refund status, a return, a damaged item, or an order that has not arrived. Which issue are you contacting us about?",
+      "latency_ms": 17.0,
+      "xlmr_ok": true,
+      "intent_ok": true,
+      "route_ok": false,
+      "response_ok": null,
+      "error": false,
+      "passed": false
+    },
+    {
+      "id": "is-hg-03",
+      "lang": "hinglish",
+      "tags": [
+        "missing"
+      ],
+      "turns": [
+        "parcel abhi tak nahi aaya"
+      ],
+      "expected_intent": [
+        "issue_support",
+        "order_tracking"
+      ],
+      "expected_route": [
+        "issue_support:missing_order",
+        "order_tracking"
+      ],
+      "predicted_intent": "issue_support",
+      "confidence": 99.67,
+      "final_intent": "issue_support",
+      "verifier_status": "ACCEPTED_BY_CLASSIFIER",
+      "used_groq": false,
+      "route": "issue_support:clarification",
+      "response": "I can help with a refund status, a return, a damaged item, or an order that has not arrived. Which issue are you contacting us about?",
+      "latency_ms": 17.3,
+      "xlmr_ok": true,
+      "intent_ok": true,
+      "route_ok": false,
+      "response_ok": null,
+      "error": false,
+      "passed": false
+    },
+    {
+      "id": "is-hg-04",
+      "lang": "hinglish",
+      "tags": [
+        "dissatisfaction"
+      ],
+      "turns": [
+        "mujhe ye product pasand nahi aaya"
+      ],
+      "expected_intent": "issue_support",
+      "expected_route": "issue_support:*",
+      "predicted_intent": "issue_support",
+      "confidence": 99.46,
+      "final_intent": "issue_support",
+      "verifier_status": "ACCEPTED_BY_CLASSIFIER",
+      "used_groq": false,
+      "route": "issue_support:clarification",
+      "response": "I can help with a refund status, a return, a damaged item, or an order that has not arrived. Which issue are you contacting us about?",
+      "latency_ms": 17.2,
+      "xlmr_ok": true,
+      "intent_ok": true,
+      "route_ok": true,
+      "response_ok": null,
+      "error": false,
+      "passed": true
+    },
+    {
+      "id": "si-en-01",
+      "lang": "en",
+      "tags": [
+        "policy"
+      ],
+      "turns": [
+        "what is your return policy?"
+      ],
+      "expected_intent": [
+        "issue_support",
+        "store_information"
+      ],
+      "expected_route": "store_information",
+      "predicted_intent": "issue_support",
+      "confidence": 98.89,
+      "final_intent": "issue_support",
+      "verifier_status": "ACCEPTED_BY_CLASSIFIER",
+      "used_groq": false,
+      "route": "store_information",
+      "response": "Document knowledge lookup is unavailable because its provider configuration is incomplete.",
+      "latency_ms": 20.7,
+      "xlmr_ok": true,
+      "intent_ok": true,
+      "route_ok": true,
+      "response_ok": null,
+      "error": false,
+      "passed": true
+    },
+    {
+      "id": "si-en-02",
+      "lang": "en",
+      "tags": [
+        "policy"
+      ],
+      "turns": [
+        "how many days do I have to return an item?"
+      ],
+      "expected_intent": [
+        "issue_support",
+        "store_information"
+      ],
+      "expected_route": "store_information",
+      "predicted_intent": "issue_support",
+      "confidence": 99.57,
+      "final_intent": "issue_support",
+      "verifier_status": "ACCEPTED_BY_CLASSIFIER",
+      "used_groq": false,
+      "route": "store_information",
+      "response": "Document knowledge lookup is unavailable because its provider configuration is incomplete.",
+      "latency_ms": 18.9,
+      "xlmr_ok": true,
+      "intent_ok": true,
+      "route_ok": true,
+      "response_ok": null,
+      "error": false,
+      "passed": true
+    },
+    {
+      "id": "si-en-03",
+      "lang": "en",
+      "tags": [
+        "policy"
+      ],
+      "turns": [
+        "how long do refunds take?"
+      ],
+      "expected_intent": [
+        "issue_support",
+        "store_information"
+      ],
+      "expected_route": "store_information",
+      "predicted_intent": "issue_support",
+      "confidence": 99.6,
+      "final_intent": "issue_support",
+      "verifier_status": "ACCEPTED_BY_CLASSIFIER",
+      "used_groq": false,
+      "route": "store_information",
+      "response": "Document knowledge lookup is unavailable because its provider configuration is incomplete.",
+      "latency_ms": 18.7,
+      "xlmr_ok": true,
+      "intent_ok": true,
+      "route_ok": true,
+      "response_ok": null,
+      "error": false,
+      "passed": true
+    },
+    {
+      "id": "si-en-04",
+      "lang": "en",
+      "tags": [],
+      "turns": [
+        "when is your next sale?"
+      ],
+      "expected_intent": "store_information",
+      "expected_route": "store_information",
+      "predicted_intent": "order_tracking",
+      "confidence": 97.0,
+      "final_intent": "order_tracking",
+      "verifier_status": "ACCEPTED_BY_CLASSIFIER",
+      "used_groq": false,
+      "route": "order_tracking",
+      "response": "Please provide your order ID (for example, ORD-1001) to check the demonstration order data.",
+      "latency_ms": 17.6,
+      "xlmr_ok": false,
+      "intent_ok": false,
+      "route_ok": false,
+      "response_ok": null,
+      "error": false,
+      "passed": false
+    },
+    {
+      "id": "si-en-05",
+      "lang": "en",
+      "tags": [],
+      "turns": [
+        "is there a winter sale this year?"
+      ],
+      "expected_intent": "store_information",
+      "expected_route": "store_information",
+      "predicted_intent": "store_information",
+      "confidence": 98.23,
+      "final_intent": "store_information",
+      "verifier_status": "ACCEPTED_BY_CLASSIFIER",
+      "used_groq": false,
+      "route": "store_information",
+      "response": "Document knowledge lookup is unavailable because its provider configuration is incomplete.\n\nRAG is not configured. Existing development sample data follows and is fictional:\nDemonstration store information only — these details and offers are not live or redeemable.\nSales: [{\"name\": \"Demo Weekend Sale\", \"discount\": \"10%\", \"code\": \"DEMO10\", \"status\": \"sample_only\"}]",
+      "latency_ms": 19.3,
+      "xlmr_ok": true,
+      "intent_ok": true,
+      "route_ok": true,
+      "response_ok": null,
+      "error": false,
+      "passed": true
+    },
+    {
+      "id": "si-en-06",
+      "lang": "en",
+      "tags": [],
+      "turns": [
+        "are there any discounts or promo codes right now?"
+      ],
+      "expected_intent": "store_information",
+      "expected_route": "store_information",
+      "predicted_intent": "store_information",
+      "confidence": 98.23,
+      "final_intent": "store_information",
+      "verifier_status": "ACCEPTED_BY_CLASSIFIER",
+      "used_groq": false,
+      "route": "store_information",
+      "response": "Document knowledge lookup is unavailable because its provider configuration is incomplete.\n\nRAG is not configured. Existing development sample data follows and is fictional:\nDemonstration store information only — these details and offers are not live or redeemable.\nDiscount Information: [{\"code\": \"DEMO10\", \"details\": \"Illustrative 10% discount code; not redeemable.\", \"status\": \"sample_only\"}]",
+      "latency_ms": 18.6,
+      "xlmr_ok": true,
+      "intent_ok": true,
+      "route_ok": true,
+      "response_ok": null,
+      "error": false,
+      "passed": true
+    },
+    {
+      "id": "si-en-07",
+      "lang": "en",
+      "tags": [],
+      "turns": [
+        "how long does the Boxing Day sale last?"
+      ],
+      "expected_intent": "store_information",
+      "expected_route": "store_information",
+      "predicted_intent": "order_tracking",
+      "confidence": 98.33,
+      "final_intent": "order_tracking",
+      "verifier_status": "ACCEPTED_BY_CLASSIFIER",
+      "used_groq": false,
+      "route": "order_tracking",
+      "response": "Please provide your order ID (for example, ORD-1001) to check the demonstration order data.",
+      "latency_ms": 16.8,
+      "xlmr_ok": false,
+      "intent_ok": false,
+      "route_ok": false,
+      "response_ok": null,
+      "error": false,
+      "passed": false
+    },
+    {
+      "id": "si-hi-01",
+      "lang": "hi",
+      "tags": [],
+      "turns": [
+        "अगली सेल कब है?"
+      ],
+      "expected_intent": "store_information",
+      "expected_route": "store_information",
+      "predicted_intent": "order_tracking",
+      "confidence": 99.38,
+      "final_intent": "order_tracking",
+      "verifier_status": "ACCEPTED_BY_CLASSIFIER",
+      "used_groq": false,
+      "route": "order_tracking",
+      "response": "Please provide your order ID (for example, ORD-1001) to check the demonstration order data.",
+      "latency_ms": 17.5,
+      "xlmr_ok": false,
+      "intent_ok": false,
+      "route_ok": false,
+      "response_ok": null,
+      "error": false,
+      "passed": false
+    },
+    {
+      "id": "si-hg-01",
+      "lang": "hinglish",
+      "tags": [],
+      "turns": [
+        "koi offer chal raha hai kya abhi?"
+      ],
+      "expected_intent": "store_information",
+      "expected_route": "store_information",
+      "predicted_intent": "order_tracking",
+      "confidence": 91.93,
+      "final_intent": "store_information",
+      "verifier_status": "CORRECTED_INTENT",
+      "used_groq": true,
+      "route": "store_information",
+      "response": "Document knowledge lookup is unavailable because its provider configuration is incomplete.\n\nRAG is not configured. Existing development sample data follows and is fictional:\nDemonstration store information only — these details and offers are not live or redeemable.\nPromotions: [{\"name\": \"Demo Free Shipping Promotion\", \"details\": \"Example promotion only; eligibility is not configured.\", \"status\": \"sample_only\"}]",
+      "latency_ms": 13889.1,
+      "xlmr_ok": false,
+      "intent_ok": true,
+      "route_ok": true,
+      "response_ok": null,
+      "error": false,
+      "passed": true
+    },
+    {
+      "id": "si-hg-02",
+      "lang": "hinglish",
+      "tags": [
+        "policy"
+      ],
+      "turns": [
+        "return policy kya hai aapki?"
+      ],
+      "expected_intent": [
+        "issue_support",
+        "store_information"
+      ],
+      "expected_route": "store_information",
+      "predicted_intent": "issue_support",
+      "confidence": 99.25,
+      "final_intent": "issue_support",
+      "verifier_status": "ACCEPTED_BY_CLASSIFIER",
+      "used_groq": false,
+      "route": "store_information",
+      "response": "Document knowledge lookup is unavailable because its provider configuration is incomplete.",
+      "latency_ms": 20.8,
+      "xlmr_ok": true,
+      "intent_ok": true,
+      "route_ok": true,
+      "response_ok": null,
+      "error": false,
+      "passed": true
+    },
+    {
+      "id": "cc-en-01",
+      "lang": "en",
+      "tags": [],
+      "turns": [
+        "I want to talk to a human agent"
+      ],
+      "expected_intent": "customer_care_support",
+      "expected_route": "customer_care",
+      "predicted_intent": "customer_care_support",
+      "confidence": 99.02,
+      "final_intent": "customer_care_support",
+      "verifier_status": "ACCEPTED_BY_CLASSIFIER",
+      "used_groq": false,
+      "route": "customer_care",
+      "response": "Your request is ready for human assistance in this demonstration. Reference: DEMO-CUSTOMER-HANDOFF-4B05C0BA7D. No live agent has been contacted.",
+      "latency_ms": 18.4,
+      "xlmr_ok": true,
+      "intent_ok": true,
+      "route_ok": true,
+      "response_ok": null,
+      "error": false,
+      "passed": true
+    },
+    {
+      "id": "cc-en-02",
+      "lang": "en",
+      "tags": [],
+      "turns": [
+        "connect me to customer service"
+      ],
+      "expected_intent": "customer_care_support",
+      "expected_route": "customer_care",
+      "predicted_intent": "customer_care_support",
+      "confidence": 98.99,
+      "final_intent": "customer_care_support",
+      "verifier_status": "ACCEPTED_BY_CLASSIFIER",
+      "used_groq": false,
+      "route": "customer_care",
+      "response": "Your request is ready for human assistance in this demonstration. Reference: DEMO-CUSTOMER-HANDOFF-5949D65FD3. No live agent has been contacted.",
+      "latency_ms": 17.8,
+      "xlmr_ok": true,
+      "intent_ok": true,
+      "route_ok": true,
+      "response_ok": null,
+      "error": false,
+      "passed": true
+    },
+    {
+      "id": "cc-en-03",
+      "lang": "en",
+      "tags": [],
+      "turns": [
+        "can I speak with a real person?"
+      ],
+      "expected_intent": "customer_care_support",
+      "expected_route": "customer_care",
+      "predicted_intent": "customer_care_support",
+      "confidence": 98.93,
+      "final_intent": "customer_care_support",
+      "verifier_status": "ACCEPTED_BY_CLASSIFIER",
+      "used_groq": false,
+      "route": "customer_care",
+      "response": "Your request is ready for human assistance in this demonstration. Reference: DEMO-CUSTOMER-HANDOFF-E5149C25C9. No live agent has been contacted.",
+      "latency_ms": 18.0,
+      "xlmr_ok": true,
+      "intent_ok": true,
+      "route_ok": true,
+      "response_ok": null,
+      "error": false,
+      "passed": true
+    },
+    {
+      "id": "cc-en-04",
+      "lang": "en",
+      "tags": [],
+      "turns": [
+        "what are your customer support hours?"
+      ],
+      "expected_intent": "customer_care_support",
+      "expected_route": "customer_care",
+      "predicted_intent": "customer_care_support",
+      "confidence": 97.17,
+      "final_intent": "customer_care_support",
+      "verifier_status": "ACCEPTED_BY_CLASSIFIER",
+      "used_groq": false,
+      "route": "customer_care",
+      "response": "Your request is ready for human assistance in this demonstration. Reference: DEMO-CUSTOMER-HANDOFF-905E086A86. No live agent has been contacted.",
+      "latency_ms": 19.3,
+      "xlmr_ok": true,
+      "intent_ok": true,
+      "route_ok": true,
+      "response_ok": null,
+      "error": false,
+      "passed": true
+    },
+    {
+      "id": "cc-en-05",
+      "lang": "en",
+      "tags": [
+        "casual"
+      ],
+      "turns": [
+        "this bot is useless, get me a human"
+      ],
+      "expected_intent": "customer_care_support",
+      "expected_route": "customer_care",
+      "predicted_intent": "account_management",
+      "confidence": 97.85,
+      "final_intent": "account_management",
+      "verifier_status": "ACCEPTED_BY_CLASSIFIER",
+      "used_groq": false,
+      "route": "unsupported:account_management",
+      "response": "I can't make changes to your account here yet. I can check an order's status, help with a return, refund, damaged or missing item, look up product availability, or connect you with a support agent.",
+      "latency_ms": 16.6,
+      "xlmr_ok": false,
+      "intent_ok": false,
+      "route_ok": false,
+      "response_ok": null,
+      "error": false,
+      "passed": false
+    },
+    {
+      "id": "cc-hi-01",
+      "lang": "hi",
+      "tags": [],
+      "turns": [
+        "मुझे किसी एजेंट से बात करनी है"
+      ],
+      "expected_intent": "customer_care_support",
+      "expected_route": "customer_care",
+      "predicted_intent": "customer_care_support",
+      "confidence": 98.88,
+      "final_intent": "customer_care_support",
+      "verifier_status": "ACCEPTED_BY_CLASSIFIER",
+      "used_groq": false,
+      "route": "customer_care",
+      "response": "Your request is ready for human assistance in this demonstration. Reference: DEMO-CUSTOMER-HANDOFF-44D7978ED5. No live agent has been contacted.",
+      "latency_ms": 18.2,
+      "xlmr_ok": true,
+      "intent_ok": true,
+      "route_ok": true,
+      "response_ok": null,
+      "error": false,
+      "passed": true
+    },
+    {
+      "id": "cc-hg-01",
+      "lang": "hinglish",
+      "tags": [],
+      "turns": [
+        "customer care se baat karao"
+      ],
+      "expected_intent": "customer_care_support",
+      "expected_route": "customer_care",
+      "predicted_intent": "customer_care_support",
+      "confidence": 96.81,
+      "final_intent": "customer_care_support",
+      "verifier_status": "ACCEPTED_BY_CLASSIFIER",
+      "used_groq": false,
+      "route": "customer_care",
+      "response": "Your request is ready for human assistance in this demonstration. Reference: DEMO-CUSTOMER-HANDOFF-008C06DA4F. No live agent has been contacted.",
+      "latency_ms": 17.7,
+      "xlmr_ok": true,
+      "intent_ok": true,
+      "route_ok": true,
+      "response_ok": null,
+      "error": false,
+      "passed": true
+    },
+    {
+      "id": "cc-hg-02",
+      "lang": "hinglish",
+      "tags": [],
+      "turns": [
+        "kisi insaan se baat karni hai"
+      ],
+      "expected_intent": "customer_care_support",
+      "expected_route": "customer_care",
+      "predicted_intent": "customer_care_support",
+      "confidence": 98.61,
+      "final_intent": "customer_care_support",
+      "verifier_status": "ACCEPTED_BY_CLASSIFIER",
+      "used_groq": false,
+      "route": "customer_care",
+      "response": "Your request is ready for human assistance in this demonstration. Reference: DEMO-CUSTOMER-HANDOFF-ECC34BFED1. No live agent has been contacted.",
+      "latency_ms": 18.8,
+      "xlmr_ok": true,
+      "intent_ok": true,
+      "route_ok": true,
+      "response_ok": null,
+      "error": false,
+      "passed": true
+    },
+    {
+      "id": "do-en-01",
+      "lang": "en",
+      "tags": [
+        "handler_pending"
+      ],
+      "turns": [
+        "what delivery options do you offer?"
+      ],
+      "expected_intent": "delivery_options",
+      "expected_route": "shipping",
+      "predicted_intent": "delivery_options",
+      "confidence": 98.81,
+      "final_intent": "delivery_options",
+      "verifier_status": "ACCEPTED_BY_CLASSIFIER",
+      "used_groq": false,
+      "route": "shipping",
+      "response": "Shipping information was selected, but its business integration is pending. No shipping lookup was performed.",
+      "latency_ms": 18.1,
+      "xlmr_ok": true,
+      "intent_ok": true,
+      "route_ok": true,
+      "response_ok": null,
+      "error": false,
+      "passed": true
+    },
+    {
+      "id": "do-en-02",
+      "lang": "en",
+      "tags": [
+        "handler_pending"
+      ],
+      "turns": [
+        "do you ship to Mumbai?"
+      ],
+      "expected_intent": "delivery_options",
+      "expected_route": "shipping",
+      "predicted_intent": "delivery_options",
+      "confidence": 98.5,
+      "final_intent": "delivery_options",
+      "verifier_status": "ACCEPTED_BY_CLASSIFIER",
+      "used_groq": false,
+      "route": "shipping",
+      "response": "Shipping information was selected, but its business integration is pending. No shipping lookup was performed.",
+      "latency_ms": 18.8,
+      "xlmr_ok": true,
+      "intent_ok": true,
+      "route_ok": true,
+      "response_ok": null,
+      "error": false,
+      "passed": true
+    },
+    {
+      "id": "do-en-03",
+      "lang": "en",
+      "tags": [
+        "handler_pending"
+      ],
+      "turns": [
+        "can you deliver internationally?"
+      ],
+      "expected_intent": "delivery_options",
+      "expected_route": "shipping",
+      "predicted_intent": "delivery_options",
+      "confidence": 98.82,
+      "final_intent": "delivery_options",
+      "verifier_status": "ACCEPTED_BY_CLASSIFIER",
+      "used_groq": false,
+      "route": "shipping",
+      "response": "Shipping information was selected, but its business integration is pending. No shipping lookup was performed.",
+      "latency_ms": 16.5,
+      "xlmr_ok": true,
+      "intent_ok": true,
+      "route_ok": true,
+      "response_ok": null,
+      "error": false,
+      "passed": true
+    },
+    {
+      "id": "do-en-04",
+      "lang": "en",
+      "tags": [
+        "handler_pending"
+      ],
+      "turns": [
+        "is express delivery available?"
+      ],
+      "expected_intent": "delivery_options",
+      "expected_route": "shipping",
+      "predicted_intent": "delivery_options",
+      "confidence": 98.52,
+      "final_intent": "delivery_options",
+      "verifier_status": "ACCEPTED_BY_CLASSIFIER",
+      "used_groq": false,
+      "route": "shipping",
+      "response": "Shipping information was selected, but its business integration is pending. No shipping lookup was performed.",
+      "latency_ms": 17.0,
+      "xlmr_ok": true,
+      "intent_ok": true,
+      "route_ok": true,
+      "response_ok": null,
+      "error": false,
+      "passed": true
+    },
+    {
+      "id": "do-en-05",
+      "lang": "en",
+      "tags": [
+        "handler_pending"
+      ],
+      "turns": [
+        "do you offer same-day delivery?"
+      ],
+      "expected_intent": "delivery_options",
+      "expected_route": "shipping",
+      "predicted_intent": "delivery_options",
+      "confidence": 98.82,
+      "final_intent": "delivery_options",
+      "verifier_status": "ACCEPTED_BY_CLASSIFIER",
+      "used_groq": false,
+      "route": "shipping",
+      "response": "Shipping information was selected, but its business integration is pending. No shipping lookup was performed.",
+      "latency_ms": 16.4,
+      "xlmr_ok": true,
+      "intent_ok": true,
+      "route_ok": true,
+      "response_ok": null,
+      "error": false,
+      "passed": true
+    },
+    {
+      "id": "do-hi-01",
+      "lang": "hi",
+      "tags": [
+        "handler_pending"
+      ],
+      "turns": [
+        "क्या आप बैंगलोर में डिलीवरी करते हैं?"
+      ],
+      "expected_intent": "delivery_options",
+      "expected_route": "shipping",
+      "predicted_intent": "delivery_options",
+      "confidence": 91.36,
+      "final_intent": "delivery_options",
+      "verifier_status": "CORRECT_INTENT",
+      "used_groq": true,
+      "route": "shipping",
+      "response": "Shipping information was selected, but its business integration is pending. No shipping lookup was performed.",
+      "latency_ms": 13823.1,
+      "xlmr_ok": true,
+      "intent_ok": true,
+      "route_ok": true,
+      "response_ok": null,
+      "error": false,
+      "passed": true
+    },
+    {
+      "id": "do-hg-01",
+      "lang": "hinglish",
+      "tags": [
+        "handler_pending"
+      ],
+      "turns": [
+        "kya aap Pune deliver karte ho?"
+      ],
+      "expected_intent": "delivery_options",
+      "expected_route": "shipping",
+      "predicted_intent": "delivery_options",
+      "confidence": 98.2,
+      "final_intent": "delivery_options",
+      "verifier_status": "ACCEPTED_BY_CLASSIFIER",
+      "used_groq": false,
+      "route": "shipping",
+      "response": "Shipping information was selected, but its business integration is pending. No shipping lookup was performed.",
+      "latency_ms": 28.9,
+      "xlmr_ok": true,
+      "intent_ok": true,
+      "route_ok": true,
+      "response_ok": null,
+      "error": false,
+      "passed": true
+    },
+    {
+      "id": "sc-en-01",
+      "lang": "en",
+      "tags": [
+        "handler_pending"
+      ],
+      "turns": [
+        "how much is shipping to Delhi?"
+      ],
+      "expected_intent": "shipping_cost",
+      "expected_route": "shipping",
+      "predicted_intent": "shipping_cost",
+      "confidence": 98.89,
+      "final_intent": "shipping_cost",
+      "verifier_status": "ACCEPTED_BY_CLASSIFIER",
+      "used_groq": false,
+      "route": "shipping",
+      "response": "Shipping information was selected, but its business integration is pending. No shipping lookup was performed.",
+      "latency_ms": 18.8,
+      "xlmr_ok": true,
+      "intent_ok": true,
+      "route_ok": true,
+      "response_ok": null,
+      "error": false,
+      "passed": true
+    },
+    {
+      "id": "sc-en-02",
+      "lang": "en",
+      "tags": [
+        "handler_pending"
+      ],
+      "turns": [
+        "what are the delivery charges?"
+      ],
+      "expected_intent": "shipping_cost",
+      "expected_route": "shipping",
+      "predicted_intent": "shipping_cost",
+      "confidence": 98.87,
+      "final_intent": "shipping_cost",
+      "verifier_status": "ACCEPTED_BY_CLASSIFIER",
+      "used_groq": false,
+      "route": "shipping",
+      "response": "Shipping information was selected, but its business integration is pending. No shipping lookup was performed.",
+      "latency_ms": 17.3,
+      "xlmr_ok": true,
+      "intent_ok": true,
+      "route_ok": true,
+      "response_ok": null,
+      "error": false,
+      "passed": true
+    },
+    {
+      "id": "sc-en-03",
+      "lang": "en",
+      "tags": [
+        "handler_pending"
+      ],
+      "turns": [
+        "is shipping free?"
+      ],
+      "expected_intent": "shipping_cost",
+      "expected_route": "shipping",
+      "predicted_intent": "shipping_cost",
+      "confidence": 66.94,
+      "final_intent": "shipping_cost",
+      "verifier_status": "CORRECT_INTENT",
+      "used_groq": true,
+      "route": "shipping",
+      "response": "Shipping information was selected, but its business integration is pending. No shipping lookup was performed.",
+      "latency_ms": 15262.0,
+      "xlmr_ok": true,
+      "intent_ok": true,
+      "route_ok": true,
+      "response_ok": null,
+      "error": false,
+      "passed": true
+    },
+    {
+      "id": "sc-en-04",
+      "lang": "en",
+      "tags": [
+        "handler_pending"
+      ],
+      "turns": [
+        "how much does express shipping cost?"
+      ],
+      "expected_intent": "shipping_cost",
+      "expected_route": "shipping",
+      "predicted_intent": "shipping_cost",
+      "confidence": 98.82,
+      "final_intent": "shipping_cost",
+      "verifier_status": "ACCEPTED_BY_CLASSIFIER",
+      "used_groq": false,
+      "route": "shipping",
+      "response": "Shipping information was selected, but its business integration is pending. No shipping lookup was performed.",
+      "latency_ms": 18.9,
+      "xlmr_ok": true,
+      "intent_ok": true,
+      "route_ok": true,
+      "response_ok": null,
+      "error": false,
+      "passed": true
+    },
+    {
+      "id": "sc-en-05",
+      "lang": "en",
+      "tags": [
+        "handler_pending",
+        "casual"
+      ],
+      "turns": [
+        "shipping fee for Chennai?"
+      ],
+      "expected_intent": "shipping_cost",
+      "expected_route": "shipping",
+      "predicted_intent": "shipping_cost",
+      "confidence": 99.04,
+      "final_intent": "shipping_cost",
+      "verifier_status": "ACCEPTED_BY_CLASSIFIER",
+      "used_groq": false,
+      "route": "shipping",
+      "response": "Shipping information was selected, but its business integration is pending. No shipping lookup was performed.",
+      "latency_ms": 17.8,
+      "xlmr_ok": true,
+      "intent_ok": true,
+      "route_ok": true,
+      "response_ok": null,
+      "error": false,
+      "passed": true
+    },
+    {
+      "id": "sc-hi-01",
+      "lang": "hi",
+      "tags": [
+        "handler_pending"
+      ],
+      "turns": [
+        "दिल्ली तक शिपिंग का कितना चार्ज है?"
+      ],
+      "expected_intent": "shipping_cost",
+      "expected_route": "shipping",
+      "predicted_intent": "shipping_cost",
+      "confidence": 98.9,
+      "final_intent": "shipping_cost",
+      "verifier_status": "ACCEPTED_BY_CLASSIFIER",
+      "used_groq": false,
+      "route": "shipping",
+      "response": "Shipping information was selected, but its business integration is pending. No shipping lookup was performed.",
+      "latency_ms": 18.4,
+      "xlmr_ok": true,
+      "intent_ok": true,
+      "route_ok": true,
+      "response_ok": null,
+      "error": false,
+      "passed": true
+    },
+    {
+      "id": "sc-hg-01",
+      "lang": "hinglish",
+      "tags": [
+        "handler_pending"
+      ],
+      "turns": [
+        "delivery charge kitna lagega?"
+      ],
+      "expected_intent": "shipping_cost",
+      "expected_route": "shipping",
+      "predicted_intent": "shipping_cost",
+      "confidence": 98.72,
+      "final_intent": "shipping_cost",
+      "verifier_status": "ACCEPTED_BY_CLASSIFIER",
+      "used_groq": false,
+      "route": "shipping",
+      "response": "Shipping information was selected, but its business integration is pending. No shipping lookup was performed.",
+      "latency_ms": 17.8,
+      "xlmr_ok": true,
+      "intent_ok": true,
+      "route_ok": true,
+      "response_ok": null,
+      "error": false,
+      "passed": true
+    },
+    {
+      "id": "am-en-01",
+      "lang": "en",
+      "tags": [],
+      "turns": [
+        "how do I change my account password"
+      ],
+      "expected_intent": "account_management",
+      "expected_route": "unsupported:account_management",
+      "predicted_intent": "account_management",
+      "confidence": 99.62,
+      "final_intent": "account_management",
+      "verifier_status": "ACCEPTED_BY_CLASSIFIER",
+      "used_groq": false,
+      "route": "unsupported:account_management",
+      "response": "I can't make changes to your account here yet. I can check an order's status, help with a return, refund, damaged or missing item, look up product availability, or connect you with a support agent.",
+      "latency_ms": 17.1,
+      "xlmr_ok": true,
+      "intent_ok": true,
+      "route_ok": true,
+      "response_ok": null,
+      "error": false,
+      "passed": true
+    },
+    {
+      "id": "am-en-02",
+      "lang": "en",
+      "tags": [],
+      "turns": [
+        "I forgot my password"
+      ],
+      "expected_intent": "account_management",
+      "expected_route": "unsupported:account_management",
+      "predicted_intent": "account_management",
+      "confidence": 99.62,
+      "final_intent": "account_management",
+      "verifier_status": "ACCEPTED_BY_CLASSIFIER",
+      "used_groq": false,
+      "route": "unsupported:account_management",
+      "response": "I can't make changes to your account here yet. I can check an order's status, help with a return, refund, damaged or missing item, look up product availability, or connect you with a support agent.",
+      "latency_ms": 16.8,
+      "xlmr_ok": true,
+      "intent_ok": true,
+      "route_ok": true,
+      "response_ok": null,
+      "error": false,
+      "passed": true
+    },
+    {
+      "id": "am-en-03",
+      "lang": "en",
+      "tags": [],
+      "turns": [
+        "I want to delete my account"
+      ],
+      "expected_intent": "account_management",
+      "expected_route": "unsupported:account_management",
+      "predicted_intent": "account_management",
+      "confidence": 99.61,
+      "final_intent": "account_management",
+      "verifier_status": "ACCEPTED_BY_CLASSIFIER",
+      "used_groq": false,
+      "route": "unsupported:account_management",
+      "response": "I can't make changes to your account here yet. I can check an order's status, help with a return, refund, damaged or missing item, look up product availability, or connect you with a support agent.",
+      "latency_ms": 16.9,
+      "xlmr_ok": true,
+      "intent_ok": true,
+      "route_ok": true,
+      "response_ok": null,
+      "error": false,
+      "passed": true
+    },
+    {
+      "id": "am-en-04",
+      "lang": "en",
+      "tags": [],
+      "turns": [
+        "update the email address on my profile"
+      ],
+      "expected_intent": "account_management",
+      "expected_route": "unsupported:account_management",
+      "predicted_intent": "account_management",
+      "confidence": 99.63,
+      "final_intent": "account_management",
+      "verifier_status": "ACCEPTED_BY_CLASSIFIER",
+      "used_groq": false,
+      "route": "unsupported:account_management",
+      "response": "I can't make changes to your account here yet. I can check an order's status, help with a return, refund, damaged or missing item, look up product availability, or connect you with a support agent.",
+      "latency_ms": 19.9,
+      "xlmr_ok": true,
+      "intent_ok": true,
+      "route_ok": true,
+      "response_ok": null,
+      "error": false,
+      "passed": true
+    },
+    {
+      "id": "am-en-05",
+      "lang": "en",
+      "tags": [],
+      "turns": [
+        "change the default shipping address on my account"
+      ],
+      "expected_intent": "account_management",
+      "expected_route": "unsupported:account_management",
+      "predicted_intent": "account_management",
+      "confidence": 99.63,
+      "final_intent": "account_management",
+      "verifier_status": "ACCEPTED_BY_CLASSIFIER",
+      "used_groq": false,
+      "route": "unsupported:account_management",
+      "response": "I can't make changes to your account here yet. I can check an order's status, help with a return, refund, damaged or missing item, look up product availability, or connect you with a support agent.",
+      "latency_ms": 17.9,
+      "xlmr_ok": true,
+      "intent_ok": true,
+      "route_ok": true,
+      "response_ok": null,
+      "error": false,
+      "passed": true
+    },
+    {
+      "id": "am-hi-01",
+      "lang": "hi",
+      "tags": [],
+      "turns": [
+        "मैं अपना पासवर्ड भूल गया हूँ"
+      ],
+      "expected_intent": "account_management",
+      "expected_route": "unsupported:account_management",
+      "predicted_intent": "account_management",
+      "confidence": 99.61,
+      "final_intent": "account_management",
+      "verifier_status": "ACCEPTED_BY_CLASSIFIER",
+      "used_groq": false,
+      "route": "unsupported:account_management",
+      "response": "I can't make changes to your account here yet. I can check an order's status, help with a return, refund, damaged or missing item, look up product availability, or connect you with a support agent.",
+      "latency_ms": 18.4,
+      "xlmr_ok": true,
+      "intent_ok": true,
+      "route_ok": true,
+      "response_ok": null,
+      "error": false,
+      "passed": true
+    },
+    {
+      "id": "am-hg-01",
+      "lang": "hinglish",
+      "tags": [],
+      "turns": [
+        "account delete karna hai"
+      ],
+      "expected_intent": "account_management",
+      "expected_route": "unsupported:account_management",
+      "predicted_intent": "account_management",
+      "confidence": 99.56,
+      "final_intent": "account_management",
+      "verifier_status": "ACCEPTED_BY_CLASSIFIER",
+      "used_groq": false,
+      "route": "unsupported:account_management",
+      "response": "I can't make changes to your account here yet. I can check an order's status, help with a return, refund, damaged or missing item, look up product availability, or connect you with a support agent.",
+      "latency_ms": 17.3,
+      "xlmr_ok": true,
+      "intent_ok": true,
+      "route_ok": true,
+      "response_ok": null,
+      "error": false,
+      "passed": true
+    },
+    {
+      "id": "om-en-01",
+      "lang": "en",
+      "tags": [],
+      "turns": [
+        "cancel my order"
+      ],
+      "expected_intent": "order_management",
+      "expected_route": "unsupported:order_management",
+      "predicted_intent": "order_management",
+      "confidence": 99.38,
+      "final_intent": "order_management",
+      "verifier_status": "ACCEPTED_BY_CLASSIFIER",
+      "used_groq": false,
+      "route": "unsupported:order_management",
+      "response": "I can't cancel or change orders from this chat yet. I can check an order's status, help with a return, refund, damaged or missing item, look up product availability, or connect you with a support agent.",
+      "latency_ms": 19.0,
+      "xlmr_ok": true,
+      "intent_ok": true,
+      "route_ok": true,
+      "response_ok": null,
+      "error": false,
+      "passed": true
+    },
+    {
+      "id": "om-en-02",
+      "lang": "en",
+      "tags": [],
+      "turns": [
+        "I want to cancel order ORD-1002"
+      ],
+      "expected_intent": "order_management",
+      "expected_route": "unsupported:order_management",
+      "predicted_intent": "order_management",
+      "confidence": 98.48,
+      "final_intent": "order_management",
+      "verifier_status": "ACCEPTED_BY_CLASSIFIER",
+      "used_groq": false,
+      "route": "unsupported:order_management",
+      "response": "I can't cancel or change orders from this chat yet. I can check an order's status, help with a return, refund, damaged or missing item, look up product availability, or connect you with a support agent.",
+      "latency_ms": 16.5,
+      "xlmr_ok": true,
+      "intent_ok": true,
+      "route_ok": true,
+      "response_ok": null,
+      "error": false,
+      "passed": true
+    },
+    {
+      "id": "om-en-03",
+      "lang": "en",
+      "tags": [],
+      "turns": [
+        "can I change the size of the item in my order?"
+      ],
+      "expected_intent": "order_management",
+      "expected_route": "unsupported:order_management",
+      "predicted_intent": "order_management",
+      "confidence": 68.65,
+      "final_intent": "order_management",
+      "verifier_status": "CORRECT_INTENT",
+      "used_groq": true,
+      "route": "unsupported:order_management",
+      "response": "I can't cancel or change orders from this chat yet. I can check an order's status, help with a return, refund, damaged or missing item, look up product availability, or connect you with a support agent.",
+      "latency_ms": 10013.7,
+      "xlmr_ok": true,
+      "intent_ok": true,
+      "route_ok": true,
+      "response_ok": null,
+      "error": false,
+      "passed": true
+    },
+    {
+      "id": "om-en-04",
+      "lang": "en",
+      "tags": [],
+      "turns": [
+        "remove one item from my order"
+      ],
+      "expected_intent": "order_management",
+      "expected_route": "unsupported:order_management",
+      "predicted_intent": "order_management",
+      "confidence": 78.79,
+      "final_intent": "order_management",
+      "verifier_status": "CORRECT_INTENT",
+      "used_groq": true,
+      "route": "unsupported:order_management",
+      "response": "I can't cancel or change orders from this chat yet. I can check an order's status, help with a return, refund, damaged or missing item, look up product availability, or connect you with a support agent.",
+      "latency_ms": 9804.5,
+      "xlmr_ok": true,
+      "intent_ok": true,
+      "route_ok": true,
+      "response_ok": null,
+      "error": false,
+      "passed": true
+    },
+    {
+      "id": "om-en-05",
+      "lang": "en",
+      "tags": [],
+      "turns": [
+        "is there a cancellation fee?"
+      ],
+      "expected_intent": "order_management",
+      "expected_route": "unsupported:order_management",
+      "predicted_intent": "order_management",
+      "confidence": 99.36,
+      "final_intent": "order_management",
+      "verifier_status": "ACCEPTED_BY_CLASSIFIER",
+      "used_groq": false,
+      "route": "unsupported:order_management",
+      "response": "I can't cancel or change orders from this chat yet. I can check an order's status, help with a return, refund, damaged or missing item, look up product availability, or connect you with a support agent.",
+      "latency_ms": 27.0,
+      "xlmr_ok": true,
+      "intent_ok": true,
+      "route_ok": true,
+      "response_ok": null,
+      "error": false,
+      "passed": true
+    },
+    {
+      "id": "om-hi-01",
+      "lang": "hi",
+      "tags": [],
+      "turns": [
+        "मेरा ऑर्डर कैंसिल कर दो"
+      ],
+      "expected_intent": "order_management",
+      "expected_route": "unsupported:order_management",
+      "predicted_intent": "place_order",
+      "confidence": 95.33,
+      "final_intent": "place_order",
+      "verifier_status": "ACCEPTED_BY_CLASSIFIER",
+      "used_groq": false,
+      "route": "unsupported:place_order",
+      "response": "I can't place orders from this chat yet. I can check an order's status, help with a return, refund, damaged or missing item, look up product availability, or connect you with a support agent.",
+      "latency_ms": 21.3,
+      "xlmr_ok": false,
+      "intent_ok": false,
+      "route_ok": false,
+      "response_ok": null,
+      "error": false,
+      "passed": false
+    },
+    {
+      "id": "om-hg-01",
+      "lang": "hinglish",
+      "tags": [],
+      "turns": [
+        "order cancel karna hai"
+      ],
+      "expected_intent": "order_management",
+      "expected_route": "unsupported:order_management",
+      "predicted_intent": "order_management",
+      "confidence": 99.37,
+      "final_intent": "order_management",
+      "verifier_status": "ACCEPTED_BY_CLASSIFIER",
+      "used_groq": false,
+      "route": "unsupported:order_management",
+      "response": "I can't cancel or change orders from this chat yet. I can check an order's status, help with a return, refund, damaged or missing item, look up product availability, or connect you with a support agent.",
+      "latency_ms": 17.2,
+      "xlmr_ok": true,
+      "intent_ok": true,
+      "route_ok": true,
+      "response_ok": null,
+      "error": false,
+      "passed": true
+    },
+    {
+      "id": "po-en-01",
+      "lang": "en",
+      "tags": [],
+      "turns": [
+        "how do I buy the Laptop Pro?"
+      ],
+      "expected_intent": "place_order",
+      "expected_route": "unsupported:place_order",
+      "predicted_intent": "place_order",
+      "confidence": 76.05,
+      "final_intent": "place_order",
+      "verifier_status": "CORRECT_INTENT",
+      "used_groq": true,
+      "route": "unsupported:place_order",
+      "response": "I can't place orders from this chat yet. I can check an order's status, help with a return, refund, damaged or missing item, look up product availability, or connect you with a support agent.",
+      "latency_ms": 11098.4,
+      "xlmr_ok": true,
+      "intent_ok": true,
+      "route_ok": true,
+      "response_ok": null,
+      "error": false,
+      "passed": true
+    },
+    {
+      "id": "po-en-02",
+      "lang": "en",
+      "tags": [],
+      "turns": [
+        "I want to place an order"
+      ],
+      "expected_intent": "place_order",
+      "expected_route": "unsupported:place_order",
+      "predicted_intent": "place_order",
+      "confidence": 98.86,
+      "final_intent": "place_order",
+      "verifier_status": "ACCEPTED_BY_CLASSIFIER",
+      "used_groq": false,
+      "route": "unsupported:place_order",
+      "response": "I can't place orders from this chat yet. I can check an order's status, help with a return, refund, damaged or missing item, look up product availability, or connect you with a support agent.",
+      "latency_ms": 18.4,
+      "xlmr_ok": true,
+      "intent_ok": true,
+      "route_ok": true,
+      "response_ok": null,
+      "error": false,
+      "passed": true
+    },
+    {
+      "id": "po-en-03",
+      "lang": "en",
+      "tags": [],
+      "turns": [
+        "can I order two Galaxy S21 phones?"
+      ],
+      "expected_intent": "place_order",
+      "expected_route": "unsupported:place_order",
+      "predicted_intent": "place_order",
+      "confidence": 98.14,
+      "final_intent": "place_order",
+      "verifier_status": "ACCEPTED_BY_CLASSIFIER",
+      "used_groq": false,
+      "route": "unsupported:place_order",
+      "response": "I can't place orders from this chat yet. I can check an order's status, help with a return, refund, damaged or missing item, look up product availability, or connect you with a support agent.",
+      "latency_ms": 16.4,
+      "xlmr_ok": true,
+      "intent_ok": true,
+      "route_ok": true,
+      "response_ok": null,
+      "error": false,
+      "passed": true
+    },
+    {
+      "id": "po-en-04",
+      "lang": "en",
+      "tags": [],
+      "turns": [
+        "help me purchase headphones"
+      ],
+      "expected_intent": "place_order",
+      "expected_route": "unsupported:place_order",
+      "predicted_intent": "place_order",
+      "confidence": 99.06,
+      "final_intent": "place_order",
+      "verifier_status": "ACCEPTED_BY_CLASSIFIER",
+      "used_groq": false,
+      "route": "unsupported:place_order",
+      "response": "I can't place orders from this chat yet. I can check an order's status, help with a return, refund, damaged or missing item, look up product availability, or connect you with a support agent.",
+      "latency_ms": 17.1,
+      "xlmr_ok": true,
+      "intent_ok": true,
+      "route_ok": true,
+      "response_ok": null,
+      "error": false,
+      "passed": true
+    },
+    {
+      "id": "po-hi-01",
+      "lang": "hi",
+      "tags": [],
+      "turns": [
+        "मुझे नया ऑर्डर करना है"
+      ],
+      "expected_intent": "place_order",
+      "expected_route": "unsupported:place_order",
+      "predicted_intent": "account_management",
+      "confidence": 93.65,
+      "final_intent": "place_order",
+      "verifier_status": "CORRECTED_INTENT",
+      "used_groq": true,
+      "route": "unsupported:place_order",
+      "response": "I can't place orders from this chat yet. I can check an order's status, help with a return, refund, damaged or missing item, look up product availability, or connect you with a support agent.",
+      "latency_ms": 14324.4,
+      "xlmr_ok": false,
+      "intent_ok": true,
+      "route_ok": true,
+      "response_ok": null,
+      "error": false,
+      "passed": true
+    },
+    {
+      "id": "po-hg-01",
+      "lang": "hinglish",
+      "tags": [],
+      "turns": [
+        "Laptop Pro kharidna hai, kaise karu?"
+      ],
+      "expected_intent": "place_order",
+      "expected_route": "unsupported:place_order",
+      "predicted_intent": "product_inquiry",
+      "confidence": 99.57,
+      "final_intent": "product_inquiry",
+      "verifier_status": "ACCEPTED_BY_CLASSIFIER",
+      "used_groq": false,
+      "route": "product_inquiry",
+      "response": "Demonstration catalog: Laptop Pro (PROD-001) is in stock with 8 unit(s) recorded in sample stock. Sample restock date: 2025-11-15. This is not live inventory.",
+      "latency_ms": 41.4,
+      "xlmr_ok": false,
+      "intent_ok": false,
+      "route_ok": false,
+      "response_ok": null,
+      "error": false,
+      "passed": false
+    },
+    {
+      "id": "ac-en-01",
+      "lang": "en",
+      "tags": [],
+      "turns": [
+        "add Laptop Pro to my cart"
+      ],
+      "expected_intent": "add_to_cart",
+      "expected_route": "unsupported:add_to_cart",
+      "predicted_intent": "add_to_cart",
+      "confidence": 98.53,
+      "final_intent": "add_to_cart",
+      "verifier_status": "ACCEPTED_BY_CLASSIFIER",
+      "used_groq": false,
+      "route": "unsupported:add_to_cart",
+      "response": "I can't add items to your cart from this chat yet. I can check an order's status, help with a return, refund, damaged or missing item, look up product availability, or connect you with a support agent.",
+      "latency_ms": 22.2,
+      "xlmr_ok": true,
+      "intent_ok": true,
+      "route_ok": true,
+      "response_ok": null,
+      "error": false,
+      "passed": true
+    },
+    {
+      "id": "ac-en-02",
+      "lang": "en",
+      "tags": [],
+      "turns": [
+        "how do I put items in my basket?"
+      ],
+      "expected_intent": "add_to_cart",
+      "expected_route": "unsupported:add_to_cart",
+      "predicted_intent": "add_to_cart",
+      "confidence": 98.09,
+      "final_intent": "add_to_cart",
+      "verifier_status": "ACCEPTED_BY_CLASSIFIER",
+      "used_groq": false,
+      "route": "unsupported:add_to_cart",
+      "response": "I can't add items to your cart from this chat yet. I can check an order's status, help with a return, refund, damaged or missing item, look up product availability, or connect you with a support agent.",
+      "latency_ms": 17.8,
+      "xlmr_ok": true,
+      "intent_ok": true,
+      "route_ok": true,
+      "response_ok": null,
+      "error": false,
+      "passed": true
+    },
+    {
+      "id": "ac-en-03",
+      "lang": "en",
+      "tags": [],
+      "turns": [
+        "add two headphones to the cart"
+      ],
+      "expected_intent": "add_to_cart",
+      "expected_route": "unsupported:add_to_cart",
+      "predicted_intent": "add_to_cart",
+      "confidence": 98.65,
+      "final_intent": "add_to_cart",
+      "verifier_status": "ACCEPTED_BY_CLASSIFIER",
+      "used_groq": false,
+      "route": "unsupported:add_to_cart",
+      "response": "I can't add items to your cart from this chat yet. I can check an order's status, help with a return, refund, damaged or missing item, look up product availability, or connect you with a support agent.",
+      "latency_ms": 18.4,
+      "xlmr_ok": true,
+      "intent_ok": true,
+      "route_ok": true,
+      "response_ok": null,
+      "error": false,
+      "passed": true
+    },
+    {
+      "id": "ac-hi-01",
+      "lang": "hi",
+      "tags": [],
+      "turns": [
+        "इसे मेरी कार्ट में डाल दो"
+      ],
+      "expected_intent": "add_to_cart",
+      "expected_route": "unsupported:add_to_cart",
+      "predicted_intent": "add_to_cart",
+      "confidence": 97.96,
+      "final_intent": "add_to_cart",
+      "verifier_status": "ACCEPTED_BY_CLASSIFIER",
+      "used_groq": false,
+      "route": "unsupported:add_to_cart",
+      "response": "I can't add items to your cart from this chat yet. I can check an order's status, help with a return, refund, damaged or missing item, look up product availability, or connect you with a support agent.",
+      "latency_ms": 17.5,
+      "xlmr_ok": true,
+      "intent_ok": true,
+      "route_ok": true,
+      "response_ok": null,
+      "error": false,
+      "passed": true
+    },
+    {
+      "id": "ac-hg-01",
+      "lang": "hinglish",
+      "tags": [],
+      "turns": [
+        "ye cart me add kar do"
+      ],
+      "expected_intent": "add_to_cart",
+      "expected_route": "unsupported:add_to_cart",
+      "predicted_intent": "add_to_cart",
+      "confidence": 98.67,
+      "final_intent": "add_to_cart",
+      "verifier_status": "ACCEPTED_BY_CLASSIFIER",
+      "used_groq": false,
+      "route": "unsupported:add_to_cart",
+      "response": "I can't add items to your cart from this chat yet. I can check an order's status, help with a return, refund, damaged or missing item, look up product availability, or connect you with a support agent.",
+      "latency_ms": 17.1,
+      "xlmr_ok": true,
+      "intent_ok": true,
+      "route_ok": true,
+      "response_ok": null,
+      "error": false,
+      "passed": true
+    },
+    {
+      "id": "rc-en-01",
+      "lang": "en",
+      "tags": [],
+      "turns": [
+        "remove the headphones from my cart"
+      ],
+      "expected_intent": "remove_from_cart",
+      "expected_route": "unsupported:remove_from_cart",
+      "predicted_intent": "remove_from_cart",
+      "confidence": 98.44,
+      "final_intent": "remove_from_cart",
+      "verifier_status": "ACCEPTED_BY_CLASSIFIER",
+      "used_groq": false,
+      "route": "unsupported:remove_from_cart",
+      "response": "I can't change your cart from this chat yet. I can check an order's status, help with a return, refund, damaged or missing item, look up product availability, or connect you with a support agent.",
+      "latency_ms": 17.2,
+      "xlmr_ok": true,
+      "intent_ok": true,
+      "route_ok": true,
+      "response_ok": null,
+      "error": false,
+      "passed": true
+    },
+    {
+      "id": "rc-en-02",
+      "lang": "en",
+      "tags": [],
+      "turns": [
+        "delete all items from my basket"
+      ],
+      "expected_intent": "remove_from_cart",
+      "expected_route": "unsupported:remove_from_cart",
+      "predicted_intent": "remove_from_cart",
+      "confidence": 98.48,
+      "final_intent": "remove_from_cart",
+      "verifier_status": "ACCEPTED_BY_CLASSIFIER",
+      "used_groq": false,
+      "route": "unsupported:remove_from_cart",
+      "response": "I can't change your cart from this chat yet. I can check an order's status, help with a return, refund, damaged or missing item, look up product availability, or connect you with a support agent.",
+      "latency_ms": 17.3,
+      "xlmr_ok": true,
+      "intent_ok": true,
+      "route_ok": true,
+      "response_ok": null,
+      "error": false,
+      "passed": true
+    },
+    {
+      "id": "rc-en-03",
+      "lang": "en",
+      "tags": [],
+      "turns": [
+        "how do I take something out of my cart?"
+      ],
+      "expected_intent": "remove_from_cart",
+      "expected_route": "unsupported:remove_from_cart",
+      "predicted_intent": "remove_from_cart",
+      "confidence": 98.33,
+      "final_intent": "remove_from_cart",
+      "verifier_status": "ACCEPTED_BY_CLASSIFIER",
+      "used_groq": false,
+      "route": "unsupported:remove_from_cart",
+      "response": "I can't change your cart from this chat yet. I can check an order's status, help with a return, refund, damaged or missing item, look up product availability, or connect you with a support agent.",
+      "latency_ms": 18.1,
+      "xlmr_ok": true,
+      "intent_ok": true,
+      "route_ok": true,
+      "response_ok": null,
+      "error": false,
+      "passed": true
+    },
+    {
+      "id": "rc-hi-01",
+      "lang": "hi",
+      "tags": [],
+      "turns": [
+        "कार्ट से यह आइटम हटा दो"
+      ],
+      "expected_intent": "remove_from_cart",
+      "expected_route": "unsupported:remove_from_cart",
+      "predicted_intent": "remove_from_cart",
+      "confidence": 98.1,
+      "final_intent": "remove_from_cart",
+      "verifier_status": "ACCEPTED_BY_CLASSIFIER",
+      "used_groq": false,
+      "route": "unsupported:remove_from_cart",
+      "response": "I can't change your cart from this chat yet. I can check an order's status, help with a return, refund, damaged or missing item, look up product availability, or connect you with a support agent.",
+      "latency_ms": 18.5,
+      "xlmr_ok": true,
+      "intent_ok": true,
+      "route_ok": true,
+      "response_ok": null,
+      "error": false,
+      "passed": true
+    },
+    {
+      "id": "rc-hg-01",
+      "lang": "hinglish",
+      "tags": [],
+      "turns": [
+        "cart se laptop hata do"
+      ],
+      "expected_intent": "remove_from_cart",
+      "expected_route": "unsupported:remove_from_cart",
+      "predicted_intent": "issue_support",
+      "confidence": 99.05,
+      "final_intent": "issue_support",
+      "verifier_status": "ACCEPTED_BY_CLASSIFIER",
+      "used_groq": false,
+      "route": "issue_support:clarification",
+      "response": "I can help with a refund status, a return, a damaged item, or an order that has not arrived. Which issue are you contacting us about?",
+      "latency_ms": 16.9,
+      "xlmr_ok": false,
+      "intent_ok": false,
+      "route_ok": false,
+      "response_ok": null,
+      "error": false,
+      "passed": false
+    },
+    {
+      "id": "sf-en-01",
+      "lang": "en",
+      "tags": [],
+      "turns": [
+        "I want to leave a review for your website"
+      ],
+      "expected_intent": "submit_feedback",
+      "expected_route": "unsupported:submit_feedback",
+      "predicted_intent": "submit_feedback",
+      "confidence": 99.15,
+      "final_intent": "submit_feedback",
+      "verifier_status": "ACCEPTED_BY_CLASSIFIER",
+      "used_groq": false,
+      "route": "unsupported:submit_feedback",
+      "response": "Thanks for sharing that. I can't record feedback from this chat yet. I can check an order's status, help with a return, refund, damaged or missing item, look up product availability, or connect you with a support agent.",
+      "latency_ms": 17.4,
+      "xlmr_ok": true,
+      "intent_ok": true,
+      "route_ok": true,
+      "response_ok": null,
+      "error": false,
+      "passed": true
+    },
+    {
+      "id": "sf-en-02",
+      "lang": "en",
+      "tags": [],
+      "turns": [
+        "how can I give feedback about your app?"
+      ],
+      "expected_intent": "submit_feedback",
+      "expected_route": "unsupported:submit_feedback",
+      "predicted_intent": "submit_feedback",
+      "confidence": 99.11,
+      "final_intent": "submit_feedback",
+      "verifier_status": "ACCEPTED_BY_CLASSIFIER",
+      "used_groq": false,
+      "route": "unsupported:submit_feedback",
+      "response": "Thanks for sharing that. I can't record feedback from this chat yet. I can check an order's status, help with a return, refund, damaged or missing item, look up product availability, or connect you with a support agent.",
+      "latency_ms": 18.1,
+      "xlmr_ok": true,
+      "intent_ok": true,
+      "route_ok": true,
+      "response_ok": null,
+      "error": false,
+      "passed": true
+    },
+    {
+      "id": "sf-en-03",
+      "lang": "en",
+      "tags": [],
+      "turns": [
+        "your website is really easy to use, great job"
+      ],
+      "expected_intent": "submit_feedback",
+      "expected_route": "unsupported:submit_feedback",
+      "predicted_intent": "submit_feedback",
+      "confidence": 92.06,
+      "final_intent": "submit_feedback",
+      "verifier_status": "CORRECT_INTENT",
+      "used_groq": true,
+      "route": "unsupported:submit_feedback",
+      "response": "Thanks for sharing that. I can't record feedback from this chat yet. I can check an order's status, help with a return, refund, damaged or missing item, look up product availability, or connect you with a support agent.",
+      "latency_ms": 12889.1,
+      "xlmr_ok": true,
+      "intent_ok": true,
+      "route_ok": true,
+      "response_ok": null,
+      "error": false,
+      "passed": true
+    },
+    {
+      "id": "sf-en-04",
+      "lang": "en",
+      "tags": [],
+      "turns": [
+        "I have a suggestion for improving the checkout page"
+      ],
+      "expected_intent": "submit_feedback",
+      "expected_route": "unsupported:submit_feedback",
+      "predicted_intent": "account_management",
+      "confidence": 98.53,
+      "final_intent": "account_management",
+      "verifier_status": "ACCEPTED_BY_CLASSIFIER",
+      "used_groq": false,
+      "route": "unsupported:account_management",
+      "response": "I can't make changes to your account here yet. I can check an order's status, help with a return, refund, damaged or missing item, look up product availability, or connect you with a support agent.",
+      "latency_ms": 36.7,
+      "xlmr_ok": false,
+      "intent_ok": false,
+      "route_ok": false,
+      "response_ok": null,
+      "error": false,
+      "passed": false
+    },
+    {
+      "id": "sf-hi-01",
+      "lang": "hi",
+      "tags": [],
+      "turns": [
+        "मैं अपना फीडबैक देना चाहता हूँ"
+      ],
+      "expected_intent": "submit_feedback",
+      "expected_route": "unsupported:submit_feedback",
+      "predicted_intent": "billing_and_payment",
+      "confidence": 98.65,
+      "final_intent": "billing_and_payment",
+      "verifier_status": "ACCEPTED_BY_CLASSIFIER",
+      "used_groq": false,
+      "route": "payment",
+      "response": "The payment workflow was selected, but its business integration is pending. No payment operation was performed.",
+      "latency_ms": 17.7,
+      "xlmr_ok": false,
+      "intent_ok": false,
+      "route_ok": false,
+      "response_ok": null,
+      "error": false,
+      "passed": false
+    },
+    {
+      "id": "sf-hg-01",
+      "lang": "hinglish",
+      "tags": [],
+      "turns": [
+        "app bahut accha hai, feedback dena tha"
+      ],
+      "expected_intent": "submit_feedback",
+      "expected_route": "unsupported:submit_feedback",
+      "predicted_intent": "submit_feedback",
+      "confidence": 99.16,
+      "final_intent": "submit_feedback",
+      "verifier_status": "ACCEPTED_BY_CLASSIFIER",
+      "used_groq": false,
+      "route": "unsupported:submit_feedback",
+      "response": "Thanks for sharing that. I can't record feedback from this chat yet. I can check an order's status, help with a return, refund, damaged or missing item, look up product availability, or connect you with a support agent.",
+      "latency_ms": 16.8,
+      "xlmr_ok": true,
+      "intent_ok": true,
+      "route_ok": true,
+      "response_ok": null,
+      "error": false,
+      "passed": true
+    },
+    {
+      "id": "oos-en-01",
+      "lang": "en",
+      "tags": [],
+      "turns": [
+        "what's the weather in Delhi?"
+      ],
+      "expected_intent": "out_of_scope",
+      "expected_route": "out_of_scope",
+      "predicted_intent": "out_of_scope",
+      "confidence": 98.5,
+      "final_intent": "out_of_scope",
+      "verifier_status": "ACCEPTED_BY_CLASSIFIER",
+      "used_groq": false,
+      "route": "out_of_scope",
+      "response": "I can help with ecommerce customer service, including order status or delays, return/refund guidance, damaged or missing deliveries, store information, product availability, or preparing a simulated human handoff. I cannot help with unrelated topics. No business tools were run.",
+      "latency_ms": 19.0,
+      "xlmr_ok": true,
+      "intent_ok": true,
+      "route_ok": true,
+      "response_ok": null,
+      "error": false,
+      "passed": true
+    },
+    {
+      "id": "oos-en-02",
+      "lang": "en",
+      "tags": [],
+      "turns": [
+        "can you explain black holes?"
+      ],
+      "expected_intent": "out_of_scope",
+      "expected_route": "out_of_scope",
+      "predicted_intent": "out_of_scope",
+      "confidence": 99.25,
+      "final_intent": "out_of_scope",
+      "verifier_status": "ACCEPTED_BY_CLASSIFIER",
+      "used_groq": false,
+      "route": "out_of_scope",
+      "response": "I can help with ecommerce customer service, including order status or delays, return/refund guidance, damaged or missing deliveries, store information, product availability, or preparing a simulated human handoff. I cannot help with unrelated topics. No business tools were run.",
+      "latency_ms": 16.5,
+      "xlmr_ok": true,
+      "intent_ok": true,
+      "route_ok": true,
+      "response_ok": null,
+      "error": false,
+      "passed": true
+    },
+    {
+      "id": "oos-en-03",
+      "lang": "en",
+      "tags": [],
+      "turns": [
+        "write me a poem about cats"
+      ],
+      "expected_intent": "out_of_scope",
+      "expected_route": "out_of_scope",
+      "predicted_intent": "out_of_scope",
+      "confidence": 99.29,
+      "final_intent": "out_of_scope",
+      "verifier_status": "ACCEPTED_BY_CLASSIFIER",
+      "used_groq": false,
+      "route": "out_of_scope",
+      "response": "I can help with ecommerce customer service, including order status or delays, return/refund guidance, damaged or missing deliveries, store information, product availability, or preparing a simulated human handoff. I cannot help with unrelated topics. No business tools were run.",
+      "latency_ms": 16.2,
+      "xlmr_ok": true,
+      "intent_ok": true,
+      "route_ok": true,
+      "response_ok": null,
+      "error": false,
+      "passed": true
+    },
+    {
+      "id": "oos-en-04",
+      "lang": "en",
+      "tags": [],
+      "turns": [
+        "I feel stressed about my exams"
+      ],
+      "expected_intent": "out_of_scope",
+      "expected_route": "out_of_scope",
+      "predicted_intent": "out_of_scope",
+      "confidence": 98.68,
+      "final_intent": "out_of_scope",
+      "verifier_status": "ACCEPTED_BY_CLASSIFIER",
+      "used_groq": false,
+      "route": "out_of_scope",
+      "response": "I can help with ecommerce customer service, including order status or delays, return/refund guidance, damaged or missing deliveries, store information, product availability, or preparing a simulated human handoff. I cannot help with unrelated topics. No business tools were run.",
+      "latency_ms": 16.6,
+      "xlmr_ok": true,
+      "intent_ok": true,
+      "route_ok": true,
+      "response_ok": null,
+      "error": false,
+      "passed": true
+    },
+    {
+      "id": "oos-en-05",
+      "lang": "en",
+      "tags": [],
+      "turns": [
+        "who won the cricket match yesterday?"
+      ],
+      "expected_intent": "out_of_scope",
+      "expected_route": "out_of_scope",
+      "predicted_intent": "out_of_scope",
+      "confidence": 99.29,
+      "final_intent": "out_of_scope",
+      "verifier_status": "ACCEPTED_BY_CLASSIFIER",
+      "used_groq": false,
+      "route": "out_of_scope",
+      "response": "I can help with ecommerce customer service, including order status or delays, return/refund guidance, damaged or missing deliveries, store information, product availability, or preparing a simulated human handoff. I cannot help with unrelated topics. No business tools were run.",
+      "latency_ms": 16.2,
+      "xlmr_ok": true,
+      "intent_ok": true,
+      "route_ok": true,
+      "response_ok": null,
+      "error": false,
+      "passed": true
+    },
+    {
+      "id": "oos-en-06",
+      "lang": "en",
+      "tags": [],
+      "turns": [
+        "what is 25 times 4?"
+      ],
+      "expected_intent": "out_of_scope",
+      "expected_route": "out_of_scope",
+      "predicted_intent": "out_of_scope",
+      "confidence": 98.94,
+      "final_intent": "out_of_scope",
+      "verifier_status": "ACCEPTED_BY_CLASSIFIER",
+      "used_groq": false,
+      "route": "out_of_scope",
+      "response": "I can help with ecommerce customer service, including order status or delays, return/refund guidance, damaged or missing deliveries, store information, product availability, or preparing a simulated human handoff. I cannot help with unrelated topics. No business tools were run.",
+      "latency_ms": 16.1,
+      "xlmr_ok": true,
+      "intent_ok": true,
+      "route_ok": true,
+      "response_ok": null,
+      "error": false,
+      "passed": true
+    },
+    {
+      "id": "oos-hi-01",
+      "lang": "hi",
+      "tags": [],
+      "turns": [
+        "आज मौसम कैसा है?"
+      ],
+      "expected_intent": "out_of_scope",
+      "expected_route": "out_of_scope",
+      "predicted_intent": "out_of_scope",
+      "confidence": 98.79,
+      "final_intent": "out_of_scope",
+      "verifier_status": "ACCEPTED_BY_CLASSIFIER",
+      "used_groq": false,
+      "route": "out_of_scope",
+      "response": "I can help with ecommerce customer service, including order status or delays, return/refund guidance, damaged or missing deliveries, store information, product availability, or preparing a simulated human handoff. I cannot help with unrelated topics. No business tools were run.",
+      "latency_ms": 16.3,
+      "xlmr_ok": true,
+      "intent_ok": true,
+      "route_ok": true,
+      "response_ok": null,
+      "error": false,
+      "passed": true
+    },
+    {
+      "id": "oos-hg-01",
+      "lang": "hinglish",
+      "tags": [],
+      "turns": [
+        "mujhe raat ko neend nahi aa rahi"
+      ],
+      "expected_intent": "out_of_scope",
+      "expected_route": "out_of_scope",
+      "predicted_intent": "out_of_scope",
+      "confidence": 93.2,
+      "final_intent": "out_of_scope",
+      "verifier_status": "CORRECT_INTENT",
+      "used_groq": true,
+      "route": "out_of_scope",
+      "response": "I can help with ecommerce customer service, including order status or delays, return/refund guidance, damaged or missing deliveries, store information, product availability, or preparing a simulated human handoff. I cannot help with unrelated topics. No business tools were run.",
+      "latency_ms": 14317.0,
+      "xlmr_ok": true,
+      "intent_ok": true,
+      "route_ok": true,
+      "response_ok": null,
+      "error": false,
+      "passed": true
+    }
+  ]
+}

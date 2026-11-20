@@ -1,0 +1,133 @@
+{"id": "ot-en-01", "lang": "en", "turns": ["where is my order ORD-1001"], "intent": "order_tracking", "route": "order_tracking", "contains": ["Shipped"]}
+{"id": "ot-en-02", "lang": "en", "turns": ["track my package ORD-1002"], "intent": "order_tracking", "route": "order_tracking", "contains": ["Processing"]}
+{"id": "ot-en-03", "lang": "en", "turns": ["when will my order ORD-1003 arrive?"], "intent": "order_tracking", "route": "order_tracking", "contains": ["ORD-1003"]}
+{"id": "ot-en-04", "lang": "en", "turns": ["I want to track my order", "ORD-1001"], "intent": "order_tracking", "route": "order_tracking", "contains": ["Shipped"], "tags": ["multi_turn"]}
+{"id": "ot-en-05", "lang": "en", "turns": ["has my order shipped yet? order number ORD-1002"], "intent": "order_tracking", "route": "order_tracking", "contains": ["Processing"]}
+{"id": "ot-en-06", "lang": "en", "turns": ["my order is running late, can you check ORD-1001"], "intent": "order_tracking", "route": "order_tracking", "contains": ["ORD-1001"]}
+{"id": "ot-en-07", "lang": "en", "turns": ["whats the status of my order", "ORD-1003"], "intent": "order_tracking", "route": "order_tracking", "contains": ["Delivered"], "tags": ["multi_turn", "casual"]}
+{"id": "ot-hi-01", "lang": "hi", "turns": ["मेरा ऑर्डर ORD-1001 कहाँ है?"], "intent": "order_tracking", "route": "order_tracking", "contains": ["Shipped"]}
+{"id": "ot-hi-02", "lang": "hi", "turns": ["मेरा ऑर्डर कब तक आएगा? ORD-1002"], "intent": "order_tracking", "route": "order_tracking", "contains": ["ORD-1002"]}
+{"id": "ot-hi-03", "lang": "hi", "turns": ["मुझे अपना ऑर्डर ट्रैक करना है", "ORD-1003"], "intent": "order_tracking", "route": "order_tracking", "contains": ["Delivered"], "tags": ["multi_turn"]}
+{"id": "ot-hg-01", "lang": "hinglish", "turns": ["mera order kab aayega ORD-1001"], "intent": "order_tracking", "route": "order_tracking", "contains": ["ORD-1001"]}
+{"id": "ot-hg-02", "lang": "hinglish", "turns": ["order ORD-1002 ka status kya hai"], "intent": "order_tracking", "route": "order_tracking", "contains": ["Processing"]}
+{"id": "ot-hg-03", "lang": "hinglish", "turns": ["bhai mera parcel kahan hai, order id ORD-1003"], "intent": "order_tracking", "route": "order_tracking", "contains": ["ORD-1003"], "tags": ["casual"]}
+{"id": "pi-en-01", "lang": "en", "turns": ["is Laptop Pro in stock?"], "intent": "product_inquiry", "route": "product_inquiry", "contains": ["Laptop Pro"]}
+{"id": "pi-en-02", "lang": "en", "turns": ["do you have the Galaxy S21 available?"], "intent": "product_inquiry", "route": "product_inquiry", "contains": ["Galaxy S21"]}
+{"id": "pi-en-03", "lang": "en", "turns": ["when will Galaxy S21 be back in stock?"], "intent": "product_inquiry", "route": "product_inquiry", "contains": ["Galaxy S21"]}
+{"id": "pi-en-04", "lang": "en", "turns": ["are the noise cancelling headphones available"], "intent": "product_inquiry", "route": "product_inquiry", "contains": ["Noise-Cancelling Headphones"], "tags": ["fuzzy_product"]}
+{"id": "pi-en-05", "lang": "en", "turns": ["is the wireless headphone in stock?"], "intent": "product_inquiry", "route": "product_inquiry", "contains": ["Headphones"], "tags": ["fuzzy_product"]}
+{"id": "pi-en-06", "lang": "en", "turns": ["check product availability", "Laptop Pro"], "intent": "product_inquiry", "route": "product_inquiry", "contains": ["Laptop Pro"], "tags": ["multi_turn"]}
+{"id": "pi-en-07", "lang": "en", "turns": ["do you sell laptops?"], "intent": "product_inquiry", "route": "product_inquiry", "contains": ["Laptop Pro"], "tags": ["fuzzy_product"]}
+{"id": "pi-hi-01", "lang": "hi", "turns": ["क्या Laptop Pro स्टॉक में है?"], "intent": "product_inquiry", "route": "product_inquiry", "contains": ["Laptop Pro"]}
+{"id": "pi-hi-02", "lang": "hi", "turns": ["Galaxy S21 कब तक उपलब्ध होगा?"], "intent": "product_inquiry", "route": "product_inquiry", "contains": ["Galaxy S21"]}
+{"id": "pi-hg-01", "lang": "hinglish", "turns": ["Laptop Pro stock me hai kya?"], "intent": "product_inquiry", "route": "product_inquiry", "contains": ["Laptop Pro"]}
+{"id": "pi-hg-02", "lang": "hinglish", "turns": ["headphones available hai?"], "intent": "product_inquiry", "route": "product_inquiry", "contains": ["Headphones"], "tags": ["fuzzy_product"]}
+{"id": "bp-en-01", "lang": "en", "turns": ["what payment methods do you accept?"], "intent": "billing_and_payment", "route": "payment", "tags": ["handler_pending"]}
+{"id": "bp-en-02", "lang": "en", "turns": ["can I pay with PayPal?"], "intent": "billing_and_payment", "route": "payment", "tags": ["handler_pending"]}
+{"id": "bp-en-03", "lang": "en", "turns": ["how do I download my invoice?"], "intent": "billing_and_payment", "route": "payment", "tags": ["handler_pending"]}
+{"id": "bp-en-04", "lang": "en", "turns": ["where can I find the bill for my last purchase"], "intent": "billing_and_payment", "route": "payment", "tags": ["handler_pending"]}
+{"id": "bp-en-05", "lang": "en", "turns": ["do you accept cash on delivery?"], "intent": "billing_and_payment", "route": "payment", "tags": ["handler_pending"]}
+{"id": "bp-hi-01", "lang": "hi", "turns": ["आप कौन से पेमेंट तरीके स्वीकार करते हैं?"], "intent": "billing_and_payment", "route": "payment", "tags": ["handler_pending"]}
+{"id": "bp-hg-01", "lang": "hinglish", "turns": ["UPI se payment kar sakte hai kya?"], "intent": "billing_and_payment", "route": "payment", "tags": ["handler_pending"]}
+{"id": "bp-hg-02", "lang": "hinglish", "turns": ["mujhe apne order ka invoice chahiye"], "intent": "billing_and_payment", "route": "payment", "tags": ["handler_pending"]}
+{"id": "is-en-01", "lang": "en", "turns": ["where is my refund", "ORD-1001"], "intent": "issue_support", "route": "issue_support:refund_status", "contains": ["ORD-1001"], "tags": ["multi_turn", "refund"]}
+{"id": "is-en-02", "lang": "en", "turns": ["what is the status of my refund for ORD-1002"], "intent": "issue_support", "route": "issue_support:refund_status", "contains": ["ORD-1002"], "tags": ["refund"]}
+{"id": "is-en-03", "lang": "en", "turns": ["has my refund been processed? ORD-1003"], "intent": "issue_support", "route": "issue_support:refund_status", "contains": ["ORD-1003"], "tags": ["refund"]}
+{"id": "is-en-04", "lang": "en", "turns": ["I am still waiting for my money back"], "intent": "issue_support", "route": "issue_support:refund_status", "tags": ["refund"]}
+{"id": "is-en-05", "lang": "en", "turns": ["I want to return my order"], "intent": "issue_support", "route": "issue_support:return_order", "tags": ["return"]}
+{"id": "is-en-06", "lang": "en", "turns": ["I'd like to return the headphones I bought"], "intent": "issue_support", "route": "issue_support:return_order", "tags": ["return"]}
+{"id": "is-en-07", "lang": "en", "turns": ["can I send this item back? it doesn't fit"], "intent": "issue_support", "route": "issue_support:return_order", "tags": ["return"]}
+{"id": "is-en-08", "lang": "en", "turns": ["my order arrived damaged"], "intent": "issue_support", "route": "issue_support:damaged_order", "tags": ["damaged"]}
+{"id": "is-en-09", "lang": "en", "turns": ["the item I received is broken"], "intent": "issue_support", "route": "issue_support:damaged_order", "tags": ["damaged"]}
+{"id": "is-en-10", "lang": "en", "turns": ["the laptop screen was cracked when I opened the box"], "intent": "issue_support", "route": "issue_support:damaged_order", "tags": ["damaged"]}
+{"id": "is-en-11", "lang": "en", "turns": ["My order arrived damaged", "ORD-1001", "The box was crushed and the screen is cracked."], "intent": "issue_support", "route": "issue_support:damaged_order", "tags": ["multi_turn", "damaged"]}
+{"id": "is-en-12", "lang": "en", "turns": ["my package never arrived"], "intent": "issue_support", "route": "issue_support:missing_order", "tags": ["missing"]}
+{"id": "is-en-13", "lang": "en", "turns": ["it says delivered but I didn't receive anything"], "intent": "issue_support", "route": "issue_support:missing_order", "tags": ["missing"]}
+{"id": "is-en-14", "lang": "en", "turns": ["I received the wrong item"], "intent": "issue_support", "route": "issue_support:*", "tags": ["wrong_item"]}
+{"id": "is-en-15", "lang": "en", "turns": ["i do not like my order"], "intent": "issue_support", "route": "issue_support:*", "tags": ["dissatisfaction", "regression"]}
+{"id": "is-en-16", "lang": "en", "turns": ["I am not happy with the product I received"], "intent": "issue_support", "route": "issue_support:*", "tags": ["dissatisfaction"]}
+{"id": "is-en-17", "lang": "en", "turns": ["my payment failed but the money was deducted"], "intent": "issue_support", "route": ["issue_support:*", "payment_support"], "tags": ["payment_problem"]}
+{"id": "is-hi-01", "lang": "hi", "turns": ["मेरा रिफंड कहाँ है?"], "intent": "issue_support", "route": "issue_support:refund_status", "tags": ["refund"]}
+{"id": "is-hi-02", "lang": "hi", "turns": ["मुझे मेरा ऑर्डर पसंद नहीं आया"], "intent": "issue_support", "route": "issue_support:*", "tags": ["dissatisfaction"]}
+{"id": "is-hi-03", "lang": "hi", "turns": ["मेरा पार्सल टूटा हुआ आया है"], "intent": "issue_support", "route": "issue_support:damaged_order", "tags": ["damaged"]}
+{"id": "is-hi-04", "lang": "hi", "turns": ["मेरा ऑर्डर अभी तक नहीं पहुँचा"], "intent": ["issue_support", "order_tracking"], "route": ["issue_support:missing_order", "order_tracking"], "tags": ["missing"]}
+{"id": "is-hg-01", "lang": "hinglish", "turns": ["mera refund kab aayega"], "intent": "issue_support", "route": "issue_support:refund_status", "tags": ["refund"]}
+{"id": "is-hg-02", "lang": "hinglish", "turns": ["product kharab nikla, return karna hai"], "intent": "issue_support", "route": ["issue_support:return_order", "issue_support:damaged_order"], "tags": ["return"]}
+{"id": "is-hg-03", "lang": "hinglish", "turns": ["parcel abhi tak nahi aaya"], "intent": ["issue_support", "order_tracking"], "route": ["issue_support:missing_order", "order_tracking"], "tags": ["missing"]}
+{"id": "is-hg-04", "lang": "hinglish", "turns": ["mujhe ye product pasand nahi aaya"], "intent": "issue_support", "route": "issue_support:*", "tags": ["dissatisfaction"]}
+{"id": "si-en-01", "lang": "en", "turns": ["what is your return policy?"], "intent": ["issue_support", "store_information"], "route": "store_information", "tags": ["policy"]}
+{"id": "si-en-02", "lang": "en", "turns": ["how many days do I have to return an item?"], "intent": ["issue_support", "store_information"], "route": "store_information", "tags": ["policy"]}
+{"id": "si-en-03", "lang": "en", "turns": ["how long do refunds take?"], "intent": ["issue_support", "store_information"], "route": "store_information", "tags": ["policy"]}
+{"id": "si-en-04", "lang": "en", "turns": ["when is your next sale?"], "intent": "store_information", "route": "store_information"}
+{"id": "si-en-05", "lang": "en", "turns": ["is there a winter sale this year?"], "intent": "store_information", "route": "store_information"}
+{"id": "si-en-06", "lang": "en", "turns": ["are there any discounts or promo codes right now?"], "intent": "store_information", "route": "store_information"}
+{"id": "si-en-07", "lang": "en", "turns": ["how long does the Boxing Day sale last?"], "intent": "store_information", "route": "store_information"}
+{"id": "si-hi-01", "lang": "hi", "turns": ["अगली सेल कब है?"], "intent": "store_information", "route": "store_information"}
+{"id": "si-hg-01", "lang": "hinglish", "turns": ["koi offer chal raha hai kya abhi?"], "intent": "store_information", "route": "store_information"}
+{"id": "si-hg-02", "lang": "hinglish", "turns": ["return policy kya hai aapki?"], "intent": ["issue_support", "store_information"], "route": "store_information", "tags": ["policy"]}
+{"id": "cc-en-01", "lang": "en", "turns": ["I want to talk to a human agent"], "intent": "customer_care_support", "route": "customer_care"}
+{"id": "cc-en-02", "lang": "en", "turns": ["connect me to customer service"], "intent": "customer_care_support", "route": "customer_care"}
+{"id": "cc-en-03", "lang": "en", "turns": ["can I speak with a real person?"], "intent": "customer_care_support", "route": "customer_care"}
+{"id": "cc-en-04", "lang": "en", "turns": ["what are your customer support hours?"], "intent": "customer_care_support", "route": "customer_care"}
+{"id": "cc-en-05", "lang": "en", "turns": ["this bot is useless, get me a human"], "intent": "customer_care_support", "route": "customer_care", "tags": ["casual"]}
+{"id": "cc-hi-01", "lang": "hi", "turns": ["मुझे किसी एजेंट से बात करनी है"], "intent": "customer_care_support", "route": "customer_care"}
+{"id": "cc-hg-01", "lang": "hinglish", "turns": ["customer care se baat karao"], "intent": "customer_care_support", "route": "customer_care"}
+{"id": "cc-hg-02", "lang": "hinglish", "turns": ["kisi insaan se baat karni hai"], "intent": "customer_care_support", "route": "customer_care"}
+{"id": "do-en-01", "lang": "en", "turns": ["what delivery options do you offer?"], "intent": "delivery_options", "route": "shipping", "tags": ["handler_pending"]}
+{"id": "do-en-02", "lang": "en", "turns": ["do you ship to Mumbai?"], "intent": "delivery_options", "route": "shipping", "tags": ["handler_pending"]}
+{"id": "do-en-03", "lang": "en", "turns": ["can you deliver internationally?"], "intent": "delivery_options", "route": "shipping", "tags": ["handler_pending"]}
+{"id": "do-en-04", "lang": "en", "turns": ["is express delivery available?"], "intent": "delivery_options", "route": "shipping", "tags": ["handler_pending"]}
+{"id": "do-en-05", "lang": "en", "turns": ["do you offer same-day delivery?"], "intent": "delivery_options", "route": "shipping", "tags": ["handler_pending"]}
+{"id": "do-hi-01", "lang": "hi", "turns": ["क्या आप बैंगलोर में डिलीवरी करते हैं?"], "intent": "delivery_options", "route": "shipping", "tags": ["handler_pending"]}
+{"id": "do-hg-01", "lang": "hinglish", "turns": ["kya aap Pune deliver karte ho?"], "intent": "delivery_options", "route": "shipping", "tags": ["handler_pending"]}
+{"id": "sc-en-01", "lang": "en", "turns": ["how much is shipping to Delhi?"], "intent": "shipping_cost", "route": "shipping", "tags": ["handler_pending"]}
+{"id": "sc-en-02", "lang": "en", "turns": ["what are the delivery charges?"], "intent": "shipping_cost", "route": "shipping", "tags": ["handler_pending"]}
+{"id": "sc-en-03", "lang": "en", "turns": ["is shipping free?"], "intent": "shipping_cost", "route": "shipping", "tags": ["handler_pending"]}
+{"id": "sc-en-04", "lang": "en", "turns": ["how much does express shipping cost?"], "intent": "shipping_cost", "route": "shipping", "tags": ["handler_pending"]}
+{"id": "sc-en-05", "lang": "en", "turns": ["shipping fee for Chennai?"], "intent": "shipping_cost", "route": "shipping", "tags": ["handler_pending", "casual"]}
+{"id": "sc-hi-01", "lang": "hi", "turns": ["दिल्ली तक शिपिंग का कितना चार्ज है?"], "intent": "shipping_cost", "route": "shipping", "tags": ["handler_pending"]}
+{"id": "sc-hg-01", "lang": "hinglish", "turns": ["delivery charge kitna lagega?"], "intent": "shipping_cost", "route": "shipping", "tags": ["handler_pending"]}
+{"id": "am-en-01", "lang": "en", "turns": ["how do I change my account password"], "intent": "account_management", "route": "unsupported:account_management"}
+{"id": "am-en-02", "lang": "en", "turns": ["I forgot my password"], "intent": "account_management", "route": "unsupported:account_management"}
+{"id": "am-en-03", "lang": "en", "turns": ["I want to delete my account"], "intent": "account_management", "route": "unsupported:account_management"}
+{"id": "am-en-04", "lang": "en", "turns": ["update the email address on my profile"], "intent": "account_management", "route": "unsupported:account_management"}
+{"id": "am-en-05", "lang": "en", "turns": ["change the default shipping address on my account"], "intent": "account_management", "route": "unsupported:account_management"}
+{"id": "am-hi-01", "lang": "hi", "turns": ["मैं अपना पासवर्ड भूल गया हूँ"], "intent": "account_management", "route": "unsupported:account_management"}
+{"id": "am-hg-01", "lang": "hinglish", "turns": ["account delete karna hai"], "intent": "account_management", "route": "unsupported:account_management"}
+{"id": "om-en-01", "lang": "en", "turns": ["cancel my order"], "intent": "order_management", "route": "unsupported:order_management"}
+{"id": "om-en-02", "lang": "en", "turns": ["I want to cancel order ORD-1002"], "intent": "order_management", "route": "unsupported:order_management"}
+{"id": "om-en-03", "lang": "en", "turns": ["can I change the size of the item in my order?"], "intent": "order_management", "route": "unsupported:order_management"}
+{"id": "om-en-04", "lang": "en", "turns": ["remove one item from my order"], "intent": "order_management", "route": "unsupported:order_management"}
+{"id": "om-en-05", "lang": "en", "turns": ["is there a cancellation fee?"], "intent": "order_management", "route": "unsupported:order_management"}
+{"id": "om-hi-01", "lang": "hi", "turns": ["मेरा ऑर्डर कैंसिल कर दो"], "intent": "order_management", "route": "unsupported:order_management"}
+{"id": "om-hg-01", "lang": "hinglish", "turns": ["order cancel karna hai"], "intent": "order_management", "route": "unsupported:order_management"}
+{"id": "po-en-01", "lang": "en", "turns": ["how do I buy the Laptop Pro?"], "intent": "place_order", "route": "unsupported:place_order"}
+{"id": "po-en-02", "lang": "en", "turns": ["I want to place an order"], "intent": "place_order", "route": "unsupported:place_order"}
+{"id": "po-en-03", "lang": "en", "turns": ["can I order two Galaxy S21 phones?"], "intent": "place_order", "route": "unsupported:place_order"}
+{"id": "po-en-04", "lang": "en", "turns": ["help me purchase headphones"], "intent": "place_order", "route": "unsupported:place_order"}
+{"id": "po-hi-01", "lang": "hi", "turns": ["मुझे नया ऑर्डर करना है"], "intent": "place_order", "route": "unsupported:place_order"}
+{"id": "po-hg-01", "lang": "hinglish", "turns": ["Laptop Pro kharidna hai, kaise karu?"], "intent": "place_order", "route": "unsupported:place_order"}
+{"id": "ac-en-01", "lang": "en", "turns": ["add Laptop Pro to my cart"], "intent": "add_to_cart", "route": "unsupported:add_to_cart"}
+{"id": "ac-en-02", "lang": "en", "turns": ["how do I put items in my basket?"], "intent": "add_to_cart", "route": "unsupported:add_to_cart"}
+{"id": "ac-en-03", "lang": "en", "turns": ["add two headphones to the cart"], "intent": "add_to_cart", "route": "unsupported:add_to_cart"}
+{"id": "ac-hi-01", "lang": "hi", "turns": ["इसे मेरी कार्ट में डाल दो"], "intent": "add_to_cart", "route": "unsupported:add_to_cart"}
+{"id": "ac-hg-01", "lang": "hinglish", "turns": ["ye cart me add kar do"], "intent": "add_to_cart", "route": "unsupported:add_to_cart"}
+{"id": "rc-en-01", "lang": "en", "turns": ["remove the headphones from my cart"], "intent": "remove_from_cart", "route": "unsupported:remove_from_cart"}
+{"id": "rc-en-02", "lang": "en", "turns": ["delete all items from my basket"], "intent": "remove_from_cart", "route": "unsupported:remove_from_cart"}
+{"id": "rc-en-03", "lang": "en", "turns": ["how do I take something out of my cart?"], "intent": "remove_from_cart", "route": "unsupported:remove_from_cart"}
+{"id": "rc-hi-01", "lang": "hi", "turns": ["कार्ट से यह आइटम हटा दो"], "intent": "remove_from_cart", "route": "unsupported:remove_from_cart"}
+{"id": "rc-hg-01", "lang": "hinglish", "turns": ["cart se laptop hata do"], "intent": "remove_from_cart", "route": "unsupported:remove_from_cart"}
+{"id": "sf-en-01", "lang": "en", "turns": ["I want to leave a review for your website"], "intent": "submit_feedback", "route": "unsupported:submit_feedback"}
+{"id": "sf-en-02", "lang": "en", "turns": ["how can I give feedback about your app?"], "intent": "submit_feedback", "route": "unsupported:submit_feedback"}
+{"id": "sf-en-03", "lang": "en", "turns": ["your website is really easy to use, great job"], "intent": "submit_feedback", "route": "unsupported:submit_feedback"}
+{"id": "sf-en-04", "lang": "en", "turns": ["I have a suggestion for improving the checkout page"], "intent": "submit_feedback", "route": "unsupported:submit_feedback"}
+{"id": "sf-hi-01", "lang": "hi", "turns": ["मैं अपना फीडबैक देना चाहता हूँ"], "intent": "submit_feedback", "route": "unsupported:submit_feedback"}
+{"id": "sf-hg-01", "lang": "hinglish", "turns": ["app bahut accha hai, feedback dena tha"], "intent": "submit_feedback", "route": "unsupported:submit_feedback"}
+{"id": "oos-en-01", "lang": "en", "turns": ["what's the weather in Delhi?"], "intent": "out_of_scope", "route": "out_of_scope"}
+{"id": "oos-en-02", "lang": "en", "turns": ["can you explain black holes?"], "intent": "out_of_scope", "route": "out_of_scope"}
+{"id": "oos-en-03", "lang": "en", "turns": ["write me a poem about cats"], "intent": "out_of_scope", "route": "out_of_scope"}
+{"id": "oos-en-04", "lang": "en", "turns": ["I feel stressed about my exams"], "intent": "out_of_scope", "route": "out_of_scope"}
+{"id": "oos-en-05", "lang": "en", "turns": ["who won the cricket match yesterday?"], "intent": "out_of_scope", "route": "out_of_scope"}
+{"id": "oos-en-06", "lang": "en", "turns": ["what is 25 times 4?"], "intent": "out_of_scope", "route": "out_of_scope"}
+{"id": "oos-hi-01", "lang": "hi", "turns": ["आज मौसम कैसा है?"], "intent": "out_of_scope", "route": "out_of_scope"}
+{"id": "oos-hg-01", "lang": "hinglish", "turns": ["mujhe raat ko neend nahi aa rahi"], "intent": "out_of_scope", "route": "out_of_scope"}

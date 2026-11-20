@@ -61,3 +61,4 @@ models/xlmr_intent_classifier/tokenizer.json
 models/xlmr_intent_classifier/tokenizer_config.json
 data/training/
 datasets/
+evals/reports/

@@ -947,13 +947,26 @@ def rag_node(state: AgentState) -> dict[str, Any]:
     )
 
 
+SUPPORTED_ALTERNATIVES = (
+    "I can check an order's status, help with a return, refund, damaged or missing item, "
+    "look up product availability, or connect you with a support agent."
+)
+UNSUPPORTED_RESPONSES = {
+    "account_management": "I can't make changes to your account here yet.",
+    "add_to_cart": "I can't add items to your cart from this chat yet.",
+    "order_management": "I can't cancel or change orders from this chat yet.",
+    "place_order": "I can't place orders from this chat yet.",
+    "remove_from_cart": "I can't change your cart from this chat yet.",
+    "submit_feedback": "Thanks for sharing that. I can't record feedback from this chat yet.",
+}
+
+
 def unsupported_node(state: AgentState) -> dict[str, Any]:
     intent = state.get("final_intent")
     route = f"unsupported:{intent}" if intent else "unsupported"
-    response = (
-        f"The '{intent}' request was recognized, but this application does not yet support that operation. "
-        "No business operation was performed."
-    )
+    # Never show internal labels to customers; offer what the assistant can do instead.
+    lead = UNSUPPORTED_RESPONSES.get(intent, "I can't help with that request from this chat yet.")
+    response = f"{lead} {SUPPORTED_ALTERNATIVES}"
     return {
         "selected_route": route,
         "tool_result": {"status": "unsupported", "intent": intent, "executed": False},

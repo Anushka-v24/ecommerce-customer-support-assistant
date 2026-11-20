@@ -312,6 +312,18 @@ Remove-Item Env:RUN_REAL_CLASSIFIER_TESTS
 
 Requires local model/descriptions and Groq credentials only if verifier is triggered.
 
+### Accuracy evaluation
+
+`evals/cases.jsonl` holds labelled customer messages (English, Hindi, Hinglish) with the expected intent, route, and response text. `evals/run_eval.py` runs them through the real XLM-R model, Groq verifier, and graph, then reports pass rate, intent accuracy (final and XLM-R only), route accuracy, Groq usage, latency, per-intent and per-language breakdowns, and every failure. Each run is saved under `evals/reports/` (ignored by Git); `evals/baseline.json` is the committed reference run.
+
+```powershell
+python -m evals.run_eval                                   # full run
+python -m evals.run_eval --compare evals/baseline.json     # show deltas against the baseline
+python -m evals.run_eval --lang hinglish --tag refund      # filter by language or tag
+```
+
+Requires the local model and `GROQ_API_KEY`. Add a case for every bug you fix so it cannot regress.
+
 ## Phase status
 
 | Phase | Status | Notes |

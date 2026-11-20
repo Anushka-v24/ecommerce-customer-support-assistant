@@ -115,6 +115,15 @@ class LangGraphRoutingTests(unittest.TestCase):
                 self.assertEqual(result["tool_result"]["status"], "unsupported")
                 self.assertFalse(result["tool_result"]["executed"])
 
+    def test_unsupported_responses_hide_labels_and_offer_alternatives(self):
+        for intent in sorted(nodes.UNSUPPORTED_RESPONSES):
+            with self.subTest(intent=intent):
+                response = self.run_result(classifier_result(intent, intent))["response"]
+                self.assertNotIn(intent, response)
+                self.assertNotIn("No business operation", response)
+                self.assertIn(nodes.UNSUPPORTED_RESPONSES[intent], response)
+                self.assertIn(nodes.SUPPORTED_ALTERNATIVES, response)
+
     def test_corrected_intent_routes_by_final_intent(self):
         result = self.run_result(
             classifier_result("order_tracking", "issue_support", "CORRECTED_INTENT"),
