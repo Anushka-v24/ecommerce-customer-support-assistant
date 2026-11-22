@@ -1,0 +1,30 @@
+{"id": "rag-01", "question": "How do I place an order?", "expected": ["demo-help-placing-order-en-v1"], "lang": "en"}
+{"id": "rag-02", "question": "Can I pay cash on delivery?", "expected": ["demo-help-placing-order-en-v1", "demo-help-payments-faq-en-v1"], "lang": "en"}
+{"id": "rag-03", "question": "Which payment methods do you accept?", "expected": ["demo-help-payments-faq-en-v1", "demo-help-placing-order-en-v1"], "lang": "en"}
+{"id": "rag-04", "question": "My payment failed but money was deducted, what should I do?", "expected": ["demo-help-payments-faq-en-v1"], "lang": "en"}
+{"id": "rag-05", "question": "I was charged twice for the same order", "expected": ["demo-help-payments-faq-en-v1"], "lang": "en"}
+{"id": "rag-06", "question": "Where can I find my invoice?", "expected": ["demo-help-payments-faq-en-v1", "demo-help-placing-order-en-v1"], "lang": "en"}
+{"id": "rag-07", "question": "What is your refund policy?", "expected": ["demo-refund-en-v1", "demo-help-payments-faq-en-v1", "demo-help-order-changes-en-v1"], "lang": "en"}
+{"id": "rag-08", "question": "How long does a refund take after cancelling?", "expected": ["demo-help-order-changes-en-v1", "demo-refund-en-v1", "demo-help-payments-faq-en-v1"], "lang": "en"}
+{"id": "rag-09", "question": "How many days do I have to return something?", "expected": ["demo-return-en-v1", "demo-help-order-changes-en-v1"], "lang": "en"}
+{"id": "rag-10", "question": "Can I change my order after it has shipped?", "expected": ["demo-help-order-changes-en-v1"], "lang": "en"}
+{"id": "rag-11", "question": "How do I reset my password?", "expected": ["demo-help-account-en-v1"], "lang": "en"}
+{"id": "rag-12", "question": "I am not getting the OTP to sign in", "expected": ["demo-help-account-en-v1"], "lang": "en"}
+{"id": "rag-13", "question": "How can I update my phone number on my account?", "expected": ["demo-help-account-en-v1"], "lang": "en"}
+{"id": "rag-14", "question": "How do I delete my account?", "expected": ["demo-help-account-en-v1"], "lang": "en"}
+{"id": "rag-15", "question": "How do I add a new delivery address?", "expected": ["demo-help-account-en-v1"], "lang": "en"}
+{"id": "rag-16", "question": "How do I remove an item from my cart?", "expected": ["demo-help-cart-en-v1"], "lang": "en"}
+{"id": "rag-17", "question": "Why did the price change in my cart?", "expected": ["demo-help-cart-en-v1"], "lang": "en"}
+{"id": "rag-18", "question": "Items disappeared from my cart", "expected": ["demo-help-cart-en-v1"], "lang": "en"}
+{"id": "rag-19", "question": "How do I write a product review?", "expected": ["demo-help-feedback-reviews-en-v1"], "lang": "en"}
+{"id": "rag-20", "question": "Where do I send a suggestion for the app?", "expected": ["demo-help-feedback-reviews-en-v1"], "lang": "en"}
+{"id": "rag-21", "question": "How do I raise an issue for a damaged item?", "expected": ["demo-help-raising-issue-en-v1"], "lang": "en"}
+{"id": "rag-22", "question": "Should I send a photo when reporting damage?", "expected": ["demo-help-raising-issue-en-v1"], "lang": "en"}
+{"id": "rag-23", "question": "How long does standard shipping take?", "expected": ["demo-shipping-en-v1", "demo-help-placing-order-en-v1"], "lang": "en"}
+{"id": "rag-24", "question": "Is there any discount code right now?", "expected": ["demo-promotion-en-v1"], "lang": "en"}
+{"id": "rag-25", "question": "Who won the cricket world cup?", "expected": [], "lang": "en"}
+{"id": "rag-26", "question": "Tell me a good recipe for paneer tikka", "expected": [], "lang": "en"}
+{"id": "rag-27", "question": "Do you deliver to Mars?", "expected": [], "lang": "en"}
+{"id": "rag-28", "question": "What is the share price of your company?", "expected": [], "lang": "en"}
+{"id": "rag-29", "question": "Can you write my college essay?", "expected": [], "lang": "en"}
+{"id": "rag-30", "question": "What is the weather in Mumbai today?", "expected": [], "lang": "en"}

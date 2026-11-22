@@ -17,6 +17,7 @@ from app.rag.service import (
     RAGProviderError,
     get_rag_service,
 )
+from app.rag import local_search
 from app.rag.workflow import run_agentic_rag
 from app.services.feedback_service import has_feedback_content, record_customer_feedback
 from app.services.frustration import conversation_frustration, handoff_summary
@@ -1213,7 +1214,7 @@ def store_information_node(state: AgentState) -> dict[str, Any]:
     except RAGConfigurationError as exc:
         logger.info("RAG configuration is incomplete: %s", exc)
         result = {"status": "configuration_missing", "error": str(exc), "sources": [], "documents": []}
-        response = "Document knowledge lookup is unavailable because its provider configuration is incomplete."
+        response = "I couldn't find that in our help documents. Could you rephrase it, or pick one of these?"
         error = str(exc)
         workflow_step = "rag_unavailable"
         # Preserve the existing, explicitly fictional sample lookup for known
@@ -1239,8 +1240,20 @@ def store_information_node(state: AgentState) -> dict[str, Any]:
                     "sources": [],
                     "documents": [],
                 }
-                response += "\n\nRAG is not configured. Existing development sample data follows and is fictional:\n"
+                response = "RAG is not configured. Existing development sample data follows and is fictional:\n"
                 response += format_store_information(demo)
+        if result.get("status") == "configuration_missing" and not result.get("rag_status"):
+            offline = local_search.answer(f"{query} {_SEARCH_HINTS.get(state.get('final_intent') or '', '')}")
+            if offline:
+                # Providers aren't configured: answer from the documents directly, quoting and citing them.
+                titles = ", ".join(source["title"] for source in offline["sources"])
+                return {
+                    "selected_route": "store_information", "workflow_step": "rag_offline_answered",
+                    "tool_result": {"status": "answered_offline", "sources": offline["sources"], "documents": offline["documents"]},
+                    "response": f"{offline['answer']}\n\nSource: {titles}", "error": None,
+                    "rag_context": offline["documents"], "sources": offline["sources"],
+                    "messages": _append_message(state, "assistant", f"{offline['answer']}\n\nSource: {titles}"),
+                }
     except RAGProviderError as exc:
         logger.warning("RAG provider unavailable: %s", exc)
         result = {"status": "provider_unavailable", "error": str(exc), "sources": [], "documents": []}
@@ -1258,10 +1271,18 @@ def store_information_node(state: AgentState) -> dict[str, Any]:
         "workflow_step": workflow_step,
         "tool_result": result, "response": response,
         "error": error,
+        "quick_replies": _HELP_MENU_REPLIES if workflow_step != "rag_answered" and not result.get("rag_status") else [],
         "rag_context": result.get("documents", []),
         "sources": result.get("sources", []),
         "messages": _append_message(state, "assistant", response),
     }
+
+
+# Words added to the document search for how-to questions routed here from other intents.
+_SEARCH_HINTS = {
+    "place_order": "place order checkout", "account_management": "account", "add_to_cart": "cart add",
+    "remove_from_cart": "cart remove", "order_management": "order change", "submit_feedback": "feedback review",
+}
 
 
 def _information_result(state: AgentState, route: str, result: dict[str, Any]) -> dict[str, Any]:

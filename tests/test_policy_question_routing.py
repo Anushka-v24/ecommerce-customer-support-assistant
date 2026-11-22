@@ -53,8 +53,9 @@ class PolicyQuestionRoutingTests(unittest.TestCase):
                 self.assertEqual(result["predicted_intent"], "issue_support")
                 self.assertEqual(result["final_intent"], "issue_support")
                 self.assertEqual(result["selected_route"], "store_information")
-                self.assertEqual(result["workflow_step"], "rag_unavailable")
-                self.assertIn("unavailable", result["response"].lower())
+                # Without RAG providers the offline document search answers and cites its source.
+                self.assertEqual(result["workflow_step"], "rag_offline_answered")
+                self.assertIn("Source:", result["response"])
 
     def test_transactional_return_and_refund_requests_stay_on_support_route(self):
         for query in (

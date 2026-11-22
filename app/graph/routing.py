@@ -96,6 +96,18 @@ _CANCEL_REQUEST = re.compile(r"cancel|कैंसिल|कैंसल|रद�
 _CANCEL_POLICY_QUESTION = re.compile(r"\b(?:fee|fees|charge|charges|penalty|policy)\b|शुल्क|चार्ज", re.IGNORECASE)
 
 
+# "How do I…" questions about things the chat can't do itself are answered from the help documents.
+_HOW_TO_QUESTION = re.compile(
+    r"\bhow\b|\bkaise\b|कैसे|\bwhere\s+(?:do|can)\s+i\b|\bsteps?\b|\bprocess\b|\bguide\b|\bpolicy\b|\bpolicies\b",
+    re.IGNORECASE,
+)
+HOW_TO_INTENTS = {"place_order", "account_management", "add_to_cart", "remove_from_cart", "order_management", "submit_feedback"}
+
+
+def _is_how_to_question(query: str | None) -> bool:
+    return isinstance(query, str) and bool(_HOW_TO_QUESTION.search(query))
+
+
 def _is_order_cancellation_request(query: str | None) -> bool:
     return isinstance(query, str) and bool(_CANCEL_REQUEST.search(query)) and not _CANCEL_POLICY_QUESTION.search(query)
 
@@ -125,6 +137,8 @@ def route_classifier_result(state: AgentState) -> str:
         return "out_of_scope"
     if final_intent == "order_management" and _is_order_cancellation_request(state.get("query")):
         return "order_cancellation"
+    if final_intent in HOW_TO_INTENTS and _is_how_to_question(state.get("query")):
+        return "store_information"
     if final_intent in UNSUPPORTED_INTENTS:
         return "unsupported"
     if final_intent == "issue_support" and _is_general_return_refund_policy_question(

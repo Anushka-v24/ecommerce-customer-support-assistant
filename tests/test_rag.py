@@ -615,7 +615,9 @@ class RAGServiceTests(unittest.TestCase):
     def test_missing_configuration_is_clear_and_production_never_uses_demo_data(self):
         with patch.object(nodes, "get_rag_service", side_effect=RAGConfigurationError("OPENAI_API_KEY is not configured")), patch.object(Config, "APP_ENV", "production"), patch.object(nodes, "store_information_tool") as demo:
             result = nodes.store_information_node({"query": "What promotions are available?", "messages": []})
-        self.assertIn("configuration is incomplete", result["response"])
+        # Production has no approved documents here and must never fall back to demo content.
+        self.assertIn("couldn't find that in our help documents", result["response"])
+        self.assertEqual(result["sources"], [])
         demo.assert_not_called()
 
     def test_development_demo_fallback_is_explicitly_labeled_and_scoped(self):
@@ -626,7 +628,7 @@ class RAGServiceTests(unittest.TestCase):
         with patch.object(nodes, "get_rag_service", side_effect=RAGConfigurationError("OPENAI_API_KEY is not configured")), patch.object(Config, "APP_ENV", "development"):
             policy = nodes.store_information_node({"query": "What is the return policy at your store?", "messages": []})
         self.assertNotIn("DEMO10", policy["response"])
-        self.assertNotIn("fictional", policy["response"])
+        self.assertIn("return", policy["sources"][0]["title"].lower())
 
 
 if __name__ == "__main__":
