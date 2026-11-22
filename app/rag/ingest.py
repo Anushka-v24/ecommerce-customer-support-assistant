@@ -38,10 +38,11 @@ def main() -> int:
     except (RAGConfigurationError, RAGProviderError) as exc:
         print(f"Indexing failed: {exc}", file=sys.stderr)
         return 2
+    target = Config.PINECONE_INDEX_NAME if Config.RAG_VECTOR_STORE == "pinecone" else Config.LOCAL_VECTOR_STORE_PATH
     print(
         f"Indexed {result['documents']} documents as {result['chunks']} chunks "
         f"({result['upserted']} new/changed vectors, {result['unchanged']} unchanged, "
-        f"{result['removed']} stale vectors removed) in Pinecone index {Config.PINECONE_INDEX_NAME}."
+        f"{result['removed']} stale vectors removed) in the {Config.RAG_VECTOR_STORE} vector store ({target})."
     )
     return 0
 

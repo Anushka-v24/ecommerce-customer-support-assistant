@@ -93,6 +93,14 @@ class Config:
     DEEPSEEK_BASE_URL = os.getenv("DEEPSEEK_BASE_URL", "https://api.deepseek.com").strip()
     OPENAI_EMBEDDING_MODEL = os.getenv("OPENAI_EMBEDDING_MODEL", "text-embedding-3-large").strip()
     DEEPSEEK_MODEL = os.getenv("DEEPSEEK_MODEL", "deepseek-flash").strip()
+    # Free by default: a local embedding model, a local vector file and Groq for answers.
+    # Set these to openai / pinecone / deepseek to use the paid providers instead.
+    RAG_EMBEDDING_PROVIDER = os.getenv("RAG_EMBEDDING_PROVIDER", "local").strip().lower()
+    RAG_VECTOR_STORE = os.getenv("RAG_VECTOR_STORE", "local").strip().lower()
+    RAG_GENERATION_PROVIDER = os.getenv("RAG_GENERATION_PROVIDER", "groq").strip().lower()
+    LOCAL_EMBEDDING_MODEL = os.getenv("LOCAL_EMBEDDING_MODEL", "BAAI/bge-m3").strip()
+    LOCAL_VECTOR_STORE_PATH = os.getenv("LOCAL_VECTOR_STORE_PATH", str(PROJECT_ROOT / "data" / "runtime" / "vector_store.json"))
+    RAG_GENERATION_MODEL = os.getenv("RAG_GENERATION_MODEL", "").strip() or os.getenv("GROQ_MODEL", "openai/gpt-oss-20b")
     RAG_TOP_K = int(os.getenv("RAG_TOP_K", "4"))
     RAG_MIN_SCORE = float(os.getenv("RAG_MIN_SCORE", "0.35"))
     RAG_CHUNK_SIZE = int(os.getenv("RAG_CHUNK_SIZE", "1200"))

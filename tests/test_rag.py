@@ -19,6 +19,10 @@ from app.rag.service import (
 )
 from app.rag.workflow import run_agentic_rag
 
+# These tests cover the paid providers' settings checks; the free local stack has its own tests.
+for _name, _value in (("RAG_EMBEDDING_PROVIDER", "openai"), ("RAG_VECTOR_STORE", "pinecone"), ("RAG_GENERATION_PROVIDER", "deepseek")):
+    patch.object(Config, _name, _value).start()
+
 
 class FakeEmbeddings:
     def __init__(self, vector=None, error=None):

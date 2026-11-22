@@ -4,6 +4,8 @@ from __future__ import annotations
 
 import json
 import logging
+import os
+import re
 from functools import lru_cache
 from typing import Any
 
@@ -56,6 +58,10 @@ class RAGService:
         return namespace
 
     def _ensure_embedding_client(self) -> Any:
+        if self._embedding_client is None and Config.RAG_EMBEDDING_PROVIDER == "local":
+            from app.rag.local_providers import LocalEmbeddingClient
+
+            self._embedding_client = LocalEmbeddingClient()
         if self._embedding_client is None:
             if not Config.OPENAI_API_KEY:
                 raise RAGConfigurationError("OPENAI_API_KEY is not configured")
@@ -67,6 +73,10 @@ class RAGService:
         return self._embedding_client
 
     def _ensure_index(self) -> Any:
+        if self._index is None and Config.RAG_VECTOR_STORE == "local":
+            from app.rag.local_providers import LocalVectorIndex
+
+            self._index = LocalVectorIndex()
         if self._index is None:
             if not Config.PINECONE_API_KEY:
                 raise RAGConfigurationError("PINECONE_API_KEY is not configured")
@@ -81,7 +91,19 @@ class RAGService:
                 raise RAGProviderError("Could not initialize the Pinecone index client") from exc
         return self._index
 
+    def _generation_model(self) -> str:
+        return Config.RAG_GENERATION_MODEL if Config.RAG_GENERATION_PROVIDER == "groq" else Config.DEEPSEEK_MODEL
+
     def _ensure_generation_client(self) -> Any:
+        if self._generation_client is None and Config.RAG_GENERATION_PROVIDER == "groq":
+            if not os.getenv("GROQ_API_KEY"):
+                raise RAGConfigurationError("GROQ_API_KEY is not configured")
+            try:
+                from groq import Groq
+                # The free Groq tier limits tokens per minute; the SDK waits out the advertised retry delay.
+                self._generation_client = Groq(api_key=os.getenv("GROQ_API_KEY"), timeout=45.0, max_retries=4)
+            except Exception as exc:
+                raise RAGProviderError("Could not initialize the Groq client") from exc
         if self._generation_client is None:
             if not Config.DEEPSEEK_API_KEY:
                 raise RAGConfigurationError("DEEPSEEK_API_KEY is not configured")
@@ -99,20 +121,29 @@ class RAGService:
                 raise RAGProviderError("Could not initialize the DeepSeek client") from exc
         return self._generation_client
 
-    def _require_answer_configuration(self) -> None:
+    def _missing_settings(self, *, generation: bool) -> list[str]:
+        """Settings the selected providers still need (free local providers need none)."""
         missing = []
-        if self._embedding_client is None and not Config.OPENAI_API_KEY:
+        if self._embedding_client is None and Config.RAG_EMBEDDING_PROVIDER != "local" and not Config.OPENAI_API_KEY:
             missing.append("OPENAI_API_KEY")
-        if self._index is None:
+        if self._index is None and Config.RAG_VECTOR_STORE != "local":
             if not Config.PINECONE_API_KEY:
                 missing.append("PINECONE_API_KEY")
             if not Config.PINECONE_INDEX_NAME:
                 missing.append("PINECONE_INDEX_NAME")
-        if self._generation_client is None:
-            if not Config.DEEPSEEK_API_KEY:
-                missing.append("DEEPSEEK_API_KEY")
-            if not Config.DEEPSEEK_BASE_URL:
-                missing.append("DEEPSEEK_BASE_URL")
+        if generation and self._generation_client is None:
+            if Config.RAG_GENERATION_PROVIDER == "groq":
+                if not os.getenv("GROQ_API_KEY"):
+                    missing.append("GROQ_API_KEY")
+            else:
+                if not Config.DEEPSEEK_API_KEY:
+                    missing.append("DEEPSEEK_API_KEY")
+                if not Config.DEEPSEEK_BASE_URL:
+                    missing.append("DEEPSEEK_BASE_URL")
+        return missing
+
+    def _require_answer_configuration(self) -> None:
+        missing = self._missing_settings(generation=True)
         if missing:
             raise RAGConfigurationError(
                 "Required RAG configuration is missing: " + ", ".join(missing)
@@ -121,7 +152,7 @@ class RAGService:
     def _embed(self, texts: list[str]) -> list[list[float]]:
         try:
             response = self._ensure_embedding_client().embeddings.create(
-                model=Config.OPENAI_EMBEDDING_MODEL,
+                model=Config.LOCAL_EMBEDDING_MODEL if Config.RAG_EMBEDDING_PROVIDER == "local" else Config.OPENAI_EMBEDDING_MODEL,
                 input=texts,
             )
             return [list(_value(item, "embedding", [])) for item in _value(response, "data", [])]
@@ -159,14 +190,7 @@ class RAGService:
             raise RAGConfigurationError("Demo namespace accepts only documents marked as demo")
         if not chunks and not prune_empty:
             return {"documents": 0, "chunks": 0, "upserted": 0, "unchanged": 0, "removed": 0}
-        missing = []
-        if self._embedding_client is None and not Config.OPENAI_API_KEY:
-            missing.append("OPENAI_API_KEY")
-        if self._index is None:
-            if not Config.PINECONE_API_KEY:
-                missing.append("PINECONE_API_KEY")
-            if not Config.PINECONE_INDEX_NAME:
-                missing.append("PINECONE_INDEX_NAME")
+        missing = self._missing_settings(generation=False)
         if missing:
             raise RAGConfigurationError("Required RAG configuration is missing: " + ", ".join(missing))
         try:
@@ -301,7 +325,7 @@ class RAGService:
         ]
         try:
             response = self._ensure_generation_client().chat.completions.create(
-                model=Config.DEEPSEEK_MODEL,
+                model=self._generation_model(),
                 messages=mask_obj(messages),
                 temperature=0,
             )
@@ -353,7 +377,7 @@ class RAGService:
                 "content": "Question: " + query + "\nEvidence JSON:\n" + json.dumps(excerpts, ensure_ascii=False),
             },
         ]
-        content = self._deepseek_completion(messages)
+        content = re.sub(r"^```(?:json)?\s*|\s*```$", "", self._deepseek_completion(messages).strip())
         try:
             result = json.loads(content)
         except (TypeError, json.JSONDecodeError) as exc:
@@ -416,7 +440,7 @@ class RAGService:
     def _deepseek_completion(self, messages: list[dict[str, str]]) -> str:
         try:
             response = self._ensure_generation_client().chat.completions.create(
-                model=Config.DEEPSEEK_MODEL,
+                model=self._generation_model(),
                 messages=mask_obj(messages),
                 temperature=0,
             )

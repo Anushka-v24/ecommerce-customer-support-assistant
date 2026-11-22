@@ -752,3 +752,37 @@ The frontend creates a UUID on the conversation's first send, reuses it for each
 3. Start Next.js from `frontend/` with `npm.cmd run dev` and open `http://localhost:3000`.
 4. Send two distinct messages in the same chat. In browser developer tools, verify both `POST /api/chat` bodies carry the same `session_id` and their respective `message` values. The response should contain `session_id`, `answer`, `intent`, and `workflow_status`.
 5. Select **New chat** and send another message; it should carry a different UUID. Confirm no credentials are sent by the frontend.
+
+## Free RAG stack (no paid keys)
+
+Document answers work without OpenAI, Pinecone or DeepSeek. The defaults are:
+
+| Part | Setting | Default | Paid alternative |
+|---|---|---|---|
+| Embeddings | `RAG_EMBEDDING_PROVIDER` | `local` (`BAAI/bge-m3` on this machine) | `openai` |
+| Vector store | `RAG_VECTOR_STORE` | `local` (`data/runtime/vector_store.json`) | `pinecone` |
+| Answers | `RAG_GENERATION_PROVIDER` | `groq` (`RAG_GENERATION_MODEL`, default `GROQ_MODEL`) | `deepseek` |
+
+Setup, once:
+
+```bash
+# 1. Download the embedding model (about 2.3 GB, cached in ~/.cache/huggingface)
+.venv/bin/python -c "from huggingface_hub import snapshot_download; snapshot_download('BAAI/bge-m3', allow_patterns=['config.json','pytorch_model.bin','tokenizer.json','tokenizer_config.json','sentencepiece.bpe.model','special_tokens_map.json'])"
+# 2. Index the documents (use --demo for the fictional demo guides; development only)
+PYTHONPATH=. .venv/bin/python -m app.rag.ingest --demo
+```
+
+Set `RAG_USE_DEMO_KNOWLEDGE=true` in development to query the demo guides. `RAG_MIN_SCORE` is tuned per
+embedding model: 0.45 suits `bge-m3` (Hinglish questions score lower than English ones); the OpenAI default is 0.35.
+If the model, the index or `GROQ_API_KEY` is missing, the assistant falls back to an offline keyword search over the same documents.
+
+Groq's free tier limits tokens per minute **and per day for each model** (200,000 per day on `gpt-oss-20b` at the time of writing).
+Full evaluation runs use a lot of it; point `GROQ_MODEL` at another Groq model when one runs out.
+
+Evaluating retrieval and answers (30 questions in `evals/rag_cases.jsonl`):
+
+```bash
+PYTHONPATH=. .venv/bin/python scripts/evaluate_rag.py --mode retrieval   # vector search only, no Groq calls
+PYTHONPATH=. .venv/bin/python scripts/evaluate_rag.py --mode provider    # full pipeline, uses Groq quota
+PYTHONPATH=. .venv/bin/python scripts/evaluate_rag.py --mode local       # offline keyword search
+```
