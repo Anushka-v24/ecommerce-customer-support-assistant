@@ -1316,6 +1316,15 @@ def feedback_node(state: AgentState) -> dict[str, Any]:
     }
 
 
+# Offered whenever the assistant can't act on a message, so the customer is never stuck.
+_HELP_MENU_REPLIES = [
+    {"label": "Track my order", "value": "where is my order"},
+    {"label": "Return or refund", "value": "I want to return an item"},
+    {"label": "Damaged item", "value": "my item arrived damaged"},
+    {"label": "Talk to a person", "value": "I want to talk to a human"},
+    {"label": "Give feedback", "value": "I want to give feedback"},
+]
+
 UNSUPPORTED_RESPONSES = {
     "account_management": "I can't make changes to your account here yet.",
     "add_to_cart": "I can't add items to your cart from this chat yet.",
@@ -1334,17 +1343,17 @@ def unsupported_node(state: AgentState) -> dict[str, Any]:
     return {
         "selected_route": route,
         "tool_result": {"status": "unsupported", "intent": intent, "executed": False},
-        "response": response, "error": None,
+        "response": response, "error": None, "quick_replies": _HELP_MENU_REPLIES,
         "messages": _append_message(state, "assistant", response),
     }
 
 
 def unknown_intent_node(state: AgentState) -> dict[str, Any]:
-    response = "I could not verify this as one of the supported ecommerce intents. No business workflow was run."
+    response = "I'm not sure I understood that. Could you tell me a bit more, or pick one of these?"
     return {
         "selected_route": "unknown_intent",
         "tool_result": {"status": "not_executed", "reason": "unknown_intent"},
-        "response": response, "error": state.get("error"),
+        "response": response, "error": state.get("error"), "quick_replies": _HELP_MENU_REPLIES,
         "messages": _append_message(state, "assistant", response),
     }
 
@@ -1358,7 +1367,7 @@ def out_of_scope_node(state: AgentState) -> dict[str, Any]:
     return {
         "selected_route": "out_of_scope",
         "tool_result": {"status": "not_executed", "reason": "out_of_scope", "tools_executed": False},
-        "response": response, "error": None,
+        "response": response, "error": None, "quick_replies": _HELP_MENU_REPLIES,
         "messages": _append_message(state, "assistant", response),
     }
 

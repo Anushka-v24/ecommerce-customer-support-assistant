@@ -111,6 +111,9 @@ def main() -> None:
     parser.add_argument("--max-len", type=int, default=64)
     parser.add_argument("--seed", type=int, default=13)
     parser.add_argument("--resume", action="store_true", help="continue from the last epoch checkpoint")
+    parser.add_argument("--patience", type=int, default=1,
+                        help="stop after this many epochs without a val macro-F1 gain of at least --min-delta")
+    parser.add_argument("--min-delta", type=float, default=0.002)
     args = parser.parse_args()
     checkpoint_path = args.out.parent / f"{args.out.name}_checkpoint.pt"
 
@@ -185,9 +188,10 @@ def main() -> None:
         metrics = {"epoch": epoch, "val_accuracy": float((pred == val_gold).float().mean()), "macro_f1": macro_f1(pred, val_gold, len(labels))}
         history.append(metrics)
         print(json.dumps(metrics), flush=True)
-        if metrics["macro_f1"] > best["macro_f1"]:
+        if metrics["macro_f1"] >= best["macro_f1"] + args.min_delta:
             best = metrics
             best_state = {k: v.detach().cpu().clone() for k, v in model.state_dict().items()}
+        stale = epoch - best["epoch"]
         # Write to a temp file first so a crash mid-save keeps the previous checkpoint.
         tmp = checkpoint_path.with_suffix(".tmp")
         torch.save({
@@ -198,6 +202,10 @@ def main() -> None:
         }, tmp)
         tmp.replace(checkpoint_path)
         print(f"checkpoint saved after epoch {epoch}", flush=True)
+        # Early stopping: more epochs past the best one only fit template style.
+        if stale >= args.patience:
+            print(f"early stop: no val macro-F1 gain >= {args.min_delta} for {stale} epoch(s); best epoch {best['epoch']}", flush=True)
+            break
 
     model.load_state_dict(best_state)
     model.to(device)
@@ -215,7 +223,7 @@ def main() -> None:
     (args.out / "calibration.json").write_text(json.dumps({"temperature": temperature}, indent=2), encoding="utf-8")
     (args.out / "training_report.json").write_text(json.dumps({
         "base_model": str(args.base.relative_to(ROOT)), "labels": labels, "train_size": len(train), "val_size": len(val),
-        "epochs": args.epochs, "batch_size": args.batch_size, "lr": args.lr, "history": history, "best": best,
+        "epochs": args.epochs, "epochs_run": len(history), "patience": args.patience, "batch_size": args.batch_size, "lr": args.lr, "history": history, "best": best,
         "temperature": temperature, "val_ece_before": ece_before, "val_ece_after": ece_after,
         "train_seconds": round(time.time() - started),
     }, indent=2), encoding="utf-8")
