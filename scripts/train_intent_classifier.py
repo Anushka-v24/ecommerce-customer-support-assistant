@@ -3,12 +3,14 @@
 Warm-starts from the existing 15-label model: the encoder and the output rows of
 existing labels are copied, so only the new labels start from scratch. After
 training, a single temperature is fitted on the validation split so confidence
-scores (and the Groq-verification threshold) are meaningful. Only the final
-model is written, to keep disk use to one copy.
+scores (and the Groq-verification threshold) are meaningful. A checkpoint is
+written after every epoch so an interrupted run can continue with ``--resume``;
+it is deleted once the final model is saved.
 
 Usage (from the project root)::
 
     .venv/bin/python scripts/train_intent_classifier.py --epochs 3
+    .venv/bin/python scripts/train_intent_classifier.py --epochs 3 --resume
 """
 
 from __future__ import annotations
@@ -108,7 +110,9 @@ def main() -> None:
     parser.add_argument("--lr", type=float, default=2e-5)
     parser.add_argument("--max-len", type=int, default=64)
     parser.add_argument("--seed", type=int, default=13)
+    parser.add_argument("--resume", action="store_true", help="continue from the last epoch checkpoint")
     args = parser.parse_args()
+    checkpoint_path = args.out.parent / f"{args.out.name}_checkpoint.pt"
 
     random.seed(args.seed)
     torch.manual_seed(args.seed)
@@ -145,8 +149,21 @@ def main() -> None:
     best = {"macro_f1": -1.0}
     best_state = None
     history = []
+    start_epoch = 1
     started = time.time()
-    for epoch in range(1, args.epochs + 1):
+    if args.resume and checkpoint_path.exists():
+        ckpt = torch.load(checkpoint_path, map_location="cpu", weights_only=False)
+        model.load_state_dict(ckpt["model"])
+        model.to(device)
+        optimizer.load_state_dict(ckpt["optimizer"])
+        scheduler.load_state_dict(ckpt["scheduler"])
+        rng.setstate(ckpt["rng"])
+        torch.set_rng_state(ckpt["torch_rng"])
+        best, best_state, history = ckpt["best"], ckpt["best_state"], ckpt["history"]
+        start_epoch = ckpt["epoch"] + 1
+        started -= ckpt["elapsed"]
+        print(f"resumed from {checkpoint_path} after epoch {ckpt['epoch']}", flush=True)
+    for epoch in range(start_epoch, args.epochs + 1):
         model.train()
         running = 0.0
         for step, batch in enumerate(batches(train, args.batch_size, True, rng), start=1):
@@ -171,6 +188,16 @@ def main() -> None:
         if metrics["macro_f1"] > best["macro_f1"]:
             best = metrics
             best_state = {k: v.detach().cpu().clone() for k, v in model.state_dict().items()}
+        # Write to a temp file first so a crash mid-save keeps the previous checkpoint.
+        tmp = checkpoint_path.with_suffix(".tmp")
+        torch.save({
+            "epoch": epoch, "model": {k: v.detach().cpu() for k, v in model.state_dict().items()},
+            "optimizer": optimizer.state_dict(), "scheduler": scheduler.state_dict(),
+            "rng": rng.getstate(), "torch_rng": torch.get_rng_state(),
+            "best": best, "best_state": best_state, "history": history, "elapsed": time.time() - started,
+        }, tmp)
+        tmp.replace(checkpoint_path)
+        print(f"checkpoint saved after epoch {epoch}", flush=True)
 
     model.load_state_dict(best_state)
     model.to(device)
@@ -192,6 +219,7 @@ def main() -> None:
         "temperature": temperature, "val_ece_before": ece_before, "val_ece_after": ece_after,
         "train_seconds": round(time.time() - started),
     }, indent=2), encoding="utf-8")
+    checkpoint_path.unlink(missing_ok=True)
     print(f"saved to {args.out}")
 
 

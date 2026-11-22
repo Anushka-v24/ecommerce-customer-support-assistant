@@ -62,3 +62,8 @@ models/xlmr_intent_classifier/tokenizer_config.json
 data/training/
 datasets/
 evals/reports/
+
+# Retrained classifier bundles and dataset snapshots (large, regenerable)
+models/xlmr_intent_classifier_v*/
+models/*_checkpoint.pt
+data/training_v*_baseline/
