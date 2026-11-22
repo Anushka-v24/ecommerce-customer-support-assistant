@@ -104,6 +104,24 @@ _HOW_TO_QUESTION = re.compile(
 HOW_TO_INTENTS = {"place_order", "account_management", "add_to_cart", "remove_from_cart", "order_management", "submit_feedback"}
 
 
+# Asking for the delivery person, or for an order to arrive sooner, is a delivery speed-up
+# request: there is no live courier channel, so it ends in a priority ticket for the delivery team.
+_DELIVERY_PERSON = re.compile(r"\b(?:delivery\s+(?:agent|partner|boy|person|executive|guy|man)|courier|rider)\b", re.IGNORECASE)
+_SPEED_WORDS = re.compile(r"\b(?:sooner|faster|quicker|quickly|earlier|asap|urgent(?:ly)?|expedite|speed[\s-]?up|hurry|rush)\b", re.IGNORECASE)
+_DELIVERY_CONTEXT = re.compile(r"\b(?:deliver(?:y|ed)?|send|ship(?:ped|ping)?|arrive|reach|package|parcel|dispatch)\b", re.IGNORECASE)
+_CONTACT_VERB = re.compile(r"\b(?:talk|speak|call|contact|message)\b", re.IGNORECASE)
+_NOT_DELIVERY = re.compile(r"\b(?:refund|return|cancel|exchange)\b", re.IGNORECASE)
+_SPEEDUP_INTENTS = {"customer_care_support", "issue_support", "order_tracking", "delivery_options"}
+
+
+def is_delivery_speedup_request(query: str | None) -> bool:
+    if not isinstance(query, str) or _NOT_DELIVERY.search(query):
+        return False
+    if _DELIVERY_PERSON.search(query) and (_SPEED_WORDS.search(query) or _CONTACT_VERB.search(query)):
+        return True
+    return bool(_SPEED_WORDS.search(query) and _DELIVERY_CONTEXT.search(query))
+
+
 def _is_how_to_question(query: str | None) -> bool:
     return isinstance(query, str) and bool(_HOW_TO_QUESTION.search(query))
 
@@ -135,6 +153,8 @@ def route_classifier_result(state: AgentState) -> str:
         return "unknown_intent"
     if final_intent == "out_of_scope":
         return "out_of_scope"
+    if final_intent in _SPEEDUP_INTENTS and is_delivery_speedup_request(state.get("query")):
+        return "customer_care"
     if final_intent == "order_management" and _is_order_cancellation_request(state.get("query")):
         return "order_cancellation"
     if final_intent in HOW_TO_INTENTS and _is_how_to_question(state.get("query")):

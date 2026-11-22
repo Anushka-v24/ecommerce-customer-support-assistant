@@ -24,6 +24,7 @@ CATEGORY_SUBJECTS = {
     "missing_order": "Missing delivery",
     "return_order": "Return request",
     "customer_care": "Speak to a support agent",
+    "delivery_speedup": "Delivery speed-up requested",
     "exchange_request": "Exchange request",
     "escalation": "Escalated: customer needs a person",
 }
@@ -33,6 +34,7 @@ CATEGORY_PRIORITY = {
     "missing_order": "high",
     "return_order": "normal",
     "customer_care": "normal",
+    "delivery_speedup": "high",
     "exchange_request": "normal",
     "escalation": "high",
 }

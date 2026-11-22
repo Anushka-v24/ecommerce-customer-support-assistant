@@ -11,7 +11,7 @@ from app.classifier.classifier_service import classify_and_verify
 from app.config import Config
 from app.graph.state import AgentState
 from app.graph.risk import idempotency_key, request_approval
-from app.graph.routing import INTENT_LABELS, route_classifier_result
+from app.graph.routing import INTENT_LABELS, is_delivery_speedup_request, route_classifier_result
 from app.rag.service import (
     RAGConfigurationError,
     RAGProviderError,
@@ -46,6 +46,11 @@ from app.tools.store_tools import store_information_tool
 
 logger = logging.getLogger(__name__)
 _ORDER_ID_IN_TEXT = re.compile(r"\bORD-\d{4}\b", re.IGNORECASE)
+# What a customer may type when asked for an order ID: 1002, #1002, ORD 1002, order id is ord1002.
+_ORDER_SLOT_REPLY = re.compile(
+    r"(?:(?:my\s+)?order(?:\s*(?:id|number|no\.?))?\s*(?:is|:|#)?\s*)?(?:ORD[\s_-]*)?#?(\d{4})",
+    re.IGNORECASE,
+)
 _RETURN_REASON = re.compile(r"\b(?:because|reason is|since)\s+(.+)$", re.IGNORECASE)
 _GENERIC_DAMAGE = re.compile(
     r"\b(?:my\s+)?(?:order|item|product|package)\s+(?:arrived|came|was\s+delivered)\s+"
@@ -104,6 +109,7 @@ _CONFIRMATION_PROMPTS = {
         "missing_order": "I'm sorry your order hasn't reached you yet. Just to make sure I've understood: you'd like us to look into a missing delivery{order}. Is that right?",
         "return_order": "Happy to help with that. Just to make sure I've understood: you'd like to return an item{order}. Is that right?",
         "customer_care": "I understand you'd like to talk to someone from our support team. Shall I raise a ticket and pass your conversation on to them?",
+        "delivery_speedup": "I can't reach the delivery agent live, but I can raise a priority ticket asking our delivery team to speed up your order{order}. Shall I do that?",
         "exchange": "Sure, I can help with that. Just to make sure I've understood: you'd like to exchange an item{order}. Is that right?",
         "order": " for order {order_id}",
         "correction": "No problem, thanks for letting me know. Which of these is closest to what you need?",
@@ -114,6 +120,7 @@ _CONFIRMATION_PROMPTS = {
         "missing_order": "हमें खेद है कि आपका ऑर्डर अभी तक नहीं पहुँचा। क्या मैंने सही समझा कि आप चाहते हैं कि हम{order} गुम डिलीवरी की जाँच करें?",
         "return_order": "ज़रूर, मैं मदद करूँगा। क्या मैंने सही समझा कि आप{order} सामान वापस (रिटर्न) करना चाहते हैं?",
         "customer_care": "मैं समझता हूँ कि आप हमारी सपोर्ट टीम से बात करना चाहते हैं। क्या मैं टिकट बनाकर आपकी बातचीत उन्हें भेज दूँ?",
+        "delivery_speedup": "मैं डिलीवरी एजेंट से सीधे बात नहीं करा सकता, लेकिन आपका ऑर्डर{order} जल्दी भेजने के लिए डिलीवरी टीम को प्राथमिकता वाला टिकट बना सकता हूँ। क्या मैं बना दूँ?",
         "exchange": "ज़रूर, मैं मदद करूँगा। क्या मैंने सही समझा कि आप{order} सामान बदलना (एक्सचेंज) चाहते हैं?",
         "order": " ऑर्डर {order_id} के लिए",
         "correction": "कोई बात नहीं, बताने के लिए धन्यवाद। इनमें से कौन-सा विकल्प आपकी ज़रूरत के सबसे करीब है?",
@@ -345,9 +352,9 @@ def continuity_node(state: AgentState) -> dict[str, Any]:
     collected = dict(pending.get("collected") or {})
     accepted: Any = None
     if slot == "order_id":
-        match = re.fullmatch(r"(?:my order(?: id)? is\s+|order id[: ]+)?(ORD-\d{4})", query, re.IGNORECASE)
+        match = _ORDER_SLOT_REPLY.fullmatch(query.strip(" .!"))
         if match:
-            accepted = match.group(1).upper()
+            accepted = f"ORD-{match.group(1)}"
         elif query.casefold().startswith("ord-") or query.casefold().startswith("order id"):
             pending = {**pending, "prompt": "That order ID format is not recognized. Please use a format such as ORD-1001."}
     elif slot == "product_identifier":
@@ -532,7 +539,10 @@ def confirm_intent_node(state: AgentState) -> dict[str, Any]:
         order_id = order_id or resolution.get("order_id")
     prompts = _CONFIRMATION_PROMPTS[_language(query)]
     order_text = prompts["order"].format(order_id=order_id) if order_id else ""
-    prompt = prompts[issue_type or route].format(order=order_text)
+    speedup = route == "customer_care" and is_delivery_speedup_request(query)
+    prompt = prompts["delivery_speedup" if speedup else (issue_type or route)].format(order=order_text)
+    if speedup and not order_id:
+        prompt += " If you tell me the order ID (for example, ORD-1001), I'll attach it." if _language(query) == "en" else ""
     collected = {"original_route": route, "original_issue_type": issue_type, "original_query": query, "order_id": order_id}
     pending = _pending(
         "intent_confirmation", "confirmation", collected, prompt,
@@ -1151,9 +1161,17 @@ def customer_care_node(state: AgentState) -> dict[str, Any]:
         for item in messages[-6:]
     )[:1800]
     reason = (state.get("query") or "Customer requested a human representative.").strip()
+    speedup = is_delivery_speedup_request(reason)
     try:
         result = customer_handoff_tool(state.get("session_id"), reason, summary or reason)
-        if result["outcome"] == "simulated_handoff_ready":
+        if result["outcome"] == "simulated_handoff_ready" and speedup:
+            response = (
+                "I've raised a priority ticket asking our delivery team to speed up your order. "
+                f"Reference: {result['handoff']['reference']}. I can't reach the delivery agent live, so the team will follow up. "
+                "(Demonstration: no live agent has been contacted.)"
+            )
+            handoff_status = "simulated_handoff_ready"
+        elif result["outcome"] == "simulated_handoff_ready":
             response = f"Your request is ready for human assistance in this demonstration. Reference: {result['handoff']['reference']}. No live agent has been contacted."
             handoff_status = "simulated_handoff_ready"
         else:
@@ -1174,7 +1192,7 @@ def customer_care_node(state: AgentState) -> dict[str, Any]:
     }
     if handoff_status == "simulated_handoff_ready":
         output = _with_ticket(output, _raise_ticket(
-            state, "customer_care", _order_id(state), reason, result["handoff"]["reference"],
+            state, "delivery_speedup" if speedup else "customer_care", _order_id(state), reason, result["handoff"]["reference"],
             {"conversation_summary": summary},
         ))
     return output

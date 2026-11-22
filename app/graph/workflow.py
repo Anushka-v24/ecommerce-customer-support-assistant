@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import atexit
+import re
 from functools import lru_cache
 from typing import Any, Iterator
 
@@ -118,6 +119,9 @@ def stream_graph(
 _WAITING_STATUSES = {"awaiting_input", "awaiting_confirmation", "awaiting_approval"}
 
 
+_LOOSE_ORDER_ID = re.compile(r"\bORD[\s_]*(\d{4})\b", re.IGNORECASE)
+
+
 def _conversation_turn(query: str, session_id: str, graph: Any | None, customer_id: str | None):
     """Run one customer message; a second request in it (or one queued earlier) runs once the first is done."""
     if not isinstance(session_id, str) or not session_id.strip():
@@ -126,6 +130,8 @@ def _conversation_turn(query: str, session_id: str, graph: Any | None, customer_
         raise ValueError("query must be a string.")
     runnable = graph or get_graph()
     config = {"configurable": {"thread_id": session_id}}
+    # "ORD 1002", "ord1002" and "ORD_1002" all mean ORD-1002.
+    query = _LOOSE_ORDER_ID.sub(lambda match: f"ORD-{match.group(1)}", query)
     parts = _plan_split(runnable, config, query)
     first = parts[0] if parts else query
     payload = _turn_payload(runnable, config, first, session_id, customer_id)
