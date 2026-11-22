@@ -7,9 +7,11 @@ from functools import lru_cache
 from typing import Any
 
 from langgraph.graph import END, START, StateGraph
+from langgraph.types import Command
 
 from app.graph import nodes
 from app.graph.checkpointer import close_postgres_checkpointer, get_configured_checkpointer
+from app.graph.risk import ABANDON, approval_answer
 from app.graph.routing import ROUTE_TO_NODE, route_with_intent_confirmation
 from app.graph.state import AgentState
 
@@ -98,11 +100,53 @@ def invoke_graph(
     if not isinstance(query, str):
         raise ValueError("query must be a string.")
     runnable = graph or get_graph()
-    # Buttons and the raised ticket belong to one turn; reset them before each run.
-    turn_input: dict[str, Any] = {"query": query, "session_id": session_id, "quick_replies": [], "ticket": None}
+    config = {"configurable": {"thread_id": session_id}}
+    waiting = _pending_approval(runnable, config)
+    if waiting is not None:
+        if approval_answer(query) != "other":
+            return _surface_approval(runnable.invoke(Command(resume=query), config), query)
+        # A new request instead of yes/no: close the approval without acting, then handle it.
+        runnable.invoke(Command(resume=ABANDON), config)
+    # Buttons, the raised ticket and approvals belong to one turn; reset them before each run.
+    turn_input: dict[str, Any] = {
+        "query": query, "session_id": session_id, "quick_replies": [], "ticket": None, "action_approved": False,
+    }
     if customer_id:
         turn_input["customer_id"] = customer_id
-    return runnable.invoke(turn_input, {"configurable": {"thread_id": session_id}})
+    return _surface_approval(runnable.invoke(turn_input, config), query)
+
+
+def _pending_approval(runnable: Any, config: dict[str, Any]) -> dict[str, Any] | None:
+    """The approval payload the thread is paused on, if any."""
+    try:
+        snapshot = runnable.get_state(config)
+    except ValueError:
+        return None  # graphs compiled without a checkpointer cannot pause
+    for task in snapshot.tasks or ():
+        for pending in task.interrupts or ():
+            if isinstance(pending.value, dict) and pending.value.get("type") == "approval":
+                return pending.value
+    return None
+
+
+def _surface_approval(result: dict[str, Any], query: str) -> dict[str, Any]:
+    """Present a paused approval as an ordinary assistant turn."""
+    interrupts = result.get("__interrupt__") if isinstance(result, dict) else None
+    if not interrupts:
+        return result
+    payload = interrupts[0].value
+    response, replies, language = payload["prompt"], payload.get("quick_replies") or [], "en"
+    translated = nodes.translate_reply(query, response, replies)
+    if translated:
+        response, replies, language = translated["response"], translated["quick_replies"], translated["lang"]
+    return {
+        **{k: v for k, v in result.items() if k != "__interrupt__"},
+        "selected_route": payload["action"],
+        "tool_result": {"outcome": "awaiting_confirmation", "order_id": payload.get("order_id"),
+                        "risk": payload.get("risk"), "executed": False},
+        "response": response, "quick_replies": replies, "reply_language": language,
+        "workflow_status": "awaiting_approval",
+    }
 
 
 def build_test_graph():

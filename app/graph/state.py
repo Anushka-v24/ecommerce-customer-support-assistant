@@ -49,3 +49,5 @@ class AgentState(TypedDict, total=False):
     quick_replies: NotRequired[list[dict[str, str]]]
     ticket: NotRequired[dict[str, Any] | None]
     reply_language: NotRequired[str | None]
+    completed_actions: NotRequired[dict[str, str]]
+    action_approved: NotRequired[bool]

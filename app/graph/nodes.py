@@ -10,6 +10,7 @@ from uuid import uuid4
 from app.classifier.classifier_service import classify_and_verify
 from app.config import Config
 from app.graph.state import AgentState
+from app.graph.risk import idempotency_key, request_approval
 from app.graph.routing import INTENT_LABELS, route_classifier_result
 from app.rag.service import (
     RAGConfigurationError,
@@ -70,6 +71,7 @@ _DEVANAGARI = re.compile(r"[\u0900-\u097F]")
 # Buttons shown under an assistant message; each value is sent back as the next message.
 _CONFIRM_REPLIES = [{"label": "Yes, that's right", "value": "yes"}, {"label": "No, it's something else", "value": "no"}]
 _CANCEL_REPLIES = [{"label": "Yes, cancel it", "value": "yes"}, {"label": "No, keep it", "value": "no"}]
+_EXCHANGE_REPLIES = [{"label": "Yes, arrange it", "value": "yes"}, {"label": "No, not now", "value": "no"}]
 _ISSUE_CHOICE_REPLIES = [
     {"label": "Refund status", "value": "refund status"},
     {"label": "Return an item", "value": "return an item"},
@@ -502,6 +504,8 @@ def _run_confirmed_request(state: AgentState, route: str | None, query: str, ord
         "issue_details": {"order_id": order_id} if order_id else {},
         "pending_workflow": None, "resuming_pending": False,
         "confirmation_required": False, "confirmation_status": None,
+        # The customer just said yes to this exact request; don't ask twice.
+        "action_approved": True,
     }
     node = {"customer_care": customer_care_node, "exchange": exchange_node}.get(route or "", issue_resolver_node)
     return {
@@ -791,14 +795,13 @@ def order_cancellation_node(state: AgentState) -> dict[str, Any]:
 
     done = {"pending_workflow": None, "workflow_status": "completed", "pending_clarification": None,
             "resuming_pending": False, "confirmation_required": False, "confirmation_status": None}
-    if state.get("confirmation_status") == "confirmed" and collected.get("order_id") == order_id:
-        reference = f"DEMO-CANCEL-{uuid4().hex[:10].upper()}"
-        response = (
-            f"Order {order_id} has been cancelled in this demonstration (reference {reference}). "
-            "Any payment would be refunded to the original method. No real order was changed."
-        )
-        return reply(response, {"outcome": "cancelled", "order_id": order_id, "reference": reference, "executed": True}, **done)
+    completed = dict(state.get("completed_actions") or {})
+    key = idempotency_key("cancel_order", order_id)
+    if key in completed:
+        response = f"Order {order_id} was already cancelled in this conversation (reference {completed[key]}). Nothing else was changed."
+        return reply(response, {"outcome": "already_cancelled", "order_id": order_id, "reference": completed[key], "executed": False}, **done)
 
+    # On resume after approval this lookup runs again, so the status is re-checked before acting.
     try:
         result = lookup_order_status(order_id)
     except Exception:
@@ -817,12 +820,16 @@ def order_cancellation_node(state: AgentState) -> dict[str, Any]:
         return reply(response, {"outcome": "not_cancellable", "order_id": order_id, "order_status": status, "executed": False}, **done)
 
     prompt = f"Order {order_id} is still {status.lower()}. Do you want me to cancel it? Reply 'yes' to cancel or 'no' to keep it."
-    awaiting = _pending("order_cancellation", "confirmation", {"order_id": order_id}, prompt, classifier_intent="order_management", quick_replies=_CANCEL_REPLIES)
-    awaiting["status"] = "awaiting_confirmation"
-    return reply(prompt, {"outcome": "awaiting_confirmation", "order_id": order_id, "executed": False},
-                 pending_workflow=awaiting, workflow_status="awaiting_confirmation", pending_clarification=prompt,
-                 resuming_pending=False, confirmation_required=True, confirmation_status="requested",
-                 quick_replies=_CANCEL_REPLIES)
+    if not request_approval("order_cancellation", prompt, _CANCEL_REPLIES, order_id=order_id):
+        response = f"Okay, I've kept order {order_id} as it is. No operation was performed."
+        return reply(response, {"outcome": "kept", "order_id": order_id, "executed": False}, **done)
+    reference = f"DEMO-CANCEL-{uuid4().hex[:10].upper()}"
+    response = (
+        f"Order {order_id} has been cancelled in this demonstration (reference {reference}). "
+        "Any payment would be refunded to the original method. No real order was changed."
+    )
+    return reply(response, {"outcome": "cancelled", "order_id": order_id, "reference": reference, "executed": True},
+                 completed_actions={**completed, key: reference}, **done)
 
 
 def product_inquiry_node(state: AgentState) -> dict[str, Any]:
@@ -1421,6 +1428,11 @@ def exchange_node(state: AgentState) -> dict[str, Any]:
                      workflow_status="awaiting_input", pending_clarification=prompt, resuming_pending=False)
 
     done = {"pending_workflow": None, "workflow_status": "completed", "pending_clarification": None, "resuming_pending": False}
+    completed = dict(state.get("completed_actions") or {})
+    key = idempotency_key("exchange", order_id)
+    if key in completed:
+        response = f"An exchange for order {order_id} is already in progress (reference {completed[key]}). Nothing new was created."
+        return reply(response, {"outcome": "already_prepared", "order_id": order_id, "reference": completed[key], "executed": False}, **done)
     try:
         result = lookup_order_status(order_id)
     except Exception:
@@ -1436,12 +1448,18 @@ def exchange_node(state: AgentState) -> dict[str, Any]:
                     f"You can {alternative}, and once it is delivered I can arrange an exchange.")
         return reply(response, {"outcome": "not_delivered", "order_id": order_id, "order_status": status, "executed": False}, **done)
 
-    reference = f"DEMO-EXCH-{uuid4().hex[:10].upper()}"
     detail = f" Requested change: {request_text}." if request_text else ""
+    if not state.get("action_approved"):
+        prompt = f"Order {order_id} was delivered. Shall I arrange an exchange?{detail} A pickup of the original item will be scheduled."
+        if not request_approval("exchange", prompt, _EXCHANGE_REPLIES, order_id=order_id):
+            response = f"Okay, I haven't arranged an exchange for order {order_id}. No operation was performed."
+            return reply(response, {"outcome": "kept", "order_id": order_id, "executed": False}, **done)
+    reference = f"DEMO-EXCH-{uuid4().hex[:10].upper()}"
     response = (f"Exchange request {reference} is prepared for order {order_id}.{detail} "
                 "A pickup of the original item would be scheduled and the replacement shipped once it is checked. "
                 "This is a demonstration; no real exchange was arranged.")
-    output = reply(response, {"outcome": "exchange_prepared", "order_id": order_id, "reference": reference, "executed": True}, **done)
+    output = reply(response, {"outcome": "exchange_prepared", "order_id": order_id, "reference": reference, "executed": True},
+                   completed_actions={**completed, key: reference}, action_approved=False, **done)
     description = f"Exchange requested. Change: {request_text}" if request_text else "Exchange requested."
     return _with_ticket(output, _raise_ticket(
         state, "exchange_request", order_id, description, reference, {"exchange_details": request_text},

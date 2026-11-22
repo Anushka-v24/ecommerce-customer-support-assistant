@@ -65,7 +65,10 @@ class NewIntentRouteTests(unittest.TestCase):
         self.assertIn("12-month warranty", general["response"])
 
     def test_exchange_asks_for_order_then_prepares_for_delivered_order(self):
-        result = self.ask("exchange_request", "I want a bigger size", "ORD-1003")
+        asked = self.ask("exchange_request", "I want a bigger size", "ORD-1003")
+        # Exchanges are HIGH_RISK, so the graph pauses for an explicit yes first.
+        self.assertEqual(asked["workflow_status"], "awaiting_approval")
+        result = self.ask("exchange_request", "I want a bigger size", "ORD-1003", "yes")
         self.assertEqual(result["selected_route"], "exchange")
         self.assertEqual(result["tool_result"]["outcome"], "exchange_prepared")
         self.assertIn("Requested change: I want a bigger size", result["response"])
