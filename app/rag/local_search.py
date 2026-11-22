@@ -141,6 +141,24 @@ def search(query: str, k: int = 4) -> list[dict]:
     return sorted(scored, key=lambda d: d["score"], reverse=True)[:k]
 
 
+def _guide_overview(query: str, best: dict) -> str | None:
+    """For a broad question that matches a guide's title ("how do I place an order"), list its steps."""
+    title_terms = set(_terms(best["title"]))
+    query_terms = set(_terms(query, expand=True))
+    if not title_terms or len(title_terms & query_terms) / len(title_terms) < 0.6:
+        return None
+    located = _knowledge_dir()
+    docs, _, _ = _index(str(located[0]))
+    sections = [d for d in docs if d["document_id"] == best["document_id"]]
+    if len(sections) < 3:
+        return None
+    lines = []
+    for section in sections[:6]:
+        first = re.split(r"(?<=[.!?])\s+", section["body"], maxsplit=1)[0]
+        lines.append(f"- {section['heading']}: {first}")
+    return "\n".join(lines)
+
+
 def answer(query: str) -> dict | None:
     """An extractive, cited answer, or None when the documents don't cover the question."""
     hits = search(query)
@@ -148,8 +166,15 @@ def answer(query: str) -> dict | None:
     if not hits or hits[0]["score"] < MIN_SCORE or hits[0]["coverage"] < MIN_COVERAGE:
         return None
     best = hits[0]
-    body = best["body"] if len(best["body"]) <= 700 else best["body"][:700].rsplit(". ", 1)[0] + "."
     note = " (from our demo help documents)" if best["demo"] else ""
+    guide = _guide_overview(query, best)
+    if guide:
+        return {
+            "answer": f"Here's how it works, from our help guide{note}:\n\n{guide}",
+            "sources": [{"title": best["title"], "document_id": best["document_id"], "section": "overview"}],
+            "documents": [{"document_id": h["document_id"], "section": h["heading"], "score": h["score"]} for h in hits],
+        }
+    body = best["body"] if len(best["body"]) <= 700 else best["body"][:700].rsplit(". ", 1)[0] + "."
     return {
         "answer": f"Here's what our help guide says{note}:\n\n{best['heading']}: {body}",
         "sources": [{"title": best["title"], "document_id": best["document_id"], "section": best["heading"]}],

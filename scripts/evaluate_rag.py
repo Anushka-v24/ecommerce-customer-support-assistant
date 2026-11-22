@@ -38,7 +38,11 @@ def run_local(question: str) -> tuple[list[str], str | None, str]:
 
     hits = local_search.search(question)
     result = local_search.answer(question)
-    context = " ".join(f"{h['heading']} {h['body']}" for h in hits)
+    # Grounded against what was retrieved plus every section of the cited document.
+    cited = {source["document_id"] for source in result["sources"]} if result else set()
+    docs, _, _ = local_search._index(str(local_search._knowledge_dir()[0]))
+    sections = hits + [d for d in docs if d["document_id"] in cited]
+    context = " ".join(f"{h['heading']} {h['body']}" for h in sections)
     body = result["answer"].split(":\n\n", 1)[-1] if result else None
     return [h["document_id"] for h in hits], body, context
 
