@@ -51,3 +51,6 @@ class AgentState(TypedDict, total=False):
     reply_language: NotRequired[str | None]
     completed_actions: NotRequired[dict[str, str]]
     action_approved: NotRequired[bool]
+    turn_history: NotRequired[list[dict[str, Any]]]
+    frustration: NotRequired[dict[str, Any] | None]
+    escalated: NotRequired[bool]

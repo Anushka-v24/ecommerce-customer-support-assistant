@@ -19,6 +19,7 @@ from app.rag.service import (
 )
 from app.rag.workflow import run_agentic_rag
 from app.services.feedback_service import has_feedback_content, record_customer_feedback
+from app.services.frustration import conversation_frustration, handoff_summary
 from app.services.issue_resolver import resolve_issue_type
 from app.services.product_service import search_products
 from app.services.reply_translation import translate_reply
@@ -579,14 +580,26 @@ def _with_ticket(output: dict[str, Any], ticket: dict[str, Any] | None) -> dict[
     return {**output, "response": response, "messages": messages, "ticket": ticket}
 
 
+def _remember_turn(state: AgentState) -> dict[str, Any]:
+    """Keep the last few customer turns for frustration scoring and hand-off summaries."""
+    query = state.get("query") or ""
+    match = _ORDER_ID_IN_TEXT.search(query)
+    resolved = (state.get("tool_result") or {}).get("outcome") in {"found", "cancelled", "exchange_prepared", "recorded"} \
+        if isinstance(state.get("tool_result"), dict) else False
+    turn = {"role": "user", "text": query, "intent": state.get("final_intent"),
+            "order_id": match.group(0).upper() if match else None, "resolved": resolved}
+    return {"turn_history": (list(state.get("turn_history") or []) + [turn])[-5:]}
+
+
 def finalize_turn_node(state: AgentState) -> dict[str, Any]:
     """Restore the most recently interrupted workflow after the current task finishes."""
+    remembered = _remember_turn(state)
     active = state.get("pending_workflow")
     if isinstance(active, dict) and active.get("status") in {"awaiting_input", "suspended", "awaiting_confirmation"}:
-        return {}
+        return remembered
     suspended = list(state.get("suspended_workflows") or [])
     if not suspended:
-        return {}
+        return remembered
     restored = dict(suspended.pop())
     restored["status"] = "awaiting_input"
     prompt = restored.get("prompt") or "Please provide the requested information to continue."
@@ -600,6 +613,7 @@ def finalize_turn_node(state: AgentState) -> dict[str, Any]:
     else:
         messages.append(assistant_message)
     return {
+        **remembered,
         "pending_workflow": restored,
         "suspended_workflows": suspended,
         "workflow_status": "awaiting_input",
@@ -695,7 +709,15 @@ def classify_intent_node(state: AgentState) -> dict[str, Any]:
             "verifier_status": "CLASSIFICATION_ERROR", "routing": "ERROR",
             "latency_ms": None, "error": str(exc),
         }
+    frustration = None
+    if Config.ESCALATION_ENABLED:
+        turns = list(state.get("turn_history") or []) + [{"text": query, "intent": result.get("final_intent"), "role": "user"}]
+        try:
+            frustration = conversation_frustration(turns)
+        except Exception:
+            logger.exception("Frustration scoring failed; continuing without escalation.")
     return {
+        "frustration": frustration,
         "predicted_intent": result.get("predicted_intent"),
         "confidence_score": result.get("confidence_score"),
         "final_intent": result.get("final_intent"),
@@ -1321,6 +1343,32 @@ def feedback_node(state: AgentState) -> dict[str, Any]:
         "resuming_pending": False,
         "messages": _append_message(state, "assistant", response),
     }
+
+
+def escalation_node(state: AgentState) -> dict[str, Any]:
+    """Hand a frustrated customer to a person with a summary, instead of another bot answer."""
+    frustration = state.get("frustration") or {}
+    turns = list(state.get("turn_history") or []) + [{"role": "user", "text": state.get("query") or "", "intent": state.get("final_intent")}]
+    intents = [t["intent"] for t in turns if t.get("intent")]
+    order_ids = sorted({m.upper() for t in turns for m in _ORDER_ID_IN_TEXT.findall(t.get("text") or "")})
+    summary = handoff_summary(turns, intents, order_ids, frustration)
+    reference = f"DEMO-ESCALATION-{uuid4().hex[:10].upper()}"
+    response = (
+        "I'm really sorry this has been so frustrating. I've passed your conversation to a senior member of our "
+        "support team with a summary, so you won't need to repeat yourself. They'll pick it up first, as a "
+        "high-priority request, during support hours (Mon-Fri, 09:00-17:00)."
+    )
+    output = {
+        "selected_route": "escalation",
+        "tool_result": {"outcome": "escalated", "reference": reference, "score": frustration.get("score"),
+                        "reasons": frustration.get("reasons"), "executed": True},
+        "response": response, "error": None, "escalated": True, "handoff_status": "escalated",
+        "messages": _append_message(state, "assistant", response),
+    }
+    return _with_ticket(output, _raise_ticket(
+        state, "escalation", order_ids[-1] if order_ids else None, summary, reference,
+        {"frustration_score": frustration.get("score"), "reasons": frustration.get("reasons")},
+    ))
 
 
 # Offered whenever the assistant can't act on a message, so the customer is never stuck.

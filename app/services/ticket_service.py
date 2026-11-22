@@ -25,6 +25,7 @@ CATEGORY_SUBJECTS = {
     "return_order": "Return request",
     "customer_care": "Speak to a support agent",
     "exchange_request": "Exchange request",
+    "escalation": "Escalated: customer needs a person",
 }
 # Undelivered and damaged orders block the customer, so they are triaged first.
 CATEGORY_PRIORITY = {
@@ -33,6 +34,7 @@ CATEGORY_PRIORITY = {
     "return_order": "normal",
     "customer_care": "normal",
     "exchange_request": "normal",
+    "escalation": "high",
 }
 PUBLIC_FIELDS = (
     "ticket_id", "category", "subject", "description", "order_id",

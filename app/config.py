@@ -73,6 +73,8 @@ class Config:
     # Reply in the customer's script (Hindi/Hinglish) by translating the English reply with Groq.
     REPLY_TRANSLATION_ENABLED = _as_bool(os.getenv("REPLY_TRANSLATION_ENABLED"), default=True)
     REPLY_TRANSLATION_TIMEOUT_SECONDS = float(os.getenv("REPLY_TRANSLATION_TIMEOUT_SECONDS", "6"))
+    # Hand frustrated customers to a person (frustration score over the last 3 turns).
+    ESCALATION_ENABLED = _as_bool(os.getenv("ESCALATION_ENABLED"), default=True)
     # Ask the customer to confirm the understood request before ticket-raising workflows run.
     INTENT_CONFIRMATION_ENABLED = _as_bool(os.getenv("INTENT_CONFIRMATION_ENABLED"), default=True)
 

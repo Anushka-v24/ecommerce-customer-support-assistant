@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import atexit
 from functools import lru_cache
-from typing import Any
+from typing import Any, Iterator
 
 from langgraph.graph import END, START, StateGraph
 from langgraph.types import Command
@@ -35,6 +35,7 @@ def build_graph(checkpointer: Any | None = None):
         "warranty_node": nodes.warranty_node,
         "exchange_node": nodes.exchange_node,
         "feedback_node": nodes.feedback_node,
+        "escalation_node": nodes.escalation_node,
         "product_inquiry_node": nodes.product_inquiry_node,
         "payment_node": nodes.payment_node,
         "issue_resolver_node": nodes.issue_resolver_node,
@@ -101,10 +102,40 @@ def invoke_graph(
         raise ValueError("query must be a string.")
     runnable = graph or get_graph()
     config = {"configurable": {"thread_id": session_id}}
+    payload = _turn_payload(runnable, config, query, session_id, customer_id)
+    return _surface_approval(runnable.invoke(payload, config), query)
+
+
+def stream_graph(
+    query: str, session_id: str, graph: Any | None = None, customer_id: str | None = None,
+) -> Iterator[tuple[str, Any]]:
+    """Like invoke_graph, but yield ("node", name) as each node finishes, then ("result", state)."""
+    if not isinstance(session_id, str) or not session_id.strip():
+        raise ValueError("session_id is required to isolate conversation memory.")
+    if not isinstance(query, str):
+        raise ValueError("query must be a string.")
+    runnable = graph or get_graph()
+    config = {"configurable": {"thread_id": session_id}}
+    payload = _turn_payload(runnable, config, query, session_id, customer_id)
+    interrupts = None
+    for chunk in runnable.stream(payload, config, stream_mode="updates"):
+        for name, update in chunk.items():
+            if name == "__interrupt__":
+                interrupts = update
+            else:
+                yield "node", name
+    state = dict(runnable.get_state(config).values)
+    if interrupts:
+        state["__interrupt__"] = interrupts
+    yield "result", _surface_approval(state, query)
+
+
+def _turn_payload(runnable: Any, config: dict[str, Any], query: str, session_id: str, customer_id: str | None) -> Any:
+    """Resume a paused approval with the answer, or start a fresh turn."""
     waiting = _pending_approval(runnable, config)
     if waiting is not None:
         if approval_answer(query) != "other":
-            return _surface_approval(runnable.invoke(Command(resume=query), config), query)
+            return Command(resume=query)
         # A new request instead of yes/no: close the approval without acting, then handle it.
         runnable.invoke(Command(resume=ABANDON), config)
     # Buttons, the raised ticket and approvals belong to one turn; reset them before each run.
@@ -113,7 +144,7 @@ def invoke_graph(
     }
     if customer_id:
         turn_input["customer_id"] = customer_id
-    return _surface_approval(runnable.invoke(turn_input, config), query)
+    return turn_input
 
 
 def _pending_approval(runnable: Any, config: dict[str, Any]) -> dict[str, Any] | None:

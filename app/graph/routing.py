@@ -64,6 +64,7 @@ ROUTE_TO_NODE = {
     "warranty": "warranty_node",
     "exchange": "exchange_node",
     "feedback": "feedback_node",
+    "escalation": "escalation_node",
 }
 _VERIFIED_STATUSES = {"ACCEPTED_BY_CLASSIFIER", "CORRECT_INTENT", "CORRECTED_INTENT"}
 
@@ -142,6 +143,8 @@ CONFIRMATION_ROUTES = {"issue_support", "customer_care", "exchange"}
 def route_with_intent_confirmation(state: AgentState) -> str:
     """Send ticket-raising routes through the confirmation node; others go straight on."""
     route = route_classifier_result(state)
+    if (state.get("frustration") or {}).get("escalate") and not state.get("escalated"):
+        return "escalation"
     if Config.INTENT_CONFIRMATION_ENABLED and route in CONFIRMATION_ROUTES:
         return "confirm_intent"
     return route

@@ -1,12 +1,14 @@
 """HTTP endpoints for health and LangGraph-backed conversations."""
 
+import json
 import logging
 import time
 from uuid import uuid4
 
-from flask import Blueprint, current_app, jsonify, request
+from flask import Blueprint, Response, current_app, jsonify, request, stream_with_context
 from werkzeug.exceptions import BadRequest, RequestEntityTooLarge
 
+from app.api.blocks import build_blocks
 from app.services.customer_service import get_customer, list_customers
 from app.services.pii import mask_pii
 from app.services.ticket_service import list_tickets, public_ticket
@@ -28,63 +30,72 @@ def health_check():
     return jsonify({"status": "healthy", "service": "ecom-langgraph"}), 200
 
 
-@api_blueprint.post("/chat")
-def chat():
-    """Validate a chat turn, pass it to the existing graph, and expose safe fields only."""
+def stream_graph(query: str, session_id: str, customer_id: str | None = None):
+    from app.graph.workflow import stream_graph as graph_stream
+
+    return graph_stream(query, session_id, customer_id=customer_id)
+
+
+_UNAVAILABLE = {"error": "chat_unavailable", "message": "The chat service could not process this request. Please try again later."}
+# Shown while a streamed turn runs; keyed by the node that just finished.
+_NODE_STATUS = {
+    "classify_intent": "Understanding what you need",
+    "confirm_intent": "Checking I understood you",
+    "order_tracking_node": "Checking your order",
+    "order_cancellation_node": "Checking whether the order can be cancelled",
+    "exchange_node": "Checking the exchange",
+    "product_inquiry_node": "Looking up the product",
+    "product_recommendation_node": "Finding products for you",
+    "issue_resolver_node": "Working on your issue",
+    "customer_care_node": "Preparing a hand-off to our team",
+    "store_information_node": "Searching our help documents",
+    "feedback_node": "Recording your feedback",
+    "escalation_node": "Passing you to a person",
+    "finalize_turn_node": "Writing the reply",
+    "localize_reply_node": "Putting it in your language",
+}
+
+
+def _parse_chat_request():
+    """Return (session_id, message, customer_id) or a ready (body, status) error."""
     if not request.is_json:
-        return jsonify({"error": "json_required", "message": "Send the request as application/json."}), 415
+        return None, ({"error": "json_required", "message": "Send the request as application/json."}, 415)
     try:
         payload = request.get_json(silent=False)
     except BadRequest:
-        return jsonify({"error": "invalid_json", "message": "Request body must contain valid JSON."}), 400
+        return None, ({"error": "invalid_json", "message": "Request body must contain valid JSON."}, 400)
 
     if not isinstance(payload, dict):
-        return jsonify({"error": "invalid_request", "message": "JSON body must be an object."}), 400
+        return None, ({"error": "invalid_request", "message": "JSON body must be an object."}, 400)
     unexpected = set(payload) - {"session_id", "message", "customer_id"}
     if unexpected:
-        return jsonify({"error": "invalid_request", "message": "Only session_id, message and customer_id fields are accepted."}), 400
+        return None, ({"error": "invalid_request", "message": "Only session_id, message and customer_id fields are accepted."}, 400)
 
     session_id = payload.get("session_id")
     if not isinstance(session_id, str) or not session_id.strip():
-        return jsonify({"error": "invalid_session_id", "message": "session_id must be a non-empty string."}), 400
+        return None, ({"error": "invalid_session_id", "message": "session_id must be a non-empty string."}, 400)
     session_id = session_id.strip()
     if len(session_id) > current_app.config["MAX_SESSION_ID_LENGTH"]:
-        return jsonify({"error": "invalid_session_id", "message": "session_id exceeds the maximum allowed length."}), 400
+        return None, ({"error": "invalid_session_id", "message": "session_id exceeds the maximum allowed length."}, 400)
 
     message = payload.get("message")
     if not isinstance(message, str) or not message.strip():
-        return jsonify({"error": "invalid_message", "message": "message must be a non-empty string."}), 400
+        return None, ({"error": "invalid_message", "message": "message must be a non-empty string."}, 400)
     if len(message) > current_app.config["MAX_CHAT_MESSAGE_LENGTH"]:
-        return jsonify({"error": "message_too_large", "message": "message exceeds the maximum allowed length."}), 413
+        return None, ({"error": "message_too_large", "message": "message exceeds the maximum allowed length."}, 413)
 
     # Demo sign-in only: the customer ID is chosen in the UI and is not authentication.
     customer_id = payload.get("customer_id")
     if customer_id is not None and get_customer(customer_id) is None:
-        return jsonify({"error": "invalid_customer_id", "message": "customer_id does not match a known customer."}), 400
+        return None, ({"error": "invalid_customer_id", "message": "customer_id does not match a known customer."}, 400)
+    return (session_id, message.strip(), customer_id), None
 
-    started = time.perf_counter()
-    try:
-        if customer_id:
-            result = invoke_graph(message.strip(), session_id, customer_id=customer_id)
-        else:
-            result = invoke_graph(message.strip(), session_id)
-    except Exception as exc:
-        # Do not echo exception messages, which may contain provider/config details.
-        logger.error("Chat graph invocation failed (%s)", type(exc).__name__)
-        return jsonify({
-            "error": "chat_unavailable",
-            "message": "The chat service could not process this request. Please try again later.",
-        }), 503
 
-    if not isinstance(result, dict):
-        logger.error("Chat graph returned a non-object state result")
-        return jsonify({
-            "error": "chat_unavailable",
-            "message": "The chat service could not process this request. Please try again later.",
-        }), 503
+def _turn_body(result, session_id: str, message: str, started: float) -> dict:
+    """Expose only safe fields from a finished graph state and log the turn."""
     answer = result.get("response") or "The assistant did not return a response."
     turn_id = uuid4().hex
-    _log_turn(turn_id, session_id, message.strip(), answer, result, (time.perf_counter() - started) * 1000)
+    _log_turn(turn_id, session_id, message, answer, result, (time.perf_counter() - started) * 1000)
     body = {
         "session_id": session_id,
         "turn_id": turn_id,
@@ -98,7 +109,64 @@ def chat():
         body["quick_replies"] = quick_replies
     if isinstance(result.get("ticket"), dict):
         body["ticket"] = public_ticket(result["ticket"])
-    return jsonify(body), 200
+    blocks = build_blocks(result)
+    if blocks:
+        body["blocks"] = blocks
+    return body
+
+
+@api_blueprint.post("/chat")
+def chat():
+    """Validate a chat turn, pass it to the existing graph, and expose safe fields only."""
+    parsed, error = _parse_chat_request()
+    if error:
+        return jsonify(error[0]), error[1]
+    session_id, message, customer_id = parsed
+
+    started = time.perf_counter()
+    try:
+        if customer_id:
+            result = invoke_graph(message, session_id, customer_id=customer_id)
+        else:
+            result = invoke_graph(message, session_id)
+    except Exception as exc:
+        # Do not echo exception messages, which may contain provider/config details.
+        logger.error("Chat graph invocation failed (%s)", type(exc).__name__)
+        return jsonify(_UNAVAILABLE), 503
+
+    if not isinstance(result, dict):
+        logger.error("Chat graph returned a non-object state result")
+        return jsonify(_UNAVAILABLE), 503
+    return jsonify(_turn_body(result, session_id, message, started)), 200
+
+
+@api_blueprint.post("/chat/stream")
+def chat_stream():
+    """Same turn as /chat, sent as Server-Sent Events: status updates, then the result."""
+    parsed, error = _parse_chat_request()
+    if error:
+        return jsonify(error[0]), error[1]
+    session_id, message, customer_id = parsed
+
+    def sse(event: str, data: dict) -> str:
+        return f"event: {event}\ndata: {json.dumps(data, ensure_ascii=False)}\n\n"
+
+    def events():
+        started = time.perf_counter()
+        yield sse("status", {"stage": "received", "label": "Reading your message"})
+        try:
+            for kind, value in stream_graph(message, session_id, customer_id=customer_id):
+                if kind == "node" and value in _NODE_STATUS:
+                    yield sse("status", {"stage": value, "label": _NODE_STATUS[value]})
+                elif kind == "result":
+                    yield sse("result", _turn_body(value, session_id, message, started))
+                    return
+        except Exception as exc:
+            logger.error("Chat stream failed (%s)", type(exc).__name__)
+        yield sse("error", _UNAVAILABLE)
+
+    return Response(stream_with_context(events()), mimetype="text/event-stream",
+                    headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"})
 
 
 def _safe_quick_replies(value) -> list[dict[str, str]]:
