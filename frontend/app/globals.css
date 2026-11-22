@@ -3,21 +3,29 @@
 :root,
 :root[data-theme="light"] {
   color-scheme: light;
-  --page: #f7f8fa;
-  --sidebar: #f1f3f6;
-  --surface: #ffffff;
-  --surface-soft: #f8f9fb;
-  --text: #20242c;
-  --text-secondary: #626b79;
-  --text-muted: #8992a0;
-  --border: #e3e6eb;
-  --border-strong: #d6dbe3;
-  --accent: #476b58;
-  --accent-strong: #345640;
-  --accent-soft: #e6eee8;
-  --accent-text: #355544;
-  --hover: #e8ebef;
-  --shadow: 0 8px 28px rgb(28 37 48 / 6%);
+  --sky-top: #a7d8ff;
+  --sky-bottom: #f5e6d3;
+  --photo-tint-top: rgb(255 255 255 / 38%);
+  --photo-tint-bottom: rgb(255 255 255 / 24%);
+  --page: #f9fafb;
+  --glass: rgb(255 255 255 / 76%);
+  --glass-border: rgb(255 255 255 / 85%);
+  --surface: rgb(255 255 255 / 86%);
+  --surface-soft: rgb(249 250 251 / 80%);
+  --heading: #1d4468;
+  --text: #1f2933;
+  --text-secondary: #43505e;
+  --text-muted: #65727f;
+  --border: rgb(31 41 51 / 12%);
+  --border-strong: rgb(31 41 51 / 20%);
+  --accent: #2f78b7;
+  --accent-strong: #245f93;
+  --accent-soft: #e1eefa;
+  --accent-text: #1d4468;
+  --on-accent: #ffffff;
+  --earth: #b57a4e;
+  --hover: rgb(47 120 183 / 12%);
+  --shadow: 0 10px 34px rgb(29 68 104 / 14%);
   --error-surface: #fff0ef;
   --error-text: #8a3030;
   --error-border: #f0c8c5;
@@ -25,21 +33,29 @@
 
 :root[data-theme="dark"] {
   color-scheme: dark;
-  --page: #111318;
-  --sidebar: #171a20;
-  --surface: #1a1e25;
-  --surface-soft: #20252d;
-  --text: #edf0f4;
-  --text-secondary: #b1bac7;
-  --text-muted: #818b9a;
-  --border: #2b313b;
-  --border-strong: #39414d;
-  --accent: #93b9a0;
-  --accent-strong: #a8c9b2;
-  --accent-soft: #24362b;
-  --accent-text: #c5ddcc;
-  --hover: #252b34;
-  --shadow: 0 8px 28px rgb(0 0 0 / 22%);
+  --sky-top: #0f1d2e;
+  --sky-bottom: #24384a;
+  --photo-tint-top: rgb(8 18 30 / 45%);
+  --photo-tint-bottom: rgb(8 18 30 / 35%);
+  --page: #111a24;
+  --glass: rgb(16 28 42 / 72%);
+  --glass-border: rgb(255 255 255 / 12%);
+  --surface: rgb(26 40 54 / 88%);
+  --surface-soft: rgb(32 48 64 / 80%);
+  --heading: #d6e8f7;
+  --text: #edf2f7;
+  --text-secondary: #bccad8;
+  --text-muted: #8fa1b3;
+  --border: rgb(255 255 255 / 12%);
+  --border-strong: rgb(255 255 255 / 22%);
+  --accent: #7db6e8;
+  --accent-strong: #9cc9f0;
+  --accent-soft: #1f3a55;
+  --accent-text: #cfe5f8;
+  --on-accent: #0b2238;
+  --earth: #d4a06f;
+  --hover: rgb(125 182 232 / 18%);
+  --shadow: 0 10px 34px rgb(0 0 0 / 35%);
   --error-surface: #342326;
   --error-text: #ffc1b9;
   --error-border: #60373c;
@@ -58,7 +74,7 @@ body {
 body {
   background: var(--page);
   color: var(--text);
-  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-family: var(--font-ui), Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   transition: background-color 160ms ease, color 160ms ease;
 }
 
@@ -75,13 +91,76 @@ textarea:focus-visible {
 }
 
 .app-shell {
-  background: var(--page);
+  background:
+    linear-gradient(to bottom, var(--photo-tint-top), var(--photo-tint-bottom)),
+    #cfe3f3 url("/window.jpg") center / cover no-repeat fixed;
 }
 
-.sidebar {
-  background: var(--sidebar);
-  border-color: var(--border);
+.glass {
+  background: var(--glass);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--shadow);
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
   color: var(--text);
+}
+
+.topbar {
+  color: var(--text);
+}
+
+.hero .welcome-title,
+.brand-name {
+  text-shadow: 0 1px 14px rgb(255 255 255 / 55%);
+}
+
+:root[data-theme="dark"] .hero .welcome-title,
+:root[data-theme="dark"] .brand-name {
+  text-shadow: 0 1px 14px rgb(0 0 0 / 55%);
+}
+
+.brand-name,
+.welcome-title {
+  font-family: var(--font-heading), "Libre Caslon Text", Georgia, serif;
+  font-weight: 700;
+  color: var(--heading);
+  letter-spacing: -0.01em;
+}
+
+.hero-chip,
+.info-row,
+.photo-button {
+  color: var(--text);
+  cursor: pointer;
+  transition: background-color 150ms ease, transform 150ms ease;
+}
+
+.hero-chip:hover,
+.info-row:hover,
+.photo-button:hover {
+  background: var(--hover);
+}
+
+.hero-chip:hover {
+  transform: translateY(-1px);
+}
+
+.photo-button {
+  background: transparent;
+  color: var(--text-secondary);
+}
+
+.photo-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.info-card-title {
+  color: var(--text-muted);
+}
+
+.info-empty {
+  color: var(--text-muted);
 }
 
 .brand {
@@ -96,8 +175,6 @@ textarea:focus-visible {
 }
 
 .new-chat-button {
-  background: var(--surface);
-  border: 1px solid var(--border-strong);
   color: var(--text);
 }
 
@@ -130,10 +207,6 @@ textarea:focus-visible {
   border: 1px dashed var(--border-strong);
 }
 
-.sidebar-footer {
-  border-color: var(--border);
-}
-
 .theme-button,
 .profile-row,
 .mobile-header {
@@ -156,19 +229,14 @@ textarea:focus-visible {
 }
 
 .chat-panel {
-  background: var(--page);
+  background: transparent;
 }
 
 .chat-scroll {
   min-width: 0;
 }
 
-.eyebrow {
-  color: var(--accent);
-}
-
 .welcome-title {
-  color: var(--text);
   overflow-wrap: anywhere;
 }
 
@@ -223,14 +291,8 @@ textarea:focus-visible {
   }
 }
 
-.composer-wrap {
-  background: linear-gradient(to top, var(--page) 78%, transparent);
-}
-
-.composer {
-  background: var(--surface);
-  border-color: var(--border-strong);
-  box-shadow: var(--shadow);
+.composer:focus-within {
+  border-color: var(--accent);
 }
 
 .composer-input {
@@ -242,8 +304,12 @@ textarea:focus-visible {
 }
 
 .send-button {
-  background: var(--accent-soft);
-  color: var(--accent-text);
+  background: var(--accent);
+  color: var(--on-accent);
+}
+
+.send-button:not(:disabled):hover {
+  background: var(--accent-strong);
 }
 
 .send-button:disabled {
@@ -259,11 +325,12 @@ textarea:focus-visible {
 
 .icon-button {
   align-items: center;
+  border-radius: 999px;
   justify-content: center;
   width: 38px;
   height: 38px;
   border: 0;
-  border-radius: 11px;
+  border-radius: 999px;
   background: transparent;
   color: var(--text-secondary);
   cursor: pointer;
@@ -287,13 +354,9 @@ textarea:focus-visible {
   color: var(--accent-text);
 }
 
-.view-tabs {
-  border-color: var(--border);
-}
-
 .tab-count {
   background: var(--accent);
-  color: var(--surface);
+  color: var(--on-accent);
 }
 
 .customer-select {
@@ -415,14 +478,15 @@ textarea:focus-visible {
   color: var(--text);
 }
 
-.sidebar-backdrop {
-  border: 0;
-  background: rgb(8 12 17 / 52%);
-}
-
 @media (max-width: 767px) {
   .composer-wrap {
     padding-bottom: max(14px, env(safe-area-inset-bottom));
+  }
+
+  .view-tabs {
+    order: 3;
+    width: 100%;
+    justify-content: center;
   }
 }
 
@@ -437,4 +501,308 @@ textarea:focus-visible {
   .typing-indicator span {
     animation: none;
   }
+}
+
+/* Landing: the photo is sized to cover the screen; the bot is placed by percentage so it stays in the blue opening. */
+.landing {
+  background: #cfe3f3 url("/window.jpg") center / cover no-repeat;
+  height: 100svh;
+  overflow: hidden;
+  position: relative;
+  width: 100%;
+}
+
+.stage-inner {
+  aspect-ratio: 3840 / 2194;
+  background: url("/window.jpg") center / 100% 100% no-repeat;
+  left: 50%;
+  position: absolute;
+  width: max(100vw, calc(100svh * 1.75));
+  top: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.landing-brand {
+  -webkit-backdrop-filter: blur(14px) saturate(1.2);
+  backdrop-filter: blur(14px) saturate(1.2);
+  background: linear-gradient(135deg, rgb(255 255 255 / 82%), rgb(255 255 255 / 58%));
+  border: 1px solid rgb(255 255 255 / 85%);
+  border-radius: 999px;
+  box-shadow: 0 1px 0 rgb(255 255 255 / 90%) inset, 0 10px 30px rgb(29 68 104 / 14%);
+  left: max(20px, calc(50% - 50vw + 20px));
+  padding: 8px 26px 8px 8px;
+  position: fixed;
+  top: 18px;
+  z-index: 5;
+}
+
+.landing .brand-name {
+  color: #1d4468;
+  text-shadow: none;
+}
+
+.landing-mark {
+  background: linear-gradient(145deg, #5aa6e0, #245f93);
+  border-radius: 999px;
+  box-shadow: 0 4px 12px rgb(36 95 147 / 40%);
+  color: #ffffff;
+  height: 56px;
+  width: 56px;
+}
+
+.landing-title {
+  font-size: clamp(30px, 3.2vw, 48px);
+}
+
+.landing-tagline {
+  color: #4f5d6b;
+  font-size: clamp(12px, 1vw, 15px);
+  font-weight: 500;
+  letter-spacing: 0.02em;
+}
+
+.chat-window {
+  -webkit-backdrop-filter: blur(10px);
+  animation: bot-pop 380ms cubic-bezier(0.34, 1.2, 0.64, 1) both;
+  backdrop-filter: blur(10px);
+  background: rgb(255 255 255 / 84%);
+  border: 1px solid rgb(255 255 255 / 90%);
+  border-radius: 28px;
+  /* Percentages follow the photo; the calc() terms keep the window inside the visible screen when the photo is cropped. */
+  bottom: max(15%, calc((100% - 100svh) / 2 + 36px));
+  box-shadow: 0 20px 56px rgb(11 53 88 / 28%);
+  color: var(--text);
+  left: 61%;
+  overflow: hidden;
+  position: absolute;
+  right: max(3%, calc((100% - 100vw) / 2 + 28px));
+  top: max(20%, calc((100% - 100svh) / 2 + 96px));
+  transform-origin: bottom right;
+}
+
+:root[data-theme="dark"] .chat-window {
+  background: rgb(16 28 42 / 88%);
+  border-color: rgb(255 255 255 / 14%);
+}
+
+.chat-header {
+  border-bottom: 1px solid var(--border);
+}
+
+.composer {
+  background: var(--surface-soft);
+  border: 1px solid var(--border-strong);
+}
+
+.hero-chip {
+  background: var(--surface);
+  border: 1px solid var(--border);
+}
+
+.bot-hero {
+  left: 72%;
+  position: absolute;
+  top: 55%;
+  transform: translate(-50%, -50%);
+  width: 26%;
+}
+
+.bot-hero {
+  transition: left 600ms cubic-bezier(0.34, 1.2, 0.64, 1), top 600ms cubic-bezier(0.34, 1.2, 0.64, 1), width 600ms ease;
+}
+
+/* With the chat open the bot rests on the white wall at the left. */
+.bot-hero.docked {
+  left: 11%;
+  top: 80%;
+  width: auto;
+}
+
+.bot-hero.docked .bot-figure {
+  width: clamp(96px, 10vw, 170px);
+}
+
+.bot-figure {
+  transition: width 600ms ease;
+}
+
+.bot-launcher {
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+  animation: bot-float 3.4s ease-in-out infinite;
+  filter: drop-shadow(0 18px 24px rgb(11 53 88 / 30%));
+  padding: 0;
+  transition: transform 180ms ease;
+}
+
+.bot-launcher:hover {
+  transform: scale(1.06);
+}
+
+.bot-figure {
+  display: block;
+  height: auto;
+  width: clamp(150px, 19vw, 360px);
+}
+
+.bot-eyes {
+  animation: bot-blink 4.6s infinite;
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+.bot-antenna {
+  animation: bot-glow 1.8s ease-in-out infinite;
+}
+
+.bot-bubble {
+  background: #ffffff;
+  border: 0;
+  box-shadow: 0 14px 36px rgb(11 53 88 / 28%);
+  color: #1d4468;
+  cursor: pointer;
+  margin-bottom: 22px;
+  max-width: min(460px, 82vw);
+  position: relative;
+  transform-origin: bottom center;
+  animation: bot-pop 460ms cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+.bot-bubble-title {
+  white-space: nowrap;
+  font-family: var(--font-heading), "Libre Caslon Text", Georgia, serif;
+  font-size: clamp(18px, 1.7vw, 26px);
+  font-weight: 700;
+}
+
+.bot-bubble::after {
+  background: #ffffff;
+  bottom: -8px;
+  content: "";
+  height: 18px;
+  left: calc(50% - 9px);
+  position: absolute;
+  transform: rotate(45deg);
+  width: 18px;
+}
+
+.bot-hint {
+  background: rgb(255 255 255 / 80%);
+  border-radius: 999px;
+  color: #1d4468;
+  font-size: 13px;
+  font-weight: 500;
+  margin-top: 6px;
+  padding: 4px 14px;
+}
+
+@keyframes bot-pop {
+  from {
+    opacity: 0;
+    transform: scale(0.4) translateY(14px);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+@keyframes bot-float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(-9px);
+  }
+}
+
+@keyframes bot-blink {
+  0%,
+  92%,
+  100% {
+    transform: scaleY(1);
+  }
+
+  95% {
+    transform: scaleY(0.08);
+  }
+}
+
+@keyframes bot-glow {
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.45;
+  }
+}
+
+/* Narrow screens: the opening is off-centre, so show the sea side and centre the bot. */
+@media (max-width: 767px) {
+  .stage-inner {
+    aspect-ratio: auto;
+    background-position: 82% center;
+    background-size: cover;
+    height: 100%;
+    inset: 0;
+    transform: none;
+    width: 100%;
+  }
+
+  .bot-hero {
+    left: 50%;
+    top: 56%;
+    width: 92%;
+  }
+
+  .bot-hero.docked {
+    display: none;
+  }
+
+  .chat-window {
+    bottom: 12px;
+    left: 12px;
+    right: 12px;
+    top: 76px;
+  }
+
+  .landing-brand {
+    background: rgb(255 255 255 / 88%);
+    border-radius: 999px;
+    left: 16px;
+    padding: 6px 18px 6px 6px;
+    top: 14px;
+  }
+
+  .landing-mark {
+    height: 44px;
+    width: 44px;
+  }
+
+  .landing-title {
+    font-size: 26px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bot-launcher,
+  .bot-bubble,
+  .bot-eyes,
+  .bot-antenna {
+    animation: none;
+  }
+}
+
+.composer-input:focus-visible {
+  outline: none;
+}
+
+.chat-header .customer-select {
+  width: 64px;
 }

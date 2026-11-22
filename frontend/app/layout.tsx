@@ -1,16 +1,20 @@
 import type { Metadata, Viewport } from "next";
+import { Inter, Libre_Caslon_Text } from "next/font/google";
 import "./globals.css";
 
+const inter = Inter({ subsets: ["latin"], variable: "--font-ui", display: "swap" });
+const caslon = Libre_Caslon_Text({ subsets: ["latin"], weight: ["400", "700"], variable: "--font-heading", display: "swap" });
+
 export const metadata: Metadata = {
-  title: "E-commerce Support Assistant",
+  title: "AgentiCart",
   description:
-    "Get help with orders, refunds, returns, and products from the E-commerce Support Assistant.",
+    "AgentiCart answers questions about orders, refunds, returns and products, in English, Hindi and Hinglish.",
 };
 
 export const viewport: Viewport = {
   themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#f7f8fa" },
-    { media: "(prefers-color-scheme: dark)", color: "#111318" },
+    { media: "(prefers-color-scheme: light)", color: "#a7d8ff" },
+    { media: "(prefers-color-scheme: dark)", color: "#0f1d2e" },
   ],
 };
 
@@ -18,8 +22,7 @@ const initializeTheme = `
   (() => {
     try {
       const saved = localStorage.getItem("ecom-support-theme");
-      const systemDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-      document.documentElement.dataset.theme = saved || (systemDark ? "dark" : "light");
+      document.documentElement.dataset.theme = saved || "light";
     } catch {
       document.documentElement.dataset.theme = "light";
     }
@@ -28,7 +31,7 @@ const initializeTheme = `
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="en" className={`${inter.variable} ${caslon.variable}`} suppressHydrationWarning>
       <head>
         <script dangerouslySetInnerHTML={{ __html: initializeTheme }} />
       </head>

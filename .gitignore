@@ -67,3 +67,6 @@ evals/reports/
 models/xlmr_intent_classifier_v*/
 models/*_checkpoint.pt
 data/training_v*_baseline/
+
+# Watermarked stock photo; not for redistribution
+frontend/public/window.jpg

@@ -41,7 +41,7 @@ type ChatMessage = {
   blocks?: Block[];
 };
 
-const INITIAL_GREETING = "Hi! How can we help you today?";
+const INITIAL_GREETING = "Hi! I'm AgentiCart. How can I help you today?";
 const CHAT_API_BASE_URL = process.env.NEXT_PUBLIC_CHAT_API_BASE_URL?.trim().replace(/\/+$/, "");
 
 const CUSTOMER_STORAGE_KEY = "ecom-support-customer";
@@ -236,8 +236,59 @@ function Icon({ name, className = "" }: { name: IconName; className?: string }) 
   }
 }
 
-function Sidebar({
-  mobileOpen,
+function BotFace({ className = "" }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 120 130" fill="none" aria-hidden="true">
+      <ellipse cx="60" cy="122" rx="30" ry="5" fill="#0b3558" opacity=".18" />
+      <line x1="60" y1="14" x2="60" y2="26" stroke="#ffffff" strokeWidth="4" strokeLinecap="round" />
+      <circle className="bot-antenna" cx="60" cy="11" r="6" fill="#2f78b7" />
+      <rect x="14" y="26" width="92" height="74" rx="32" fill="#ffffff" />
+      <rect x="14" y="26" width="92" height="74" rx="32" stroke="#cfe0ee" strokeWidth="2" />
+      <rect x="4" y="52" width="10" height="22" rx="5" fill="#ffffff" stroke="#cfe0ee" strokeWidth="2" />
+      <rect x="106" y="52" width="10" height="22" rx="5" fill="#ffffff" stroke="#cfe0ee" strokeWidth="2" />
+      <rect x="26" y="38" width="68" height="50" rx="24" fill="#eaf4fb" />
+      <g className="bot-eyes">
+        <ellipse cx="46" cy="59" rx="6.5" ry="8" fill="#1d4468" />
+        <ellipse cx="74" cy="59" rx="6.5" ry="8" fill="#1d4468" />
+        <circle cx="48.2" cy="56" r="2.2" fill="#ffffff" />
+        <circle cx="76.2" cy="56" r="2.2" fill="#ffffff" />
+      </g>
+      <path d="M46 74c5 7.5 23 7.5 28 0" stroke="#1d4468" strokeWidth="4.5" strokeLinecap="round" />
+      <circle cx="36" cy="72" r="4.5" fill="#f6b9a6" opacity=".65" />
+      <circle cx="84" cy="72" r="4.5" fill="#f6b9a6" opacity=".65" />
+      <rect x="40" y="100" width="40" height="14" rx="7" fill="#ffffff" stroke="#cfe0ee" strokeWidth="2" />
+    </svg>
+  );
+}
+
+function BotHero({ docked, onOpen }: { docked: boolean; onOpen: () => void }) {
+  const [showBubble, setShowBubble] = useState(false);
+  useEffect(() => {
+    const timer = window.setTimeout(() => setShowBubble(true), 900);
+    return () => window.clearTimeout(timer);
+  }, []);
+  return (
+    <div className={`bot-hero flex flex-col items-center${docked ? " docked" : ""}`}>
+      {showBubble && !docked && (
+        <button type="button" className="bot-bubble rounded-3xl px-6 py-4 text-center" onClick={onOpen}>
+          <span className="bot-bubble-title block">Welcome to AgentiCart! 😊</span>
+          <span className="block text-[15px] sm:text-[17px]">What can I help you with?</span>
+        </button>
+      )}
+      <button
+        type="button"
+        className="bot-launcher"
+        onClick={onOpen}
+        aria-label={docked ? "Close the AgentiCart chat" : "Open the AgentiCart assistant"}
+      >
+        <BotFace className="bot-figure" />
+      </button>
+      {!docked && <span className="bot-hint">Click me to chat</span>}
+    </div>
+  );
+}
+
+function TopBar({
   onClose,
   onNewChat,
   onToggleTheme,
@@ -246,8 +297,8 @@ function Sidebar({
   customers,
   customerId,
   onSelectCustomer,
+  ticketCount,
 }: {
-  mobileOpen: boolean;
   onClose: () => void;
   onNewChat: () => void;
   onToggleTheme: () => void;
@@ -256,97 +307,65 @@ function Sidebar({
   customers: Customer[];
   customerId: string;
   onSelectCustomer: (customerId: string) => void;
+  ticketCount: number;
 }) {
   return (
-    <>
-      {mobileOpen && (
-        <button
-          className="sidebar-backdrop fixed inset-0 z-30 md:hidden"
-          aria-label="Close navigation"
-          onClick={onClose}
-        />
-      )}
-      <aside
-        className={`sidebar fixed inset-y-0 left-0 z-40 flex w-[280px] flex-col border-r p-4 transition-transform duration-200 md:static md:z-auto md:w-[264px] md:translate-x-0 ${mobileOpen ? "translate-x-0" : "-translate-x-full"}`}
-        aria-label="Main navigation"
-      >
-        <div className="mb-8 flex items-center justify-between px-1">
-          <a className="brand flex min-w-0 items-center gap-3" href="#home" aria-label="E-commerce Support Assistant home">
-            <span className="brand-mark flex size-10 shrink-0 items-center justify-center rounded-xl">
-              <Icon name="bag" className="size-[21px]" />
-            </span>
-            <span className="text-sm font-semibold leading-tight tracking-[-0.01em]">
-              E-commerce<br />Support Assistant
-            </span>
-          </a>
-          <button className="icon-button inline-flex md:hidden" onClick={onClose} aria-label="Close navigation">
-            <Icon name="close" />
-          </button>
-        </div>
-
-        <button className="new-chat-button flex h-11 items-center gap-3 rounded-xl px-3 text-sm font-medium transition-colors" type="button" onClick={onNewChat}>
-          <Icon name="plus" className="size-[18px]" />
-          <span>New chat</span>
-        </button>
-
-        <nav className="mt-9 flex-1" aria-label="Views">
-          <p className="section-label px-2 text-[11px] font-semibold uppercase tracking-[0.12em]">Support</p>
-          <div className="mt-3 flex flex-col gap-1">
-            {([["chat", "Chat", "chat"], ["tickets", "My tickets", "ticket"]] as const).map(([key, label, icon]) => (
-              <button
-                key={key}
-                type="button"
-                className="nav-button flex h-10 items-center gap-3 rounded-xl px-3 text-sm transition-colors"
-                aria-current={view === key ? "page" : undefined}
-                onClick={() => onSelectView(key)}
-              >
-                <Icon name={icon} className="size-[18px]" />
-                <span>{label}</span>
-              </button>
-            ))}
-          </div>
-        </nav>
-
-        <div className="sidebar-footer border-t pt-3">
+    <header className="chat-header flex shrink-0 flex-wrap items-center justify-between gap-x-2 gap-y-2 px-3 py-3">
+      <nav className="view-tabs glass flex gap-1 rounded-full p-1" role="tablist" aria-label="Views">
+        {([["chat", "Chat"], ["tickets", "My tickets"]] as const).map(([key, label]) => (
           <button
-            className="theme-button flex h-11 w-full items-center gap-3 rounded-xl px-3 text-sm transition-colors"
-            onClick={onToggleTheme}
+            key={key}
             type="button"
-            aria-label="Toggle light and dark appearance"
+            role="tab"
+            aria-selected={view === key}
+            className="view-tab rounded-full px-3.5 py-1.5 text-sm font-medium transition-colors"
+            onClick={() => onSelectView(key)}
           >
-            <span className="theme-icon-light"><Icon name="sun" className="size-[18px]" /></span>
-            <span className="theme-icon-dark"><Icon name="moon" className="size-[18px]" /></span>
-            <span>Appearance</span>
+            {label}
+            {key === "tickets" && ticketCount > 0 && (
+              <span className="tab-count ml-1.5 rounded-full px-1.5 text-[11px]">{ticketCount}</span>
+            )}
           </button>
-          <label className="profile-row mt-2 flex items-center gap-3 rounded-xl px-2 py-3">
-            <span className="avatar flex size-8 shrink-0 items-center justify-center rounded-full text-xs font-semibold">
-              {customers.find((item) => item.customer_id === customerId)?.name.split(" ").map((part) => part[0]).join("").slice(0, 2) || "?"}
-            </span>
-            <span className="flex min-w-0 flex-1 flex-col gap-0.5">
-              <span className="text-[11px]">Signed in as (demo)</span>
-              <select
-                className="customer-select min-w-0 rounded-md bg-transparent text-xs font-medium outline-none"
-                value={customerId}
-                onChange={(event) => onSelectCustomer(event.target.value)}
-                aria-label="Demo customer"
-              >
-                <option value="">Guest</option>
-                {customers.map((customer) => (
-                  <option key={customer.customer_id} value={customer.customer_id}>
-                    {customer.name} · {customer.order_ids.join(", ")}
-                  </option>
-                ))}
-              </select>
-            </span>
-          </label>
-        </div>
-      </aside>
-    </>
+        ))}
+      </nav>
+
+      <div className="flex min-w-0 items-center gap-2">
+        <label className="profile-row glass flex min-w-0 items-center gap-2 rounded-full py-1 pl-1 pr-3">
+          <span className="avatar flex size-7 shrink-0 items-center justify-center rounded-full text-[11px] font-semibold">
+            {customers.find((item) => item.customer_id === customerId)?.name.split(" ").map((part) => part[0]).join("").slice(0, 2) || "?"}
+          </span>
+          <select
+            className="customer-select min-w-0 max-w-[64px] rounded-md bg-transparent text-xs font-medium outline-none"
+            value={customerId}
+            onChange={(event) => onSelectCustomer(event.target.value)}
+            aria-label="Demo customer"
+          >
+            <option value="">Guest</option>
+            {customers.map((customer) => (
+              <option key={customer.customer_id} value={customer.customer_id}>
+                {customer.name} · {customer.order_ids.join(", ")}
+              </option>
+            ))}
+          </select>
+        </label>
+        <button className="icon-button glass inline-flex" type="button" onClick={onNewChat} aria-label="New chat" title="New chat">
+          <Icon name="plus" className="size-[18px]" />
+        </button>
+        <button className="icon-button glass inline-flex" type="button" onClick={onClose} aria-label="Close chat" title="Close chat">
+          <Icon name="close" className="size-[18px]" />
+        </button>
+        <button className="icon-button glass inline-flex" type="button" onClick={onToggleTheme} aria-label="Toggle light and dark appearance">
+          <span className="theme-icon-light"><Icon name="sun" className="size-[18px]" /></span>
+          <span className="theme-icon-dark"><Icon name="moon" className="size-[18px]" /></span>
+        </button>
+      </div>
+    </header>
   );
 }
 
 export default function Home() {
-  const [mobileOpen, setMobileOpen] = useState(false);
+  const [greeting, setGreeting] = useState("Hello");
+  const [open, setOpen] = useState(false);
   const [draft, setDraft] = useState("");
   const [messages, setMessages] = useState<ChatMessage[]>([
     { id: 0, role: "assistant", content: INITIAL_GREETING },
@@ -367,6 +386,11 @@ export default function Home() {
   const requestInProgressRef = useRef(false);
   const requestGenerationRef = useRef(0);
   const abortControllerRef = useRef<AbortController | null>(null);
+
+  useEffect(() => {
+    const hour = new Date().getHours();
+    setGreeting(hour < 12 ? "Good morning" : hour < 18 ? "Good afternoon" : "Good evening");
+  }, []);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
@@ -424,7 +448,6 @@ export default function Home() {
 
   function selectView(next: View) {
     setView(next);
-    setMobileOpen(false);
   }
 
   function selectCustomer(next: string) {
@@ -449,7 +472,6 @@ export default function Home() {
     setMessages([{ id: 0, role: "assistant", content: INITIAL_GREETING }]);
     setDraft("");
     if (textareaRef.current) textareaRef.current.style.height = "auto";
-    setMobileOpen(false);
   }
 
   async function sendMessage(reply?: QuickReply) {
@@ -624,11 +646,90 @@ export default function Home() {
     }
   }
 
+  const customer = customers.find((item) => item.customer_id === customerId);
+  const firstName = customer?.name.split(" ")[0];
+  const isHero = messages.length === 1 && !isRequesting;
+
+  const composer = (
+    <form
+      className="composer flex flex-col gap-1 rounded-[22px] px-3.5 pb-2.5 pt-2.5"
+      onSubmit={(event) => {
+        event.preventDefault();
+        sendMessage();
+      }}
+    >
+      <input
+        ref={photoInputRef}
+        type="file"
+        accept="image/jpeg,image/png,image/webp"
+        className="hidden"
+        onChange={(event) => {
+          const file = event.target.files?.[0];
+          event.target.value = "";
+          if (file) sendPhoto(file);
+        }}
+      />
+      <textarea
+        ref={textareaRef}
+        aria-label="Message AgentiCart"
+        className="composer-input min-h-[34px] max-h-32 min-w-0 resize-none overflow-y-auto bg-transparent px-1 py-1.5 text-[15px] leading-6 outline-none"
+        placeholder="Message AgentiCart"
+        rows={1}
+        value={draft}
+        onChange={(event) => {
+          setDraft(event.target.value);
+          event.currentTarget.style.height = "auto";
+          event.currentTarget.style.height = `${Math.min(event.currentTarget.scrollHeight, 128)}px`;
+        }}
+        onKeyDown={(event) => {
+          if (event.key === "Enter" && !event.shiftKey) {
+            event.preventDefault();
+            sendMessage();
+          }
+        }}
+      />
+      <div className="flex items-center justify-between">
+        <button
+          type="button"
+          className="photo-button inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-[13px] font-medium"
+          aria-label="Attach a photo of the damage"
+          title="Attach a photo of the damage"
+          disabled={isRequesting}
+          onClick={() => photoInputRef.current?.click()}
+        >
+          <Icon name="camera" className="size-[17px]" />
+          <span>Damage photo</span>
+        </button>
+        <button className="send-button flex size-10 shrink-0 items-center justify-center rounded-full transition-colors" type="submit" disabled={!draft.trim() || isRequesting} aria-label="Send message">
+          <Icon name="arrow" className="size-[18px]" />
+        </button>
+      </div>
+    </form>
+  );
+
+  const heroChips = ["Track my order", "Return an item", "Raise a complaint", "How do I pay?", "Talk to a human"];
+  const commonQuestions = ["How do I place an order?", "How do I reset my password?", "What is the return window?"];
+
+  const orderChips = (customer?.order_ids ?? []).slice(0, 3).map((orderId) => ({ label: `Track ${orderId}`, value: `Where is my order ${orderId}?` }));
+
   return (
-    <main id="home" className="app-shell flex min-h-svh overflow-hidden">
-      <Sidebar
-        mobileOpen={mobileOpen}
-        onClose={() => setMobileOpen(false)}
+    <main id="home" className="landing">
+      <div className="stage-inner">
+        <header className="landing-brand flex items-center gap-3.5">
+          <span className="brand-mark landing-mark flex shrink-0 items-center justify-center rounded-2xl">
+            <Icon name="bag" className="size-[30px]" />
+          </span>
+          <span className="flex flex-col gap-1">
+            <span className="brand-name landing-title leading-none">AgentiCart</span>
+            <span className="landing-tagline">Your shopping support, instantly</span>
+          </span>
+        </header>
+
+        <BotHero docked={open} onOpen={() => setOpen((value) => !value)} />
+        {open && (
+      <section className="chat-window flex flex-col" aria-label="AgentiCart chat">
+      <TopBar
+        onClose={() => setOpen(false)}
         onNewChat={() => {
           startNewChat();
           setView("chat");
@@ -639,40 +740,12 @@ export default function Home() {
         customers={customers}
         customerId={customerId}
         onSelectCustomer={selectCustomer}
+        ticketCount={tickets.length}
       />
 
-      <section className="chat-panel relative flex min-w-0 flex-1 flex-col">
-        <header className="mobile-header flex h-14 shrink-0 items-center justify-between px-4 md:hidden">
-          <button className="icon-button inline-flex" onClick={() => setMobileOpen(true)} aria-label="Open navigation">
-            <Icon name="menu" />
-          </button>
-          <span className="text-sm font-semibold">E-commerce Customer Support</span>
-          <button className="icon-button inline-flex" onClick={toggleTheme} aria-label="Toggle light and dark appearance">
-            <span className="theme-icon-light"><Icon name="sun" className="size-[18px]" /></span>
-            <span className="theme-icon-dark"><Icon name="moon" className="size-[18px]" /></span>
-          </button>
-        </header>
-
-        <div className="view-tabs flex shrink-0 justify-center gap-1 border-b px-4 py-2" role="tablist" aria-label="Views">
-          {([["chat", "Chat"], ["tickets", "My tickets"]] as const).map(([key, label]) => (
-            <button
-              key={key}
-              type="button"
-              role="tab"
-              aria-selected={view === key}
-              className="view-tab rounded-lg px-3 py-1.5 text-sm font-medium transition-colors"
-              onClick={() => selectView(key)}
-            >
-              {label}
-              {key === "tickets" && tickets.length > 0 && (
-                <span className="tab-count ml-1.5 rounded-full px-1.5 text-[11px]">{tickets.length}</span>
-              )}
-            </button>
-          ))}
-        </div>
-
+      <div className="chat-panel relative flex min-h-0 min-w-0 flex-1 flex-col">
         {toast && (
-          <div className="toast fixed bottom-24 left-1/2 z-50 flex w-[calc(100%-32px)] max-w-[420px] -translate-x-1/2 items-center gap-3 rounded-2xl border px-4 py-3 text-sm shadow-lg" role="status">
+          <div className="toast glass fixed bottom-24 left-1/2 z-50 flex w-[calc(100%-32px)] max-w-[420px] -translate-x-1/2 items-center gap-3 rounded-2xl px-4 py-3 text-sm" role="status">
             <Icon name="ticket" className="size-[18px] shrink-0" />
             <span className="min-w-0 flex-1">
               Ticket <span className="font-mono font-semibold">{toast.ticket_id}</span> raised
@@ -688,17 +761,17 @@ export default function Home() {
 
         {view === "tickets" ? (
           <div className="chat-scroll flex min-h-0 w-full flex-1 flex-col items-center overflow-y-auto px-4 sm:px-6">
-            <div className="w-full max-w-[720px] py-10">
-              <div className="mb-6 flex flex-wrap items-end justify-between gap-3">
+            <div className="w-full max-w-[720px] py-5">
+              <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
                 <div>
-                  <h1 className="welcome-title text-[26px] font-semibold tracking-[-0.03em]">My tickets</h1>
+                  <h1 className="welcome-title text-[26px] leading-tight">My tickets</h1>
                   <p className="ticket-meta mt-1 text-sm">
                     {customerId
-                      ? `Tickets for ${customers.find((item) => item.customer_id === customerId)?.name ?? customerId}`
-                      : "Tickets from this conversation. Pick a demo customer in the sidebar to see all of theirs."}
+                      ? `Tickets for ${customer?.name ?? customerId}`
+                      : "Tickets from this conversation. Pick a demo customer at the top to see all of theirs."}
                   </p>
                 </div>
-                <button type="button" className="new-chat-button h-9 rounded-xl px-3 text-sm font-medium" onClick={() => loadTickets()}>
+                <button type="button" className="new-chat-button glass h-9 rounded-full px-4 text-sm font-medium" onClick={() => loadTickets()}>
                   Refresh
                 </button>
               </div>
@@ -707,7 +780,7 @@ export default function Home() {
               ) : ticketsStatus === "loading" && tickets.length === 0 ? (
                 <p className="ticket-meta text-sm">Loading tickets…</p>
               ) : tickets.length === 0 ? (
-                <div className="history-placeholder rounded-xl px-4 py-6 text-center text-sm">
+                <div className="history-placeholder glass rounded-2xl px-4 py-6 text-center text-sm">
                   No tickets yet. When the assistant raises one for you, it will appear here.
                 </div>
               ) : (
@@ -717,12 +790,28 @@ export default function Home() {
               )}
             </div>
           </div>
+        ) : isHero ? (
+          <div className="chat-scroll flex min-h-0 min-w-0 w-full flex-1 flex-col items-center overflow-y-auto px-4 sm:px-6">
+            <div className="hero my-auto flex w-full flex-col items-center py-6">
+              <h1 className="welcome-title mb-5 text-center text-[26px] leading-[1.15] sm:text-[32px]">
+                {greeting}{firstName ? `, ${firstName}` : ""}
+                <br />
+                What can we help with?
+              </h1>
+              <div className="flex flex-wrap justify-center gap-2" role="group" aria-label="Suggestions">
+                {[...heroChips.map((chip) => ({ label: chip, value: chip })), ...orderChips, ...commonQuestions.map((question) => ({ label: question, value: question }))].map((chip) => (
+                  <button key={chip.label} type="button" className="hero-chip rounded-full px-3.5 py-2 text-[13px] font-medium" onClick={() => sendMessage(chip)}>
+                    {chip.label}
+                  </button>
+                ))}
+              </div>
+              {!customer && <p className="info-empty mt-4 text-center text-xs">Pick a demo customer above to track their orders.</p>}
+            </div>
+          </div>
         ) : (
+        <>
         <div className="chat-scroll flex min-h-0 min-w-0 w-full flex-1 flex-col items-center overflow-y-auto px-4 sm:px-6">
-          <div className="chat-start my-auto w-full max-w-[720px] py-10 sm:py-14">
-            <h1 className="welcome-title mb-8 text-center text-[28px] font-semibold leading-tight tracking-[-0.04em] sm:text-[40px]">
-              E-commerce Customer Support
-            </h1>
+          <div className="chat-start w-full max-w-[720px] py-6">
             <div className="message-list flex flex-col gap-5" aria-live="polite">
               {messages.map((message) =>
                 message.role === "assistant" ? (
@@ -731,7 +820,7 @@ export default function Home() {
                       <Icon name="sparkles" className="size-[18px]" />
                     </span>
                     <div className="flex max-w-[85%] flex-col items-start gap-1">
-                      <p className="assistant-message whitespace-pre-wrap break-words rounded-2xl border px-4 py-3 text-[15px] leading-6">
+                      <p className="assistant-message whitespace-pre-wrap break-words rounded-3xl border px-4 py-3 text-[15px] leading-6">
                         {message.content}
                       </p>
                       {message.blocks?.map((block, index) => <BlockView key={`${block.type}-${index}`} block={block} />)}
@@ -770,14 +859,14 @@ export default function Home() {
                   </div>
                 ) : message.role === "user" ? (
                   <div className="flex justify-end" key={message.id}>
-                    <p className="user-message max-w-[85%] whitespace-pre-wrap break-words rounded-2xl px-4 py-3 text-[15px] leading-6">
+                    <p className="user-message max-w-[85%] whitespace-pre-wrap break-words rounded-3xl px-4 py-3 text-[15px] leading-6">
                       {message.content}
                     </p>
                   </div>
                 ) : (
                   <div className="assistant-greeting flex items-start gap-3" key={message.id} role="alert">
                     <span className="error-mark flex size-9 shrink-0 items-center justify-center rounded-full text-sm font-semibold" aria-hidden="true">!</span>
-                    <p className="error-message max-w-[85%] whitespace-pre-wrap break-words rounded-2xl border px-4 py-3 text-[15px] leading-6">
+                    <p className="error-message max-w-[85%] whitespace-pre-wrap break-words rounded-3xl border px-4 py-3 text-[15px] leading-6">
                       {message.content}
                     </p>
                   </div>
@@ -788,7 +877,7 @@ export default function Home() {
                   <span className="welcome-icon flex size-9 shrink-0 items-center justify-center rounded-full">
                     <Icon name="sparkles" className="size-[18px]" />
                   </span>
-                  <div className="assistant-message flex h-12 items-center gap-3 rounded-2xl border px-4">
+                  <div className="assistant-message flex h-12 items-center gap-3 rounded-3xl border px-4">
                     <span className="typing-indicator flex items-center gap-1">
                       <span />
                       <span />
@@ -800,67 +889,17 @@ export default function Home() {
               )}
               <div ref={messagesEndRef} />
             </div>
-
-            <footer className="composer-wrap sticky bottom-0 z-10 mt-4 w-full max-w-[780px] pb-4 pt-2 sm:pb-6">
-              <form
-                className="composer flex items-end gap-2 rounded-[22px] border p-2 shadow-sm"
-                onSubmit={(event) => {
-                  event.preventDefault();
-                  sendMessage();
-                }}
-              >
-                <input
-                  ref={photoInputRef}
-                  type="file"
-                  accept="image/jpeg,image/png,image/webp"
-                  className="hidden"
-                  onChange={(event) => {
-                    const file = event.target.files?.[0];
-                    event.target.value = "";
-                    if (file) sendPhoto(file);
-                  }}
-                />
-                <button
-                  type="button"
-                  className="icon-button mb-0.5 inline-flex size-9 shrink-0 items-center justify-center rounded-xl"
-                  aria-label="Attach a photo of the damage"
-                  title="Attach a photo of the damage"
-                  disabled={isRequesting}
-                  onClick={() => photoInputRef.current?.click()}
-                >
-                  <Icon name="camera" className="size-[18px]" />
-                </button>
-                <textarea
-                  ref={textareaRef}
-                  aria-label="Message the E-commerce Support Assistant"
-                  className="composer-input min-h-[42px] max-h-32 min-w-0 flex-1 resize-none overflow-y-auto bg-transparent py-3 text-sm leading-5 outline-none placeholder:opacity-60"
-                  placeholder="Write a message..."
-                  rows={1}
-                  value={draft}
-                  onChange={(event) => {
-                    setDraft(event.target.value);
-                    event.currentTarget.style.height = "auto";
-                    event.currentTarget.style.height = `${Math.min(event.currentTarget.scrollHeight, 128)}px`;
-                  }}
-                  onKeyDown={(event) => {
-                    if (event.key === "Enter" && !event.shiftKey) {
-                      event.preventDefault();
-                      sendMessage();
-                    }
-                  }}
-                />
-                <button className="send-button mb-0.5 flex size-9 shrink-0 items-center justify-center rounded-xl transition-colors" type="submit" disabled={!draft.trim() || isRequesting} aria-label="Send message">
-                  <Icon name="arrow" className="size-[18px]" />
-                </button>
-              </form>
-              <p className="composer-note mt-2 text-center text-[11px]">
-                Chat history is not stored by this frontend.
-              </p>
-            </footer>
           </div>
         </div>
+        </>
         )}
+        {view === "chat" && (
+          <footer className="composer-wrap z-10 w-full shrink-0 px-3 pb-3 pt-1">{composer}</footer>
+        )}
+      </div>
       </section>
+        )}
+      </div>
     </main>
   );
 }
