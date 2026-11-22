@@ -2,6 +2,7 @@
 
 import unittest
 from contextlib import contextmanager
+from pathlib import Path
 from unittest.mock import patch
 
 from sqlalchemy import CheckConstraint, ForeignKeyConstraint
@@ -36,6 +37,16 @@ class MemorySession:
         pass
 
 
+def fixture_counts() -> dict[str, int]:
+    """How many records each fixture file holds, read from the files themselves."""
+    import json
+
+    return {
+        name: len(json.loads((Path(DEFAULT_DATA_DIR) / f"{name}.json").read_text(encoding="utf-8-sig"))[name])
+        for name in ("products", "orders", "refunds")
+    }
+
+
 class DatabaseModelTests(unittest.TestCase):
     def test_models_register_exact_expected_business_tables(self):
         self.assertEqual(set(Base.metadata.tables), {
@@ -68,14 +79,18 @@ class DatabaseModelTests(unittest.TestCase):
              patch.object(Config, "BUSINESS_DATA_BACKEND", "postgres"):
             first = import_fixtures(DEFAULT_DATA_DIR)
             second = import_fixtures(DEFAULT_DATA_DIR)
-        self.assertEqual(first, {"imported": 10, "skipped": 0, "failed": 0})
-        self.assertEqual(second, {"imported": 0, "skipped": 10, "failed": 0})
+        total = sum(fixture_counts().values())
+        self.assertGreaterEqual(total, 300)
+        self.assertEqual(first, {"imported": total, "skipped": 0, "failed": 0})
+        self.assertEqual(second, {"imported": 0, "skipped": total, "failed": 0})
         self.assertTrue(all(row.is_demo for (model, _), row in memory.rows.items()))
 
     def test_dry_run_validates_json_without_database_configuration(self):
         with patch.object(Config, "DATABASE_URL", None):
             counts = import_fixtures(DEFAULT_DATA_DIR, dry_run=True)
-        self.assertEqual(counts, {"products": 3, "orders": 4, "refunds": 3, "failed": 0})
+        self.assertEqual(counts, {**fixture_counts(), "failed": 0})
+        # The fixtures hold enough records for the chat to answer from.
+        self.assertTrue(all(count >= 100 for key, count in counts.items() if key != "failed"))
 
     def test_importer_requires_explicit_postgres_backend_and_url(self):
         with patch.object(Config, "DATABASE_URL", None):

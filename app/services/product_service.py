@@ -79,6 +79,8 @@ def search_products(query: str | None) -> dict[str, Any]:
     query_words = set(normalized_query.split())
     products = load_products()
     candidates: list[dict[str, Any]] = []
+    strong: list[tuple[str, dict[str, Any]]] = []
+    overlaps: dict[str, int] = {}
 
     for product_id, record in products.items():
         name = record.get("name")
@@ -89,9 +91,24 @@ def search_products(query: str | None) -> dict[str, Any]:
         exact_id = normalized_query == " ".join(_WORD_PATTERN.findall(product_id.casefold()))
         exact_name = normalized_query == normalized_name
         name_in_query = bool(normalized_name and normalized_name in normalized_query)
-        token_match = bool(query_words & name_words) or _close_token_match(query_words, name_words)
-        if exact_id or exact_name or name_in_query or token_match:
+        shared = len(query_words & name_words)
+        token_match = bool(shared) or _close_token_match(query_words, name_words)
+        if exact_id or exact_name or name_in_query:
+            strong.append((normalized_name, _public_product(record)))
+        elif token_match:
+            overlaps[product_id] = max(shared, 1)
             candidates.append(_public_product(record))
+
+    if strong:
+        # A full name or ID in the question settles it, unless it is only part of another full name that is also there.
+        candidates = [
+            item for name, item in strong
+            if not any(name != other and name in other for other, _ in strong)
+        ]
+    elif len(candidates) > 1:
+        # With a large catalog one shared word ("Plus") is weak evidence; keep the products sharing the most words.
+        best = max(overlaps.values())
+        candidates = [item for item in candidates if overlaps[item["product_id"]] == best]
 
     if not candidates:
         # Category words ("phone", "earphones", "laptop wala") need meaning, not tokens.
@@ -101,7 +118,8 @@ def search_products(query: str | None) -> dict[str, Any]:
     if not candidates:
         return {"outcome": "not_found", "matches": [], "error": "No matching demonstration product was found."}
     if len(candidates) > 1:
-        choices = [{"product_id": item["product_id"], "name": item["name"]} for item in candidates]
+        # A very broad word ("Plus") can match dozens of products; show a short list to pick from.
+        choices = [{"product_id": item["product_id"], "name": item["name"]} for item in candidates[:8]]
         return {"outcome": "ambiguous", "matches": choices, "error": "More than one product matches; please clarify."}
     return {"outcome": "found", "matches": candidates, "error": None}
 
