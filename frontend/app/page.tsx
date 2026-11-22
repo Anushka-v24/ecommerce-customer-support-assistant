@@ -19,6 +19,13 @@ type Ticket = {
 
 type Customer = { customer_id: string; name: string; order_ids: string[] };
 
+type TimelineStep = { label: string; state: "done" | "current" | "upcoming" };
+
+type Block =
+  | { type: "order_card"; order_id: string; status: string; eta: string | null; product_name: string | null; note: string | null; timeline: TimelineStep[] }
+  | { type: "product_card"; product_id: string; name: string; stock: number | null; in_stock: boolean; restock_date: string | null }
+  | { type: "sources"; items: (string | { title?: string; document_id?: string })[] };
+
 type View = "chat" | "tickets";
 
 type ChatMessage = {
@@ -31,6 +38,7 @@ type ChatMessage = {
   rating?: Rating;
   quickReplies?: QuickReply[];
   ticket?: Ticket;
+  blocks?: Block[];
 };
 
 const INITIAL_GREETING = "Hi! How can we help you today?";
@@ -51,6 +59,89 @@ function parseQuickReplies(value: unknown): QuickReply[] {
 
 function parseTicket(value: unknown): Ticket | undefined {
   return isJsonObject(value) && typeof value.ticket_id === "string" ? (value as unknown as Ticket) : undefined;
+}
+
+const BLOCK_TYPES = new Set(["order_card", "product_card", "sources"]);
+
+function parseBlocks(value: unknown): Block[] {
+  if (!Array.isArray(value)) return [];
+  // Ticket blocks are shown through the existing ticket field.
+  return value.filter((item): item is Block => isJsonObject(item) && BLOCK_TYPES.has(item.type as string));
+}
+
+function OrderCard({ block }: { block: Extract<Block, { type: "order_card" }> }) {
+  return (
+    <div className="ticket-card w-full rounded-2xl border px-4 py-3">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <span className="ticket-id font-mono text-xs font-semibold">{block.order_id}</span>
+        <span className="pill pill-open rounded-full px-2 py-0.5 text-[11px] font-medium">{block.status}</span>
+      </div>
+      {block.product_name && <p className="ticket-subject mt-2 text-sm font-semibold">{block.product_name}</p>}
+      {block.timeline.length > 0 && (
+        <ol className="timeline mt-3 flex items-start" aria-label="Delivery progress">
+          {block.timeline.map((step) => (
+            <li key={step.label} className={`timeline-step timeline-${step.state} flex flex-1 flex-col items-center gap-1.5 text-center`}>
+              <span className="timeline-dot size-3 rounded-full" />
+              <span className="text-[11px] leading-4">{step.label}</span>
+            </li>
+          ))}
+        </ol>
+      )}
+      <p className="ticket-meta mt-2 text-[11px]">{block.eta ? `Expected ${block.eta}` : "No delivery date yet"}</p>
+    </div>
+  );
+}
+
+function ProductCard({ block }: { block: Extract<Block, { type: "product_card" }> }) {
+  return (
+    <div className="ticket-card flex w-full items-center justify-between gap-3 rounded-2xl border px-4 py-3">
+      <span className="flex min-w-0 flex-col">
+        <span className="ticket-subject truncate text-sm font-semibold">{block.name}</span>
+        <span className="ticket-meta font-mono text-[11px]">{block.product_id}</span>
+      </span>
+      <span className={`pill rounded-full px-2 py-0.5 text-[11px] font-medium ${block.in_stock ? "pill-open" : "pill-priority-high"}`}>
+        {block.in_stock ? `${block.stock} in stock` : block.restock_date ? `Back ${block.restock_date}` : "Out of stock"}
+      </span>
+    </div>
+  );
+}
+
+function SourcesChip({ block }: { block: Extract<Block, { type: "sources" }> }) {
+  const names = block.items.map((item) => (typeof item === "string" ? item : item.title ?? item.document_id ?? "Document"));
+  return (
+    <div className="sources flex flex-wrap items-center gap-1.5 text-[11px]">
+      <span className="ticket-meta font-medium">Sources:</span>
+      {names.map((name) => <span key={name} className="pill rounded-full px-2 py-0.5">{name}</span>)}
+    </div>
+  );
+}
+
+function BlockView({ block }: { block: Block }) {
+  if (block.type === "order_card") return <OrderCard block={block} />;
+  if (block.type === "product_card") return <ProductCard block={block} />;
+  return <SourcesChip block={block} />;
+}
+
+/** Read Server-Sent Events from a fetch response; calls onEvent for each complete event. */
+async function readEvents(response: Response, onEvent: (event: string, data: unknown) => void) {
+  const reader = response.body!.getReader();
+  const decoder = new TextDecoder();
+  let buffer = "";
+  for (;;) {
+    const { value, done } = await reader.read();
+    buffer += decoder.decode(value ?? new Uint8Array(), { stream: !done });
+    let boundary = buffer.indexOf("\n\n");
+    while (boundary !== -1) {
+      const chunk = buffer.slice(0, boundary);
+      buffer = buffer.slice(boundary + 2);
+      const fields = Object.fromEntries(
+        chunk.split("\n").map((line) => [line.slice(0, line.indexOf(": ")), line.slice(line.indexOf(": ") + 2)]),
+      );
+      if (fields.event && fields.data) onEvent(fields.event, JSON.parse(fields.data));
+      boundary = buffer.indexOf("\n\n");
+    }
+    if (done) return;
+  }
 }
 
 function formatDate(value: string) {
@@ -258,6 +349,7 @@ export default function Home() {
     { id: 0, role: "assistant", content: INITIAL_GREETING },
   ]);
   const [isRequesting, setIsRequesting] = useState(false);
+  const [statusLabel, setStatusLabel] = useState("");
   const [view, setView] = useState<View>("chat");
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [customerId, setCustomerId] = useState("");
@@ -383,22 +475,36 @@ export default function Home() {
         throw new Error("Chat API is not configured. Set NEXT_PUBLIC_CHAT_API_BASE_URL in frontend/.env.local.");
       }
 
-      const response = await fetch(`${CHAT_API_BASE_URL}/api/chat`, {
+      setStatusLabel("");
+      const response = await fetch(`${CHAT_API_BASE_URL}/api/chat/stream`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ session_id: sessionId, message: content, ...(customerId ? { customer_id: customerId } : {}) }),
         signal: controller.signal,
       });
-      const payload: unknown = await response.json().catch(() => null);
 
-      if (generation !== requestGenerationRef.current) return;
-
-      if (!response.ok) {
-        const serverMessage = isJsonObject(payload) && typeof payload.message === "string"
-          ? payload.message
+      if (!response.ok || !response.body) {
+        const errorPayload: unknown = await response.json().catch(() => null);
+        const serverMessage = isJsonObject(errorPayload) && typeof errorPayload.message === "string"
+          ? errorPayload.message
           : "The chat service could not process this message. Please try again.";
         throw new Error(serverMessage);
       }
+
+      // Filled by the event callback; read once the stream has ended.
+      const received: { payload: unknown; error: string | null } = { payload: null, error: null };
+      await readEvents(response, (event, data) => {
+        if (generation !== requestGenerationRef.current) return;
+        if (event === "status" && isJsonObject(data) && typeof data.label === "string") setStatusLabel(data.label);
+        else if (event === "result") received.payload = data;
+        else if (event === "error") {
+          received.error = isJsonObject(data) && typeof data.message === "string" ? data.message : "The chat service could not process this message.";
+        }
+      });
+
+      if (generation !== requestGenerationRef.current) return;
+      if (received.error) throw new Error(received.error);
+      const payload = received.payload;
 
       if (
         !isJsonObject(payload) ||
@@ -412,11 +518,12 @@ export default function Home() {
       const turnId = typeof payload.turn_id === "string" ? payload.turn_id : undefined;
       const quickReplies = parseQuickReplies(payload.quick_replies);
       const ticket = parseTicket(payload.ticket);
+      const blocks = parseBlocks(payload.blocks);
       setMessages((current) => [
         ...current,
         {
           id: nextMessageId.current++, role: "assistant", content: payload.answer as string,
-          turnId, question: content, quickReplies, ticket,
+          turnId, question: content, quickReplies, ticket, blocks,
         },
       ]);
       if (ticket) {
@@ -596,6 +703,7 @@ export default function Home() {
                       <p className="assistant-message whitespace-pre-wrap break-words rounded-2xl border px-4 py-3 text-[15px] leading-6">
                         {message.content}
                       </p>
+                      {message.blocks?.map((block, index) => <BlockView key={`${block.type}-${index}`} block={block} />)}
                       {message.ticket && <TicketCard ticket={message.ticket} onView={() => selectView("tickets")} />}
                       {message.quickReplies && message.quickReplies.length > 0 && message.id === lastMessageId && !isRequesting && (
                         <div className="flex flex-wrap gap-2 pt-1" role="group" aria-label="Suggested replies">
@@ -649,10 +757,13 @@ export default function Home() {
                   <span className="welcome-icon flex size-9 shrink-0 items-center justify-center rounded-full">
                     <Icon name="sparkles" className="size-[18px]" />
                   </span>
-                  <div className="assistant-message typing-indicator flex h-12 items-center gap-1 rounded-2xl border px-4">
-                    <span />
-                    <span />
-                    <span />
+                  <div className="assistant-message flex h-12 items-center gap-3 rounded-2xl border px-4">
+                    <span className="typing-indicator flex items-center gap-1">
+                      <span />
+                      <span />
+                      <span />
+                    </span>
+                    {statusLabel && <span className="status-label text-[13px]">{statusLabel}…</span>}
                   </div>
                 </div>
               )}

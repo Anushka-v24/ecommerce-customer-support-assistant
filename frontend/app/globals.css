@@ -355,6 +355,51 @@ textarea:focus-visible {
   color: var(--error-text);
 }
 
+.timeline-step {
+  color: var(--text-muted);
+  position: relative;
+}
+
+/* Connector line between dots; the last step has none. */
+.timeline-step:not(:last-child)::after {
+  background: var(--border-strong);
+  content: "";
+  height: 2px;
+  left: calc(50% + 8px);
+  position: absolute;
+  right: calc(-50% + 8px);
+  top: 5px;
+}
+
+.timeline-done:not(:last-child)::after {
+  background: var(--accent);
+}
+
+.timeline-dot {
+  background: var(--surface);
+  border: 2px solid var(--border-strong);
+}
+
+.timeline-done .timeline-dot {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+
+.timeline-current {
+  color: var(--accent-text);
+  font-weight: 600;
+}
+
+.timeline-current .timeline-dot {
+  background: var(--accent-soft);
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+
+.status-label {
+  color: var(--text-secondary);
+}
+
 .link-button {
   background: none;
   border: 0;
