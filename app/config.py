@@ -75,6 +75,10 @@ class Config:
     REPLY_TRANSLATION_TIMEOUT_SECONDS = float(os.getenv("REPLY_TRANSLATION_TIMEOUT_SECONDS", "6"))
     # Hand frustrated customers to a person (frustration score over the last 3 turns).
     ESCALATION_ENABLED = _as_bool(os.getenv("ESCALATION_ENABLED"), default=True)
+    # Damage-photo evidence. Llama 4 Scout is not on every Groq account; any Groq vision model works.
+    VISION_MODEL = os.getenv("VISION_MODEL", "qwen/qwen3.8-27b")
+    EVIDENCE_MAX_BYTES = int(os.getenv("EVIDENCE_MAX_BYTES", str(4 * 1024 * 1024)))
+    EVIDENCE_TIMEOUT_SECONDS = float(os.getenv("EVIDENCE_TIMEOUT_SECONDS", "20"))
     # Ask the customer to confirm the understood request before ticket-raising workflows run.
     INTENT_CONFIRMATION_ENABLED = _as_bool(os.getenv("INTENT_CONFIRMATION_ENABLED"), default=True)
 

@@ -10,6 +10,7 @@ from werkzeug.exceptions import BadRequest, RequestEntityTooLarge
 
 from app.api.blocks import build_blocks
 from app.services.customer_service import get_customer, list_customers
+from app.services.damage_evidence import EvidenceError, analyze_damage_photo
 from app.services.pii import mask_pii
 from app.services.ticket_service import list_tickets, public_ticket
 from app.services.turn_log import append_record
@@ -223,6 +224,28 @@ def _log_turn(turn_id: str, session_id: str, message: str, answer: str, result: 
         append_record(current_app.config["TURN_LOG_DIR"], "turns.jsonl", record)
     except OSError as exc:
         logger.warning("Could not write turn log (%s)", type(exc).__name__)
+
+
+@api_blueprint.post("/evidence")
+def evidence():
+    """Accept one damage photo (multipart field "photo") and describe it as evidence."""
+    # Photos need more room than the JSON chat limit; set before the body is read.
+    request.max_content_length = current_app.config["EVIDENCE_MAX_BYTES"] + 64 * 1024
+    session_id = (request.form.get("session_id") or "").strip()
+    if not session_id or len(session_id) > current_app.config["MAX_SESSION_ID_LENGTH"]:
+        return jsonify({"error": "invalid_session_id", "message": "session_id must be a non-empty string."}), 400
+    order_id = (request.form.get("order_id") or "").strip().upper() or None
+    photo = request.files.get("photo")
+    if photo is None:
+        return jsonify({"error": "missing_photo", "message": "Attach the photo in the 'photo' field."}), 400
+    try:
+        result = analyze_damage_photo(photo.read(), photo.mimetype or "", session_id, order_id)
+    except EvidenceError as exc:
+        return jsonify({"error": "invalid_photo", "message": str(exc)}), 400
+    except OSError as exc:
+        logger.error("Evidence storage failed (%s)", type(exc).__name__)
+        return jsonify({"error": "evidence_unavailable", "message": "The photo could not be saved right now."}), 503
+    return jsonify(result), 201
 
 
 @api_blueprint.post("/feedback")

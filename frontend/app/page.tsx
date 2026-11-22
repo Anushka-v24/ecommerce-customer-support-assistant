@@ -189,7 +189,8 @@ type IconName =
   | "close"
   | "thumbUp"
   | "thumbDown"
-  | "ticket";
+  | "ticket"
+  | "camera";
 
 function Icon({ name, className = "" }: { name: IconName; className?: string }) {
   const shared = {
@@ -228,6 +229,8 @@ function Icon({ name, className = "" }: { name: IconName; className?: string }) 
       return <svg {...shared}><path d="M7 10v11H4V10h3Z" /><path d="M7 10l4-7a2 2 0 0 1 3 2l-1 5h6a2 2 0 0 1 2 2.3l-1.4 7A2 2 0 0 1 17.6 21H7" /></svg>;
     case "thumbDown":
       return <svg {...shared}><path d="M17 14V3h3v11h-3Z" /><path d="M17 14l-4 7a2 2 0 0 1-3-2l1-5H5a2 2 0 0 1-2-2.3l1.4-7A2 2 0 0 1 6.4 3H17" /></svg>;
+    case "camera":
+      return <svg {...shared}><path d="M4 8h3l2-3h6l2 3h3v11H4V8Z" /><circle cx="12" cy="13" r="3.5" /></svg>;
     case "ticket":
       return <svg {...shared}><path d="M3 8a2 2 0 0 0 2-2h14a2 2 0 0 0 2 2v2a2 2 0 0 0 0 4v2a2 2 0 0 0-2 2H5a2 2 0 0 0-2-2v-2a2 2 0 0 0 0-4V8Z" /><path d="M14 6v12" strokeDasharray="2 2" /></svg>;
   }
@@ -357,6 +360,7 @@ export default function Home() {
   const [ticketsStatus, setTicketsStatus] = useState<"idle" | "loading" | "error">("idle");
   const [toast, setToast] = useState<Ticket | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const photoInputRef = useRef<HTMLInputElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const nextMessageId = useRef(1);
   const sessionIdRef = useRef<string | null>(null);
@@ -553,6 +557,33 @@ export default function Home() {
         abortControllerRef.current = null;
         setIsRequesting(false);
       }
+    }
+  }
+
+  // Upload a damage photo, then send its description as the customer's next message.
+  async function sendPhoto(file: File) {
+    if (!CHAT_API_BASE_URL || requestInProgressRef.current) return;
+    const sessionId = sessionIdRef.current ?? globalThis.crypto.randomUUID();
+    sessionIdRef.current = sessionId;
+    setIsRequesting(true);
+    setStatusLabel("Looking at your photo");
+    const form = new FormData();
+    form.append("session_id", sessionId);
+    form.append("photo", file);
+    try {
+      const response = await fetch(`${CHAT_API_BASE_URL}/api/evidence`, { method: "POST", body: form });
+      const payload: unknown = await response.json().catch(() => null);
+      if (!response.ok || !isJsonObject(payload) || typeof payload.summary !== "string") {
+        throw new Error(isJsonObject(payload) && typeof payload.message === "string" ? payload.message : "The photo could not be uploaded.");
+      }
+      setIsRequesting(false);
+      await sendMessage({ label: `📷 Sent a photo (${file.name})`, value: payload.summary });
+    } catch (error) {
+      setIsRequesting(false);
+      setMessages((current) => [
+        ...current,
+        { id: nextMessageId.current++, role: "error", content: error instanceof Error ? error.message : "The photo could not be uploaded." },
+      ]);
     }
   }
 
@@ -772,12 +803,33 @@ export default function Home() {
 
             <footer className="composer-wrap sticky bottom-0 z-10 mt-4 w-full max-w-[780px] pb-4 pt-2 sm:pb-6">
               <form
-                className="composer flex items-end gap-2 rounded-[22px] border p-2 pl-4 shadow-sm"
+                className="composer flex items-end gap-2 rounded-[22px] border p-2 shadow-sm"
                 onSubmit={(event) => {
                   event.preventDefault();
                   sendMessage();
                 }}
               >
+                <input
+                  ref={photoInputRef}
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp"
+                  className="hidden"
+                  onChange={(event) => {
+                    const file = event.target.files?.[0];
+                    event.target.value = "";
+                    if (file) sendPhoto(file);
+                  }}
+                />
+                <button
+                  type="button"
+                  className="icon-button mb-0.5 inline-flex size-9 shrink-0 items-center justify-center rounded-xl"
+                  aria-label="Attach a photo of the damage"
+                  title="Attach a photo of the damage"
+                  disabled={isRequesting}
+                  onClick={() => photoInputRef.current?.click()}
+                >
+                  <Icon name="camera" className="size-[18px]" />
+                </button>
                 <textarea
                   ref={textareaRef}
                   aria-label="Message the E-commerce Support Assistant"
