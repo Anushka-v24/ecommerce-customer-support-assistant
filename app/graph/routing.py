@@ -6,6 +6,7 @@ from pathlib import Path
 
 from app.config import Config
 from app.graph.state import AgentState
+from app.services.unanswered import follow_up_choice, is_offer_question
 
 
 MAPPING_PATH = Path(__file__).resolve().parents[1] / "classifier" / "intent_mapping.json"
@@ -65,6 +66,8 @@ ROUTE_TO_NODE = {
     "exchange": "exchange_node",
     "feedback": "feedback_node",
     "escalation": "escalation_node",
+    "follow_up": "follow_up_node",
+    "cancel_followup": "cancel_followup_node",
 }
 _VERIFIED_STATUSES = {"ACCEPTED_BY_CLASSIFIER", "CORRECT_INTENT", "CORRECTED_INTENT"}
 
@@ -126,8 +129,32 @@ def _is_how_to_question(query: str | None) -> bool:
     return isinstance(query, str) and bool(_HOW_TO_QUESTION.search(query))
 
 
+# "How do I cancel an order?" and "can I cancel after it ships?" ask how cancelling works; they don't
+# ask to cancel one. With an order ID in the message it is a request to cancel that order.
+_CANCEL_INFO_QUESTION = re.compile(
+    r"\bhow\s+(?:to|do|can|could|should|would)\b|\b(?:steps?|procedure|process)\b|\bkaise\b|कैसे|"
+    r"\b(?:can|could)\s+i\s+cancel\b|\bis\s+it\s+possible\b|\bam\s+i\s+able\b",
+    re.IGNORECASE,
+)
+# "but I have not received the order", said right after a cancellation question, asks whether
+# an order that hasn't arrived can still be cancelled; it isn't a missing-delivery report.
+_NOT_RECEIVED = re.compile(
+    r"\b(?:not|never|haven'?t|hasn'?t|didn'?t|isn'?t)\b.{0,25}\b(?:rec(?:ei|ie)ve[d]?|deliver(?:ed)?|arriv(?:e|ed)|got|reach(?:ed)?)\b|"
+    r"\bnahi\s+(?:aaya|aayi|mila|mili|pahuncha|pahunchi)\b|नहीं\s+(?:आया|मिला|पहुँचा)",
+    re.IGNORECASE,
+)
+_ORDER_ID_MENTION = re.compile(r"\bORD-\d{4}\b", re.IGNORECASE)
+
+
+def _is_cancel_information_question(query: str | None) -> bool:
+    return isinstance(query, str) and bool(_CANCEL_INFO_QUESTION.search(query)) and not _ORDER_ID_MENTION.search(query)
+
+
 def _is_order_cancellation_request(query: str | None) -> bool:
-    return isinstance(query, str) and bool(_CANCEL_REQUEST.search(query)) and not _CANCEL_POLICY_QUESTION.search(query)
+    return (
+        isinstance(query, str) and bool(_CANCEL_REQUEST.search(query))
+        and not _CANCEL_POLICY_QUESTION.search(query) and not _is_cancel_information_question(query)
+    )
 
 
 def _is_general_return_refund_policy_question(query: str | None) -> bool:
@@ -144,9 +171,18 @@ def route_classifier_result(state: AgentState) -> str:
     if status == "UNKNOWN_ECOMMERCE_INTENT":
         return "unknown_intent"
     if status == "OUT_OF_SCOPE":
-        return "out_of_scope"
+        return "store_information" if is_offer_question(state.get("query")) else "out_of_scope"
     if status not in _VERIFIED_STATUSES:
         return "unknown_intent"
+    if follow_up_choice(state.get("query")) == "another":
+        return "follow_up"
+    if (
+        state.get("last_topic") == "cancellation" and _NOT_RECEIVED.search(state.get("query") or "")
+        and not _ORDER_ID_MENTION.search(state.get("query") or "")
+    ):
+        return "cancel_followup"
+    if is_offer_question(state.get("query")):
+        return "store_information"
 
     final_intent = state.get("final_intent")
     if not final_intent or final_intent not in INTENT_LABELS:
@@ -157,7 +193,9 @@ def route_classifier_result(state: AgentState) -> str:
         return "customer_care"
     if final_intent == "order_management" and _is_order_cancellation_request(state.get("query")):
         return "order_cancellation"
-    if final_intent in HOW_TO_INTENTS and _is_how_to_question(state.get("query")):
+    if final_intent in HOW_TO_INTENTS and (
+        _is_how_to_question(state.get("query")) or _is_cancel_information_question(state.get("query"))
+    ):
         return "store_information"
     if final_intent in UNSUPPORTED_INTENTS:
         return "unsupported"

@@ -49,7 +49,7 @@ _NODE_STATUS = {
     "product_recommendation_node": "Finding products for you",
     "issue_resolver_node": "Working on your issue",
     "customer_care_node": "Preparing a hand-off to our team",
-    "store_information_node": "Searching our help documents",
+    "store_information_node": "Looking that up",
     "feedback_node": "Recording your feedback",
     "escalation_node": "Passing you to a person",
     "finalize_turn_node": "Writing the reply",

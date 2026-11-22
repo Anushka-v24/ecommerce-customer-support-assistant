@@ -80,7 +80,8 @@ class IntentConfirmationTests(unittest.TestCase):
         self.assertEqual((ticket["category"], ticket["order_id"], ticket["status"], ticket["priority"]),
                          ("damaged_order", "ORD-1001", "open", "high"))
         self.assertIn(f"I've raised ticket {ticket['ticket_id']}", done["response"])
-        self.assertEqual(done["quick_replies"], [])
+        # A raised ticket closes the request: Thanks and End conversation are offered.
+        self.assertEqual([item["label"] for item in done["quick_replies"]], ["Thanks", "End conversation"])
         self.assertFalse(done["confirmation_required"])
         self.assertIsNone(done["pending_workflow"])
         stored = list_tickets(customer_id="CUST-001")
@@ -230,7 +231,8 @@ class TicketApiTests(unittest.TestCase):
 
     def test_customers_and_ticket_listing(self):
         customers = self.client.get("/api/customers").get_json()["customers"]
-        self.assertEqual([item["customer_id"] for item in customers], ["CUST-001", "CUST-002"])
+        self.assertEqual([item["customer_id"] for item in customers[:2]], ["CUST-001", "CUST-002"])
+        self.assertGreaterEqual(len(customers), 100)
 
         from app.services.ticket_service import create_ticket
         create_ticket(session_id="s-1", category="missing_order", description="Not delivered",

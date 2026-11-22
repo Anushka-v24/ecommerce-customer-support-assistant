@@ -52,6 +52,8 @@ class AgentState(TypedDict, total=False):
     completed_actions: NotRequired[dict[str, str]]
     action_approved: NotRequired[bool]
     turn_history: NotRequired[list[dict[str, Any]]]
+    # What the last turn was about ("cancellation"), so a short follow-up is read in that context.
+    last_topic: NotRequired[str | None]
     frustration: NotRequired[dict[str, Any] | None]
     escalated: NotRequired[bool]
     queued_request: NotRequired[str | None]

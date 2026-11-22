@@ -12,7 +12,10 @@ from app.config import Config
 from app.graph.state import AgentState
 from app.graph.risk import idempotency_key, request_approval
 from app.graph.routing import INTENT_LABELS, is_delivery_speedup_request, route_classifier_result
+from app.services.order_ids import with_order_prefix
+from app.services.unanswered import CLOSING_REPLIES, FOLLOW_UP_ANSWER, FOLLOW_UP_REPLIES, follow_up_choice, is_offer_question, unanswered_reply
 from app.rag.service import (
+    UNAVAILABLE_ANSWER,
     RAGConfigurationError,
     RAGProviderError,
     get_rag_service,
@@ -311,6 +314,13 @@ def continuity_node(state: AgentState) -> dict[str, Any]:
     """Validate pending slot replies first; classify only incomplete/interrupting messages."""
     pending = state.get("pending_workflow")
     query = (state.get("query") or "").strip()
+    if follow_up_choice(query) == "end" and (pending or state.get("confirmation_required")):
+        # Ending the conversation works at any point, even while a question is waiting for an answer.
+        return {
+            "continuity_action": "classify", "pending_workflow": None, "workflow_status": "idle",
+            "pending_clarification": None, "confirmation_required": False, "confirmation_status": None,
+            "resuming_pending": False, "suspended_workflows": [],
+        }
     if state.get("confirmation_required") and state.get("confirmation_status") != "confirmed":
         normalized = query.casefold().strip(" .!\t")
         if normalized in _YES_ANSWERS:
@@ -588,7 +598,11 @@ def _with_ticket(output: dict[str, Any], ticket: dict[str, Any] | None) -> dict[
     messages = list(output.get("messages") or [])
     if messages and messages[-1].get("role") == "assistant":
         messages[-1] = {"role": "assistant", "content": response}
-    return {**output, "response": response, "messages": messages, "ticket": ticket}
+    # A raised ticket closes the request, so offer a quick way to say thanks or finish.
+    return {
+        **output, "response": response, "messages": messages, "ticket": ticket,
+        "quick_replies": output.get("quick_replies") or CLOSING_REPLIES,
+    }
 
 
 def _remember_turn(state: AgentState) -> dict[str, Any]:
@@ -599,12 +613,27 @@ def _remember_turn(state: AgentState) -> dict[str, Any]:
         if isinstance(state.get("tool_result"), dict) else False
     turn = {"role": "user", "text": query, "intent": state.get("final_intent"),
             "order_id": match.group(0).upper() if match else None, "resolved": resolved}
-    return {"turn_history": (list(state.get("turn_history") or []) + [turn])[-5:]}
+    route = state.get("selected_route") or ""
+    about_cancelling = (
+        route in {"order_cancellation", "cancel_followup"}
+        or (route.startswith("pending:") and "cancel" in route)
+        or (route == "store_information" and "cancel" in query.casefold())
+    )
+    return {
+        "turn_history": (list(state.get("turn_history") or []) + [turn])[-5:],
+        "last_topic": "cancellation" if about_cancelling else None,
+    }
 
 
 def finalize_turn_node(state: AgentState) -> dict[str, Any]:
     """Restore the most recently interrupted workflow after the current task finishes."""
     remembered = _remember_turn(state)
+    if state.get("selected_route") == "goodbye" and follow_up_choice(state.get("query")) == "end":
+        # The customer ended the conversation: nothing is left waiting, so nothing is brought back up.
+        return {
+            **remembered, "pending_workflow": None, "suspended_workflows": [],
+            "workflow_status": "idle", "pending_clarification": None,
+        }
     active = state.get("pending_workflow")
     if isinstance(active, dict) and active.get("status") in {"awaiting_input", "suspended", "awaiting_confirmation"}:
         return remembered
@@ -708,12 +737,28 @@ def _issue_result(
     }
 
 
+_FOLLOW_UP_INTENTS = {
+    choice: {
+        "predicted_intent": intent, "confidence_score": 100.0, "final_intent": intent,
+        "verifier_status": "ACCEPTED_BY_CLASSIFIER", "routing": "FOLLOW_UP_BUTTON",
+        "latency_ms": 0.0, "error": None,
+    }
+    for choice, intent in (("end", "goodbye_thanks"), ("thanks", "goodbye_thanks"), ("another", "greeting"))
+}
+
+
 def classify_intent_node(state: AgentState) -> dict[str, Any]:
     """Call the existing classifier once and clear per-turn workflow outputs."""
     query = state.get("query") or ""
     messages = _append_message(state, "user", query)
+    # "1010" or "track 1010" means ORD-1010; the nodes below then see the explicit ID.
+    query = with_order_prefix(query) or query
+    choice = follow_up_choice(query)
     try:
-        result = state.get("preclassified_result") or _classify(query, state)
+        # The follow-up buttons are answered directly, without a classifier call.
+        result = state.get("preclassified_result") or (
+            _FOLLOW_UP_INTENTS[choice] if choice else _classify(query, state)
+        )
     except Exception as exc:
         result = {
             "predicted_intent": None, "confidence_score": None, "final_intent": None,
@@ -728,6 +773,7 @@ def classify_intent_node(state: AgentState) -> dict[str, Any]:
         except Exception:
             logger.exception("Frustration scoring failed; continuing without escalation.")
     return {
+        "query": query,
         "frustration": frustration,
         "predicted_intent": result.get("predicted_intent"),
         "confidence_score": result.get("confidence_score"),
@@ -741,6 +787,8 @@ def classify_intent_node(state: AgentState) -> dict[str, Any]:
         "order_id": None,
         "product_id": None,
         "product_name": None,
+        "sources": [],
+        "rag_context": [],
         "issue_type": None,
         "workflow_step": None,
         "issue_details": {},
@@ -1198,9 +1246,25 @@ def customer_care_node(state: AgentState) -> dict[str, Any]:
     return output
 
 
+_KNOWLEDGE_MISS_REPLIES = {
+    UNAVAILABLE_ANSWER,
+    "I couldn't find that in our help documents. Could you rephrase it, or pick one of these?",
+    "The document knowledge service is temporarily unavailable. I could not verify that information.",
+}
+
+
 def store_information_node(state: AgentState) -> dict[str, Any]:
     """Run the bounded document RAG subgraph for the existing store-information route."""
     query = state.get("query") or ""
+    if is_offer_question(query):
+        # Offer updates belong on the cart page whatever the documents say; no lookup is made.
+        response = unanswered_reply(query)
+        return {
+            "selected_route": "store_information", "workflow_step": "offers_redirect",
+            "tool_result": {"status": "offers_redirect", "sources": [], "documents": []},
+            "response": response, "error": None, "quick_replies": FOLLOW_UP_REPLIES,
+            "rag_context": [], "sources": [], "messages": _append_message(state, "assistant", response),
+        }
     try:
         rag_state = run_agentic_rag(query, state.get("messages") or [], service=get_rag_service())
         status = rag_state.get("rag_status")
@@ -1284,12 +1348,18 @@ def store_information_node(state: AgentState) -> dict[str, Any]:
         response = "The document knowledge service is temporarily unavailable. I could not verify that information."
         error = "RAG service unavailable"
         workflow_step = "rag_provider_error"
+    missed = response in _KNOWLEDGE_MISS_REPLIES
+    if missed:
+        # The customer sees a polite reply for the kind of miss, not the search internals.
+        response = unanswered_reply(query, lookup_failed=workflow_step == "rag_provider_error")
     return {
         "selected_route": "store_information",
         "workflow_step": workflow_step,
         "tool_result": result, "response": response,
         "error": error,
-        "quick_replies": _HELP_MENU_REPLIES if workflow_step != "rag_answered" and not result.get("rag_status") else [],
+        "quick_replies": FOLLOW_UP_REPLIES if missed else (
+            _HELP_MENU_REPLIES if workflow_step != "rag_answered" and not result.get("rag_status") else []
+        ),
         "rag_context": result.get("documents", []),
         "sources": result.get("sources", []),
         "messages": _append_message(state, "assistant", response),
@@ -1482,7 +1552,27 @@ def greeting_node(state: AgentState) -> dict[str, Any]:
     return _information_result(state, "greeting", {"outcome": "answered", "response": response})
 
 
+CANCEL_FOLLOWUP_ANSWER = (
+    "You can cancel an order even if it hasn't been delivered yet, as long as it hasn't shipped (it's still Processing). "
+    "If it has already shipped it can't be cancelled, but you can refuse the delivery when the courier arrives and the "
+    "parcel will come back to us. Share the order ID and I'll check whether it can be cancelled."
+)
+
+
+def cancel_followup_node(state: AgentState) -> dict[str, Any]:
+    """'But I have not received the order', said while talking about cancelling: answer in that context."""
+    return _information_result(state, "cancel_followup", {"outcome": "answered", "response": CANCEL_FOLLOWUP_ANSWER})
+
+
+def follow_up_node(state: AgentState) -> dict[str, Any]:
+    """The customer chose 'ask another question': invite it, with no menu in the way."""
+    return _information_result(state, "follow_up", {"outcome": "answered", "response": FOLLOW_UP_ANSWER})
+
+
 def goodbye_node(state: AgentState) -> dict[str, Any]:
+    if follow_up_choice(state.get("query")) == "end":
+        response = "Thank you for chatting with AgentiCart. If you need anything later, just message me here. Have a wonderful day!"
+        return _information_result(state, "goodbye", {"outcome": "answered", "response": response})
     response = "You're welcome! If anything else comes up with your order, just message me here. Have a great day!"
     return _information_result(state, "goodbye", {"outcome": "answered", "response": response})
 

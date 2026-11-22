@@ -239,7 +239,7 @@ class DemoSupportServiceTests(unittest.TestCase):
     def test_store_graph_and_out_of_scope_no_tool_execution(self):
         store = self.invoke_graph("What promotions are available?", "store_information", "g-store")
         self.assertEqual(store["selected_route"], "store_information")
-        self.assertIn("not live or redeemable", store["response"])
+        self.assertIn("cart page", store["response"])
 
         with patch.object(nodes, "refund_status_tool") as refund_tool, patch.object(
             nodes, "customer_handoff_tool"

@@ -35,6 +35,8 @@ def build_graph(checkpointer: Any | None = None):
         "order_cancellation_node": nodes.order_cancellation_node,
         "greeting_node": nodes.greeting_node,
         "goodbye_node": nodes.goodbye_node,
+        "follow_up_node": nodes.follow_up_node,
+        "cancel_followup_node": nodes.cancel_followup_node,
         "product_recommendation_node": nodes.product_recommendation_node,
         "warranty_node": nodes.warranty_node,
         "exchange_node": nodes.exchange_node,

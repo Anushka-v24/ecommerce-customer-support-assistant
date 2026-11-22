@@ -101,8 +101,9 @@ class LangGraphRoutingTests(unittest.TestCase):
             query="Are there any sales?",
         )
         self.assertEqual(result["selected_route"], "store_information")
-        self.assertEqual(result["tool_result"]["outcome"], "found")
-        self.assertIn("not live or redeemable", result["response"])
+        # Offer questions are answered with a pointer to the cart page, not a lookup.
+        self.assertIn("cart page", result["response"])
+        self.assertNotIn("document", result["response"].casefold())
     def test_out_of_scope_route_does_not_run_business_workflow(self):
         result = self.run_result(
             classifier_result(None, None, "OUT_OF_SCOPE"),

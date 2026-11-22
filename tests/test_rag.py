@@ -11,6 +11,7 @@ from unittest.mock import patch
 from app.config import Config
 from app.graph import nodes
 from app.rag.documents import load_chunks
+from app.services.unanswered import NO_ANSWER_REPLY
 from app.rag.service import (
     RAGConfigurationError,
     RAGProviderError,
@@ -598,7 +599,9 @@ class RAGServiceTests(unittest.TestCase):
         service = ScriptedRAGService([[], []], [no, no])
         with patch.object(nodes, "get_rag_service", return_value=service), patch.object(nodes, "store_information_tool") as demo:
             result = nodes.store_information_node({"query": "Are returns accepted?", "messages": []})
-        self.assertEqual(result["response"], UNAVAILABLE_ANSWER)
+        # The customer gets a polite reply, not the search internals.
+        self.assertIn(NO_ANSWER_REPLY, result["response"])
+        self.assertNotIn("knowledge documents", result["response"])
         demo.assert_not_called()
 
     def test_rag_route_does_not_change_pending_business_workflow_state(self):
@@ -618,15 +621,15 @@ class RAGServiceTests(unittest.TestCase):
 
     def test_missing_configuration_is_clear_and_production_never_uses_demo_data(self):
         with patch.object(nodes, "get_rag_service", side_effect=RAGConfigurationError("OPENAI_API_KEY is not configured")), patch.object(Config, "APP_ENV", "production"), patch.object(nodes, "store_information_tool") as demo:
-            result = nodes.store_information_node({"query": "What promotions are available?", "messages": []})
+            result = nodes.store_information_node({"query": "What is the colour of your logo?", "messages": []})
         # Production has no approved documents here and must never fall back to demo content.
-        self.assertIn("couldn't find that in our help documents", result["response"])
+        self.assertIn(NO_ANSWER_REPLY, result["response"])
         self.assertEqual(result["sources"], [])
         demo.assert_not_called()
 
     def test_development_demo_fallback_is_explicitly_labeled_and_scoped(self):
         with patch.object(nodes, "get_rag_service", side_effect=RAGConfigurationError("OPENAI_API_KEY is not configured")), patch.object(Config, "APP_ENV", "development"):
-            result = nodes.store_information_node({"query": "Are there any sales?", "messages": []})
+            result = nodes.store_information_node({"query": "What are your store hours?", "messages": []})
         self.assertIn("RAG is not configured", result["response"])
         self.assertIn("fictional", result["response"])
         with patch.object(nodes, "get_rag_service", side_effect=RAGConfigurationError("OPENAI_API_KEY is not configured")), patch.object(Config, "APP_ENV", "development"):

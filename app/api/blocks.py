@@ -64,6 +64,7 @@ def build_blocks(result: dict[str, Any]) -> list[dict[str, Any]]:
     if isinstance(result.get("ticket"), dict):
         blocks.append({"type": "ticket_card", **public_ticket(result["ticket"])})
     sources = result.get("sources")
-    if isinstance(sources, list) and sources:
+    # Only an answer taken from the help guides cites them; sources left over from an earlier turn don't count.
+    if route == "store_information" and isinstance(sources, list) and sources:
         blocks.append({"type": "sources", "items": [s for s in sources if isinstance(s, (str, dict))][:4]})
     return blocks
