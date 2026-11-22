@@ -39,7 +39,7 @@ class MemorySession:
 class DatabaseModelTests(unittest.TestCase):
     def test_models_register_exact_expected_business_tables(self):
         self.assertEqual(set(Base.metadata.tables), {
-            "products", "orders", "support_cases", "return_request_drafts", "refund_records",
+            "products", "orders", "support_cases", "return_request_drafts", "refund_records", "support_tickets",
         })
 
     def test_order_product_and_business_record_foreign_keys_exist(self):

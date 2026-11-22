@@ -1,0 +1,8 @@
+{
+  "data_type": "demonstration_only",
+  "notice": "Fictional demo customers for the sign-in picker; not real people or accounts.",
+  "customers": [
+    {"customer_id": "CUST-001", "name": "Aarav Sharma", "order_ids": ["ORD-1001", "ORD-1002"]},
+    {"customer_id": "CUST-002", "name": "Meera Iyer", "order_ids": ["ORD-1003", "ORD-1004"]}
+  ]
+}

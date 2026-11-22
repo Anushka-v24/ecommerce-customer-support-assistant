@@ -7,17 +7,19 @@ from uuid import uuid4
 from flask import Blueprint, current_app, jsonify, request
 from werkzeug.exceptions import BadRequest, RequestEntityTooLarge
 
+from app.services.customer_service import get_customer, list_customers
+from app.services.ticket_service import list_tickets, public_ticket
 from app.services.turn_log import append_record
 
 api_blueprint = Blueprint("api", __name__)
 logger = logging.getLogger(__name__)
 
 
-def invoke_graph(query: str, session_id: str):
+def invoke_graph(query: str, session_id: str, customer_id: str | None = None):
     """Load and call the graph only for chat requests; health stays lightweight."""
     from app.graph.workflow import invoke_graph as graph_invoke
 
-    return graph_invoke(query, session_id)
+    return graph_invoke(query, session_id, customer_id=customer_id)
 
 
 @api_blueprint.get("/health")
@@ -37,9 +39,9 @@ def chat():
 
     if not isinstance(payload, dict):
         return jsonify({"error": "invalid_request", "message": "JSON body must be an object."}), 400
-    unexpected = set(payload) - {"session_id", "message"}
+    unexpected = set(payload) - {"session_id", "message", "customer_id"}
     if unexpected:
-        return jsonify({"error": "invalid_request", "message": "Only session_id and message fields are accepted."}), 400
+        return jsonify({"error": "invalid_request", "message": "Only session_id, message and customer_id fields are accepted."}), 400
 
     session_id = payload.get("session_id")
     if not isinstance(session_id, str) or not session_id.strip():
@@ -54,9 +56,17 @@ def chat():
     if len(message) > current_app.config["MAX_CHAT_MESSAGE_LENGTH"]:
         return jsonify({"error": "message_too_large", "message": "message exceeds the maximum allowed length."}), 413
 
+    # Demo sign-in only: the customer ID is chosen in the UI and is not authentication.
+    customer_id = payload.get("customer_id")
+    if customer_id is not None and get_customer(customer_id) is None:
+        return jsonify({"error": "invalid_customer_id", "message": "customer_id does not match a known customer."}), 400
+
     started = time.perf_counter()
     try:
-        result = invoke_graph(message.strip(), session_id)
+        if customer_id:
+            result = invoke_graph(message.strip(), session_id, customer_id=customer_id)
+        else:
+            result = invoke_graph(message.strip(), session_id)
     except Exception as exc:
         # Do not echo exception messages, which may contain provider/config details.
         logger.error("Chat graph invocation failed (%s)", type(exc).__name__)
@@ -74,13 +84,54 @@ def chat():
     answer = result.get("response") or "The assistant did not return a response."
     turn_id = uuid4().hex
     _log_turn(turn_id, session_id, message.strip(), answer, result, (time.perf_counter() - started) * 1000)
-    return jsonify({
+    body = {
         "session_id": session_id,
         "turn_id": turn_id,
         "answer": answer,
         "intent": result.get("final_intent"),
         "workflow_status": result.get("workflow_status"),
-    }), 200
+    }
+    quick_replies = _safe_quick_replies(result.get("quick_replies"))
+    if quick_replies:
+        body["quick_replies"] = quick_replies
+    if isinstance(result.get("ticket"), dict):
+        body["ticket"] = public_ticket(result["ticket"])
+    return jsonify(body), 200
+
+
+def _safe_quick_replies(value) -> list[dict[str, str]]:
+    if not isinstance(value, list):
+        return []
+    return [
+        {"label": item["label"], "value": item["value"]}
+        for item in value
+        if isinstance(item, dict) and isinstance(item.get("label"), str) and isinstance(item.get("value"), str)
+    ]
+
+
+@api_blueprint.get("/customers")
+def customers():
+    """List the fictional demo customers offered by the sign-in picker."""
+    return jsonify({"customers": list_customers()}), 200
+
+
+@api_blueprint.get("/tickets")
+def tickets():
+    """List one customer's (or one conversation's) tickets, newest first."""
+    customer_id = (request.args.get("customer_id") or "").strip() or None
+    session_id = (request.args.get("session_id") or "").strip() or None
+    if customer_id is None and session_id is None:
+        return jsonify({"error": "invalid_request", "message": "Provide customer_id or session_id."}), 400
+    if customer_id is not None and get_customer(customer_id) is None:
+        return jsonify({"error": "invalid_customer_id", "message": "customer_id does not match a known customer."}), 400
+    if session_id is not None and len(session_id) > current_app.config["MAX_SESSION_ID_LENGTH"]:
+        return jsonify({"error": "invalid_session_id", "message": "session_id exceeds the maximum allowed length."}), 400
+    try:
+        records = list_tickets(customer_id=customer_id, session_id=session_id)
+    except Exception as exc:
+        logger.error("Ticket listing failed (%s)", type(exc).__name__)
+        return jsonify({"error": "tickets_unavailable", "message": "Tickets could not be loaded right now."}), 503
+    return jsonify({"tickets": [public_ticket(record) for record in records]}), 200
 
 
 def _log_turn(turn_id: str, session_id: str, message: str, answer: str, result: dict, latency_ms: float) -> None:

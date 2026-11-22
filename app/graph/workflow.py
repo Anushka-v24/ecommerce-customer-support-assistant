@@ -10,7 +10,7 @@ from langgraph.graph import END, START, StateGraph
 
 from app.graph import nodes
 from app.graph.checkpointer import close_postgres_checkpointer, get_configured_checkpointer
-from app.graph.routing import ROUTE_TO_NODE, route_classifier_result
+from app.graph.routing import ROUTE_TO_NODE, route_with_intent_confirmation
 from app.graph.state import AgentState
 
 
@@ -20,6 +20,7 @@ def build_graph(checkpointer: Any | None = None):
     node_functions = {
         "continuity_node": nodes.continuity_node,
         "classify_intent": nodes.classify_intent_node,
+        "confirm_intent_node": nodes.confirm_intent_node,
         "resume_pending_node": nodes.resume_pending_node,
         "pending_clarification_node": nodes.pending_clarification_node,
         "finalize_turn_node": nodes.finalize_turn_node,
@@ -54,8 +55,11 @@ def build_graph(checkpointer: Any | None = None):
             "clarify_pending": "pending_clarification_node",
         },
     )
-    builder.add_conditional_edges("classify_intent", route_classifier_result, ROUTE_TO_NODE)
-    for node_name in set(ROUTE_TO_NODE.values()) | {"resume_pending_node", "pending_clarification_node"}:
+    builder.add_conditional_edges(
+        "classify_intent", route_with_intent_confirmation,
+        {**ROUTE_TO_NODE, "confirm_intent": "confirm_intent_node"},
+    )
+    for node_name in set(ROUTE_TO_NODE.values()) | {"confirm_intent_node", "resume_pending_node", "pending_clarification_node"}:
         builder.add_edge(node_name, "finalize_turn_node")
     builder.add_edge("finalize_turn_node", END)
     selected_checkpointer = checkpointer if checkpointer is not None else get_configured_checkpointer()
@@ -82,17 +86,20 @@ def close_graph_resources() -> None:
 atexit.register(close_graph_resources)
 
 
-def invoke_graph(query: str, session_id: str, graph: Any | None = None) -> AgentState:
+def invoke_graph(
+    query: str, session_id: str, graph: Any | None = None, customer_id: str | None = None,
+) -> AgentState:
     """Invoke a conversation with its session ID as the checkpointer thread ID."""
     if not isinstance(session_id, str) or not session_id.strip():
         raise ValueError("session_id is required to isolate conversation memory.")
     if not isinstance(query, str):
         raise ValueError("query must be a string.")
     runnable = graph or get_graph()
-    return runnable.invoke(
-        {"query": query, "session_id": session_id},
-        {"configurable": {"thread_id": session_id}},
-    )
+    # Buttons and the raised ticket belong to one turn; reset them before each run.
+    turn_input: dict[str, Any] = {"query": query, "session_id": session_id, "quick_replies": [], "ticket": None}
+    if customer_id:
+        turn_input["customer_id"] = customer_id
+    return runnable.invoke(turn_input, {"configurable": {"thread_id": session_id}})
 
 
 def build_test_graph():

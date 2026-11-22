@@ -21,6 +21,8 @@ from app.services.support_case_service import investigate_missing_order, report_
 
 # Unit tests must keep demo mutations out of a developer's configured database.
 patch.object(Config, "BUSINESS_DATA_BACKEND", "json").start()
+# These modules test the workflows reached after a confirmed request; test_intent_confirmation covers the confirmation step.
+patch.object(Config, "INTENT_CONFIRMATION_ENABLED", False).start()
 # Unit tests stay offline; the Groq extraction fallback has its own mocked tests.
 patch.object(Config, "LLM_EXTRACTION_ENABLED", False).start()
 patch.object(nodes, "get_rag_service", side_effect=RAGConfigurationError("OPENAI_API_KEY is not configured")).start()

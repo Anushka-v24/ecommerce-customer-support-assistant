@@ -270,6 +270,106 @@ textarea:focus-visible {
   transition: background-color 150ms ease;
 }
 
+.nav-button,
+.view-tab {
+  color: var(--text-secondary);
+}
+
+.nav-button:hover,
+.view-tab:hover {
+  background: var(--hover);
+  color: var(--text);
+}
+
+.nav-button[aria-current="page"],
+.view-tab[aria-selected="true"] {
+  background: var(--accent-soft);
+  color: var(--accent-text);
+}
+
+.view-tabs {
+  border-color: var(--border);
+}
+
+.tab-count {
+  background: var(--accent);
+  color: var(--surface);
+}
+
+.customer-select {
+  color: var(--text);
+  max-width: 100%;
+  text-overflow: ellipsis;
+}
+
+.customer-select option {
+  background: var(--surface);
+  color: var(--text);
+}
+
+.quick-reply {
+  background: var(--surface);
+  border-color: var(--accent);
+  color: var(--accent-text);
+  cursor: pointer;
+}
+
+.quick-reply:hover {
+  background: var(--accent-soft);
+}
+
+.ticket-card {
+  background: var(--surface);
+  border-color: var(--border);
+}
+
+.ticket-id,
+.ticket-subject {
+  color: var(--text);
+}
+
+.ticket-description {
+  color: var(--text-secondary);
+  overflow-wrap: anywhere;
+}
+
+.ticket-meta {
+  color: var(--text-muted);
+}
+
+.pill {
+  background: var(--surface-soft);
+  border: 1px solid var(--border);
+  color: var(--text-secondary);
+}
+
+.pill-open {
+  background: var(--accent-soft);
+  border-color: transparent;
+  color: var(--accent-text);
+}
+
+.pill-priority-high {
+  background: var(--error-surface);
+  border-color: var(--error-border);
+  color: var(--error-text);
+}
+
+.link-button {
+  background: none;
+  border: 0;
+  color: var(--accent);
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.toast {
+  background: var(--surface);
+  border-color: var(--border-strong);
+  color: var(--text);
+}
+
 .sidebar-backdrop {
   border: 0;
   background: rgb(8 12 17 / 52%);

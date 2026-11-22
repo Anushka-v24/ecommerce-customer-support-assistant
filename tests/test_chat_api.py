@@ -17,6 +17,8 @@ from app.services.case_repository import list_demo_records
 from langgraph.checkpoint.memory import InMemorySaver
 # Tests never share the developer's PostgreSQL checkpoints; .env may select them.
 patch.object(Config, "CHECKPOINT_BACKEND", "memory").start()
+# These modules test the workflows reached after a confirmed request; test_intent_confirmation covers the confirmation step.
+patch.object(Config, "INTENT_CONFIRMATION_ENABLED", False).start()
 
 
 class ApiTestConfig(Config):

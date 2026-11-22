@@ -10,7 +10,7 @@ from uuid import uuid4
 from app.classifier.classifier_service import classify_and_verify
 from app.config import Config
 from app.graph.state import AgentState
-from app.graph.routing import INTENT_LABELS
+from app.graph.routing import INTENT_LABELS, route_classifier_result
 from app.rag.service import (
     RAGConfigurationError,
     RAGProviderError,
@@ -22,6 +22,7 @@ from app.services.product_service import search_products
 from app.services.catalog_help_service import answer_warranty_question, recommend_products
 from app.services.shipping_payment_service import answer_payment_question, answer_shipping_question
 from app.services.store_response import format_store_information
+from app.services.ticket_service import create_ticket, public_ticket
 from app.tools.customer_care_tools import customer_handoff_tool
 from app.tools.issue_tools import (
     damaged_order_tool,
@@ -62,6 +63,57 @@ _REQUEST_SHAPE = re.compile(
 _YES_ANSWERS = {"yes", "yes, confirm", "yes confirm", "confirm", "y", "\u0939\u093e\u0901", "\u0939\u093e\u0902", "\u091c\u0940", "\u0939\u093e\u0901 \u092a\u0941\u0937\u094d\u091f\u093f \u0915\u0930\u0947\u0902", "\u0939\u093e\u0902 \u092a\u0941\u0937\u094d\u091f\u093f \u0915\u0930\u0947\u0902"}
 _NO_ANSWERS = {"no", "no, cancel", "cancel", "cancel it", "do not proceed", "n", "\u0928\u0939\u0940\u0902", "\u0928\u0939\u0940", "\u0928\u093e", "\u0930\u0926\u094d\u0926 \u0915\u0930\u0947\u0902", "\u0930\u0926\u094d\u0926"}
 _VERIFIED_CLASSIFIER_STATUSES = {"ACCEPTED_BY_CLASSIFIER", "CORRECT_INTENT", "CORRECTED_INTENT"}
+_DEVANAGARI = re.compile(r"[\u0900-\u097F]")
+
+# Buttons shown under an assistant message; each value is sent back as the next message.
+_CONFIRM_REPLIES = [{"label": "Yes, that's right", "value": "yes"}, {"label": "No, it's something else", "value": "no"}]
+_CANCEL_REPLIES = [{"label": "Yes, cancel it", "value": "yes"}, {"label": "No, keep it", "value": "no"}]
+_ISSUE_CHOICE_REPLIES = [
+    {"label": "Refund status", "value": "refund status"},
+    {"label": "Return an item", "value": "return an item"},
+    {"label": "Damaged item", "value": "damaged item"},
+    {"label": "Missing delivery", "value": "missing delivery"},
+]
+_CORRECTION_REPLIES = _ISSUE_CHOICE_REPLIES + [
+    {"label": "Exchange an item", "value": "exchange an item"},
+    {"label": "Talk to a person", "value": "talk to a person"},
+    {"label": "Something else", "value": "something else"},
+]
+# Confirmation and correction prompts are dropped, not suspended, when the
+# customer interrupts them; reminding them later would be confusing.
+_DISCARDABLE_WORKFLOWS = {"intent_confirmation", "intent_correction"}
+# Requests that end in a ticket are confirmed first; refund status is a lookup.
+_CONFIRMED_ISSUE_TYPES = {"damaged_order", "missing_order", "return_order"}
+# Phrases the existing issue rules resolve deterministically, used when the
+# customer picks an issue from the correction menu.
+_ISSUE_CHOICE_QUERIES = {
+    "refund_status": "where is my refund",
+    "return_order": "i want to return my order",
+    "damaged_order": "my item arrived damaged",
+    "missing_order": "my order has not arrived",
+}
+_CONFIRMATION_PROMPTS = {
+    "en": {
+        "damaged_order": "I'm really sorry to hear your order arrived damaged. Just to make sure I've understood: you'd like to report a damaged item{order}. Is that right?",
+        "missing_order": "I'm sorry your order hasn't reached you yet. Just to make sure I've understood: you'd like us to look into a missing delivery{order}. Is that right?",
+        "return_order": "Happy to help with that. Just to make sure I've understood: you'd like to return an item{order}. Is that right?",
+        "customer_care": "I understand you'd like to talk to someone from our support team. Shall I raise a ticket and pass your conversation on to them?",
+        "exchange": "Sure, I can help with that. Just to make sure I've understood: you'd like to exchange an item{order}. Is that right?",
+        "order": " for order {order_id}",
+        "correction": "No problem, thanks for letting me know. Which of these is closest to what you need?",
+        "describe": "No problem. Please tell me in your own words what you need help with, and I'll take it from there.",
+    },
+    "hi": {
+        "damaged_order": "हमें खेद है कि आपका ऑर्डर खराब हालत में पहुँचा। क्या मैंने सही समझा कि आप{order} खराब सामान की शिकायत दर्ज करना चाहते हैं?",
+        "missing_order": "हमें खेद है कि आपका ऑर्डर अभी तक नहीं पहुँचा। क्या मैंने सही समझा कि आप चाहते हैं कि हम{order} गुम डिलीवरी की जाँच करें?",
+        "return_order": "ज़रूर, मैं मदद करूँगा। क्या मैंने सही समझा कि आप{order} सामान वापस (रिटर्न) करना चाहते हैं?",
+        "customer_care": "मैं समझता हूँ कि आप हमारी सपोर्ट टीम से बात करना चाहते हैं। क्या मैं टिकट बनाकर आपकी बातचीत उन्हें भेज दूँ?",
+        "exchange": "ज़रूर, मैं मदद करूँगा। क्या मैंने सही समझा कि आप{order} सामान बदलना (एक्सचेंज) चाहते हैं?",
+        "order": " ऑर्डर {order_id} के लिए",
+        "correction": "कोई बात नहीं, बताने के लिए धन्यवाद। इनमें से कौन-सा विकल्प आपकी ज़रूरत के सबसे करीब है?",
+        "describe": "कोई बात नहीं। कृपया अपने शब्दों में बताइए कि आपको किस चीज़ में मदद चाहिए।",
+    },
+}
 
 
 def _verified_new_request(result: dict[str, Any], pending: dict[str, Any]) -> bool:
@@ -111,6 +163,13 @@ def _classify_pending_message(state: AgentState, pending: dict[str, Any]) -> dic
         result = {"verifier_status": "CLASSIFICATION_ERROR", "final_intent": None, "error": str(exc)}
     result = {**result, "query": query}
     if _verified_new_request(result, pending):
+        if pending.get("workflow") in _DISCARDABLE_WORKFLOWS:
+            return {
+                "continuity_action": "classify", "resuming_pending": False,
+                "pending_workflow": None, "workflow_status": None, "pending_clarification": None,
+                "confirmation_required": False, "confirmation_status": None,
+                "preclassified_result": result,
+            }
         stack = list(state.get("suspended_workflows") or [])
         stack.append({**pending, "status": "suspended"})
         return {
@@ -119,7 +178,9 @@ def _classify_pending_message(state: AgentState, pending: dict[str, Any]) -> dic
             "workflow_status": "suspended", "pending_clarification": pending.get("prompt"),
             "preclassified_result": result,
         }
-    if state.get("confirmation_required") and state.get("confirmation_status") != "confirmed":
+    if pending.get("workflow") in _DISCARDABLE_WORKFLOWS:
+        response = "Sorry, I didn't quite catch that. " + (pending.get("prompt") or "Please choose one of the options.")
+    elif state.get("confirmation_required") and state.get("confirmation_status") != "confirmed":
         response = "This action still requires explicit confirmation. " + (pending.get("prompt") or "Reply 'confirm' to proceed or 'cancel' to stop.")
     else:
         response = "I couldn't use that as the requested information. " + (pending.get("prompt") or "Please clarify your reply.")
@@ -186,6 +247,23 @@ def _issue_type_answer(query: str) -> str | None:
     return answers.get(" ".join(query.casefold().strip(" .!?\t").split()))
 
 
+def _intent_choice(query: str) -> str | None:
+    """Map a correction-menu answer to an issue type, a human handoff, or 'other'."""
+    normalized = " ".join(query.casefold().strip(" .!?\t").split())
+    choices = {
+        "return an item": "return_order", "missing delivery": "missing_order",
+        "exchange an item": "exchange", "exchange": "exchange",
+        "talk to a person": "customer_care", "talk to someone": "customer_care",
+        "human": "customer_care", "agent": "customer_care", "customer care": "customer_care",
+        "something else": "other", "other": "other", "none of these": "other",
+    }
+    return choices.get(normalized) or _issue_type_answer(query)
+
+
+def _language(query: str | None) -> str:
+    return "hi" if _DEVANAGARI.search(query or "") else "en"
+
+
 def _free_text_detail(query: str, issue_type: str) -> str | None:
     text = _ORDER_ID_IN_TEXT.sub(" ", query).strip(" .,!?\t")
     if issue_type == "damaged_order":
@@ -207,6 +285,7 @@ def _continuity_clarification(state: AgentState, response: str, pending: dict[st
         "workflow_status": pending.get("status", "awaiting_input"),
         "pending_clarification": response,
         "resuming_pending": False,
+        "quick_replies": pending.get("quick_replies") or [],
         "selected_route": f"pending:{pending['workflow']}",
         "tool_result": {"status": "awaiting_input", "workflow": pending["workflow"], "awaiting_slot": pending["awaiting_slot"], "tools_executed": False},
         "response": response,
@@ -228,6 +307,16 @@ def continuity_node(state: AgentState) -> dict[str, Any]:
                 "workflow_status": "active", "confirmation_status": "confirmed",
                 "resuming_pending": True, "messages": _append_message(state, "user", query),
             }
+        if normalized in _NO_ANSWERS and (pending or {}).get("workflow") == "intent_confirmation":
+            collected = dict(pending.get("collected") or {})
+            prompt = _CONFIRMATION_PROMPTS[_language(collected.get("original_query"))]["correction"]
+            correction = _pending(
+                "intent_correction", "intent_choice", collected, prompt,
+                required_slots=["intent_choice"], classifier_intent=pending.get("classifier_intent"),
+                quick_replies=_CORRECTION_REPLIES,
+            )
+            clarification = _continuity_clarification(state, prompt, correction)
+            return {**clarification, "confirmation_required": False, "confirmation_status": "rejected"}
         if normalized in _NO_ANSWERS:
             response = "The pending action was cancelled. No operation was performed."
             messages = _append_message(state, "user", query)
@@ -307,6 +396,8 @@ def continuity_node(state: AgentState) -> dict[str, Any]:
     elif slot in {"return_reason", "damage_description", "missing_delivery_details"}:
         if _slot_answer_is_valid(slot, query):
             accepted = query[:1000]
+    elif slot == "intent_choice":
+        accepted = _intent_choice(query)
 
     if accepted is None:
         return _classify_pending_message(state, pending)
@@ -371,8 +462,110 @@ def resume_pending_node(state: AgentState) -> dict[str, Any]:
         return order_cancellation_node(state)
     if workflow == "exchange":
         return exchange_node(state)
+    if workflow == "intent_confirmation":
+        collected = pending.get("collected") or {}
+        return _run_confirmed_request(
+            state, collected.get("original_route"), collected.get("original_query") or "", collected.get("order_id"),
+        )
+    if workflow == "intent_correction":
+        collected = pending.get("collected") or {}
+        choice = collected.get("intent_choice")
+        if choice == "customer_care":
+            return _run_confirmed_request(state, "customer_care", collected.get("original_query") or "", collected.get("order_id"))
+        if choice == "exchange":
+            # The original message described something else, so it is not used as the requested change.
+            return _run_confirmed_request(state, "exchange", "", collected.get("order_id"))
+        if choice in _ISSUE_CHOICE_QUERIES:
+            return _run_confirmed_request(state, "issue_support", _ISSUE_CHOICE_QUERIES[choice], collected.get("order_id"))
+        response = _CONFIRMATION_PROMPTS[_language(collected.get("original_query"))]["describe"]
+        return {
+            "selected_route": "pending:intent_correction", "response": response,
+            "tool_result": {"status": "awaiting_description", "executed": False},
+            "pending_workflow": None, "workflow_status": "idle", "pending_clarification": None,
+            "resuming_pending": False, "messages": _append_message(state, "assistant", response),
+        }
     response = "I could not safely resume that pending request. Please describe what you need again."
     return {"selected_route": "pending:unsupported", "response": response, "tool_result": {"status": "not_executed"}, "pending_workflow": None, "workflow_status": "idle", "resuming_pending": False, "messages": _append_message(state, "assistant", response)}
+
+
+def _run_confirmed_request(state: AgentState, route: str | None, query: str, order_id: str | None) -> dict[str, Any]:
+    """Run the workflow the customer just confirmed as if it had been routed directly."""
+    sub_state: AgentState = {
+        **state, "query": query, "order_id": order_id, "issue_type": None,
+        "issue_details": {"order_id": order_id} if order_id else {},
+        "pending_workflow": None, "resuming_pending": False,
+        "confirmation_required": False, "confirmation_status": None,
+    }
+    node = {"customer_care": customer_care_node, "exchange": exchange_node}.get(route or "", issue_resolver_node)
+    return {
+        "pending_workflow": None, "workflow_status": "completed", "pending_clarification": None,
+        "resuming_pending": False, "confirmation_required": False, "confirmation_status": None,
+        **node(sub_state),
+    }
+
+
+def confirm_intent_node(state: AgentState) -> dict[str, Any]:
+    """Restate the understood request politely and wait for the customer's yes or no."""
+    route = route_classifier_result(state)
+    query = state.get("query") or ""
+    issue_type = None
+    order_id = _order_id(state)
+    if route == "issue_support":
+        resolution = resolve_issue_type(query)
+        issue_type = resolution.get("issue_type") if resolution.get("outcome") == "resolved" else None
+        if issue_type not in _CONFIRMED_ISSUE_TYPES:
+            # Ambiguous issues already get a choice question; lookups need no confirmation.
+            return issue_resolver_node(state)
+        order_id = order_id or resolution.get("order_id")
+    prompts = _CONFIRMATION_PROMPTS[_language(query)]
+    order_text = prompts["order"].format(order_id=order_id) if order_id else ""
+    prompt = prompts[issue_type or route].format(order=order_text)
+    collected = {"original_route": route, "original_issue_type": issue_type, "original_query": query, "order_id": order_id}
+    pending = _pending(
+        "intent_confirmation", "confirmation", collected, prompt,
+        classifier_intent=state.get("final_intent"), quick_replies=_CONFIRM_REPLIES,
+    )
+    pending["status"] = "awaiting_confirmation"
+    return {
+        "selected_route": f"confirm:{route}",
+        "tool_result": {"outcome": "awaiting_intent_confirmation", "route": route, "issue_type": issue_type, "executed": False},
+        "response": prompt, "error": None,
+        "messages": _append_message(state, "assistant", prompt),
+        "pending_workflow": pending, "workflow_status": "awaiting_confirmation",
+        "pending_clarification": prompt, "resuming_pending": False,
+        "confirmation_required": True, "confirmation_status": "requested",
+        "quick_replies": _CONFIRM_REPLIES,
+    }
+
+
+def _raise_ticket(
+    state: AgentState, category: str, order_id: str | None, description: str,
+    case_reference: str | None, details: dict[str, Any] | None = None,
+) -> dict[str, Any] | None:
+    """Open a customer-facing ticket; a storage failure never fails the conversation."""
+    try:
+        ticket = create_ticket(
+            session_id=state.get("session_id") or "", category=category, description=description,
+            customer_id=state.get("customer_id"), order_id=order_id,
+            case_reference=case_reference, details=details,
+        )
+    except Exception:
+        logger.exception("Ticket creation failed (%s).", category)
+        return None
+    return public_ticket(ticket)
+
+
+def _with_ticket(output: dict[str, Any], ticket: dict[str, Any] | None) -> dict[str, Any]:
+    if not ticket:
+        return output
+    response = (
+        f"{output['response']}\n\nI've raised ticket {ticket['ticket_id']} for you. "
+        "You can follow its progress in the My Tickets tab."
+    )
+    messages = list(output.get("messages") or [])
+    if messages and messages[-1].get("role") == "assistant":
+        messages[-1] = {"role": "assistant", "content": response}
+    return {**output, "response": response, "messages": messages, "ticket": ticket}
 
 
 def finalize_turn_node(state: AgentState) -> dict[str, Any]:
@@ -603,11 +796,12 @@ def order_cancellation_node(state: AgentState) -> dict[str, Any]:
         return reply(response, {"outcome": "not_cancellable", "order_id": order_id, "order_status": status, "executed": False}, **done)
 
     prompt = f"Order {order_id} is still {status.lower()}. Do you want me to cancel it? Reply 'yes' to cancel or 'no' to keep it."
-    awaiting = _pending("order_cancellation", "confirmation", {"order_id": order_id}, prompt, classifier_intent="order_management")
+    awaiting = _pending("order_cancellation", "confirmation", {"order_id": order_id}, prompt, classifier_intent="order_management", quick_replies=_CANCEL_REPLIES)
     awaiting["status"] = "awaiting_confirmation"
     return reply(prompt, {"outcome": "awaiting_confirmation", "order_id": order_id, "executed": False},
                  pending_workflow=awaiting, workflow_status="awaiting_confirmation", pending_clarification=prompt,
-                 resuming_pending=False, confirmation_required=True, confirmation_status="requested")
+                 resuming_pending=False, confirmation_required=True, confirmation_status="requested",
+                 quick_replies=_CANCEL_REPLIES)
 
 
 def product_inquiry_node(state: AgentState) -> dict[str, Any]:
@@ -731,7 +925,7 @@ def issue_resolver_node(state: AgentState) -> dict[str, Any]:
         pending = _pending(
             "issue_support", "issue_type", collected, response,
             required_slots=["issue_type"], classifier_intent="issue_support",
-            candidates=resolution.get("candidates", []),
+            candidates=resolution.get("candidates", []), quick_replies=_ISSUE_CHOICE_REPLIES,
         )
         return {
             "selected_route": "issue_support:clarification", "issue_type": None,
@@ -741,6 +935,7 @@ def issue_resolver_node(state: AgentState) -> dict[str, Any]:
             "messages": _append_message(state, "assistant", response),
             "pending_workflow": pending, "workflow_status": "awaiting_input",
             "pending_clarification": response, "resuming_pending": False,
+            "quick_replies": _ISSUE_CHOICE_REPLIES,
         }
 
     issue_type = resolution["issue_type"]
@@ -811,7 +1006,14 @@ def issue_resolver_node(state: AgentState) -> dict[str, Any]:
                 )
             else:
                 response = f"I could not prepare a demonstration return request ({result['outcome']}). Please check the order ID."
-            return _issue_result(state, issue_type, result["outcome"], "return_request_prepared", response, result, issue_details=collected)
+            output = _issue_result(state, issue_type, result["outcome"], "return_request_prepared", response, result, issue_details=collected)
+            if result["outcome"] == "demo_request_prepared":
+                request = result["request"]
+                output = _with_ticket(output, _raise_ticket(
+                    state, issue_type, request["order_id"], f"Return requested. Reason: {reason}",
+                    request["reference"], {"return_reason": reason},
+                ))
+            return output
 
         if issue_type == "damaged_order":
             description = collected.get("damage_description")
@@ -833,7 +1035,14 @@ def issue_resolver_node(state: AgentState) -> dict[str, Any]:
                 response = "Please describe what is damaged so I can prepare a demonstration support case."
             else:
                 response = "I could not prepare a demonstration damaged-item case. Please check the order ID and product details."
-            return _issue_result(state, issue_type, result["outcome"], "damaged_case_recorded", response, result, issue_details=collected)
+            output = _issue_result(state, issue_type, result["outcome"], "damaged_case_recorded", response, result, issue_details=collected)
+            if result["outcome"] == "demo_case_recorded":
+                case = result["case"]
+                output = _with_ticket(output, _raise_ticket(
+                    state, issue_type, case["order_id"], f"Item arrived damaged: {description}",
+                    case["reference"], {"damage_description": description},
+                ))
+            return output
 
         if issue_type == "missing_order":
             details = collected.get("missing_delivery_details")
@@ -863,7 +1072,13 @@ def issue_resolver_node(state: AgentState) -> dict[str, Any]:
                 response = "The demonstration order has no recognized delivery status, so I cannot determine progress or declare it lost."
             else:
                 response = "I could not find that order in the demonstration data, so no investigation case was created."
-            return _issue_result(state, issue_type, result["outcome"], "missing_delivery_investigated", response, result, issue_details=collected)
+            output = _issue_result(state, issue_type, result["outcome"], "missing_delivery_investigated", response, result, issue_details=collected)
+            if result["outcome"] == "demo_case_recorded":
+                output = _with_ticket(output, _raise_ticket(
+                    state, issue_type, order_id, f"Delivery not received: {details}",
+                    result["case"]["reference"], {"missing_delivery_details": details},
+                ))
+            return output
     except Exception:
         logger.exception("Issue support workflow failed (%s).", issue_type)
         result = {"outcome": "service_unavailable", "error": "Demonstration support service is unavailable."}
@@ -898,7 +1113,7 @@ def customer_care_node(state: AgentState) -> dict[str, Any]:
         result = {"outcome": "service_unavailable", "live_agent_contacted": False}
         response = "The demonstration handoff service is unavailable. No agent was contacted."
         handoff_status = "service_unavailable"
-    return {
+    output = {
         "selected_route": "customer_care",
         "handoff_status": handoff_status,
         "support_case_reference": (result.get("handoff") or {}).get("reference"),
@@ -906,6 +1121,12 @@ def customer_care_node(state: AgentState) -> dict[str, Any]:
         "error": None if handoff_status == "simulated_handoff_ready" else result.get("error"),
         "messages": _append_message(state, "assistant", response),
     }
+    if handoff_status == "simulated_handoff_ready":
+        output = _with_ticket(output, _raise_ticket(
+            state, "customer_care", _order_id(state), reason, result["handoff"]["reference"],
+            {"conversation_summary": summary},
+        ))
+    return output
 
 
 def store_information_node(state: AgentState) -> dict[str, Any]:
@@ -1146,7 +1367,11 @@ def exchange_node(state: AgentState) -> dict[str, Any]:
     response = (f"Exchange request {reference} is prepared for order {order_id}.{detail} "
                 "A pickup of the original item would be scheduled and the replacement shipped once it is checked. "
                 "This is a demonstration; no real exchange was arranged.")
-    return reply(response, {"outcome": "exchange_prepared", "order_id": order_id, "reference": reference, "executed": True}, **done)
+    output = reply(response, {"outcome": "exchange_prepared", "order_id": order_id, "reference": reference, "executed": True}, **done)
+    description = f"Exchange requested. Change: {request_text}" if request_text else "Exchange requested."
+    return _with_ticket(output, _raise_ticket(
+        state, "exchange_request", order_id, description, reference, {"exchange_details": request_text},
+    ))
 
 
 def respond_to_query(state: AgentState) -> dict[str, str]:

@@ -1,8 +1,25 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 type Rating = "up" | "down";
+
+type QuickReply = { label: string; value: string };
+
+type Ticket = {
+  ticket_id: string;
+  category: string;
+  subject: string;
+  description: string;
+  order_id: string | null;
+  status: string;
+  priority: string;
+  created_at: string;
+};
+
+type Customer = { customer_id: string; name: string; order_ids: string[] };
+
+type View = "chat" | "tickets";
 
 type ChatMessage = {
   id: number;
@@ -12,13 +29,61 @@ type ChatMessage = {
   turnId?: string;
   question?: string;
   rating?: Rating;
+  quickReplies?: QuickReply[];
+  ticket?: Ticket;
 };
 
 const INITIAL_GREETING = "Hi! How can we help you today?";
 const CHAT_API_BASE_URL = process.env.NEXT_PUBLIC_CHAT_API_BASE_URL?.trim().replace(/\/+$/, "");
 
+const CUSTOMER_STORAGE_KEY = "ecom-support-customer";
+
 function isJsonObject(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function parseQuickReplies(value: unknown): QuickReply[] {
+  if (!Array.isArray(value)) return [];
+  return value.filter(
+    (item): item is QuickReply => isJsonObject(item) && typeof item.label === "string" && typeof item.value === "string",
+  );
+}
+
+function parseTicket(value: unknown): Ticket | undefined {
+  return isJsonObject(value) && typeof value.ticket_id === "string" ? (value as unknown as Ticket) : undefined;
+}
+
+function formatDate(value: string) {
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? value : date.toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" });
+}
+
+function TicketCard({ ticket, onView }: { ticket: Ticket; onView?: () => void }) {
+  return (
+    <div className="ticket-card w-full rounded-2xl border px-4 py-3">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <span className="ticket-id font-mono text-xs font-semibold">{ticket.ticket_id}</span>
+        <span className="flex gap-1.5">
+          <span className={`pill pill-${ticket.status} rounded-full px-2 py-0.5 text-[11px] font-medium capitalize`}>
+            {ticket.status.replace("_", " ")}
+          </span>
+          <span className={`pill pill-priority-${ticket.priority} rounded-full px-2 py-0.5 text-[11px] font-medium capitalize`}>
+            {ticket.priority} priority
+          </span>
+        </span>
+      </div>
+      <p className="ticket-subject mt-2 text-sm font-semibold">{ticket.subject}</p>
+      <p className="ticket-description mt-1 text-[13px] leading-5">{ticket.description}</p>
+      <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
+        <span className="ticket-meta text-[11px]">Raised {formatDate(ticket.created_at)}</span>
+        {onView && (
+          <button type="button" className="link-button text-xs font-medium" onClick={onView}>
+            View in My tickets
+          </button>
+        )}
+      </div>
+    </div>
+  );
 }
 
 type IconName =
@@ -32,7 +97,8 @@ type IconName =
   | "arrow"
   | "close"
   | "thumbUp"
-  | "thumbDown";
+  | "thumbDown"
+  | "ticket";
 
 function Icon({ name, className = "" }: { name: IconName; className?: string }) {
   const shared = {
@@ -71,6 +137,8 @@ function Icon({ name, className = "" }: { name: IconName; className?: string }) 
       return <svg {...shared}><path d="M7 10v11H4V10h3Z" /><path d="M7 10l4-7a2 2 0 0 1 3 2l-1 5h6a2 2 0 0 1 2 2.3l-1.4 7A2 2 0 0 1 17.6 21H7" /></svg>;
     case "thumbDown":
       return <svg {...shared}><path d="M17 14V3h3v11h-3Z" /><path d="M17 14l-4 7a2 2 0 0 1-3-2l1-5H5a2 2 0 0 1-2-2.3l1.4-7A2 2 0 0 1 6.4 3H17" /></svg>;
+    case "ticket":
+      return <svg {...shared}><path d="M3 8a2 2 0 0 0 2-2h14a2 2 0 0 0 2 2v2a2 2 0 0 0 0 4v2a2 2 0 0 0-2 2H5a2 2 0 0 0-2-2v-2a2 2 0 0 0 0-4V8Z" /><path d="M14 6v12" strokeDasharray="2 2" /></svg>;
   }
 }
 
@@ -79,11 +147,21 @@ function Sidebar({
   onClose,
   onNewChat,
   onToggleTheme,
+  view,
+  onSelectView,
+  customers,
+  customerId,
+  onSelectCustomer,
 }: {
   mobileOpen: boolean;
   onClose: () => void;
   onNewChat: () => void;
   onToggleTheme: () => void;
+  view: View;
+  onSelectView: (view: View) => void;
+  customers: Customer[];
+  customerId: string;
+  onSelectCustomer: (customerId: string) => void;
 }) {
   return (
     <>
@@ -117,12 +195,23 @@ function Sidebar({
           <span>New chat</span>
         </button>
 
-        <div className="mt-9 flex-1">
-          <p className="section-label px-2 text-[11px] font-semibold uppercase tracking-[0.12em]">Recent conversations</p>
-          <div className="history-placeholder mt-3 rounded-xl px-3 py-4 text-xs leading-relaxed">
-            Your conversations will appear here.
+        <nav className="mt-9 flex-1" aria-label="Views">
+          <p className="section-label px-2 text-[11px] font-semibold uppercase tracking-[0.12em]">Support</p>
+          <div className="mt-3 flex flex-col gap-1">
+            {([["chat", "Chat", "chat"], ["tickets", "My tickets", "ticket"]] as const).map(([key, label, icon]) => (
+              <button
+                key={key}
+                type="button"
+                className="nav-button flex h-10 items-center gap-3 rounded-xl px-3 text-sm transition-colors"
+                aria-current={view === key ? "page" : undefined}
+                onClick={() => onSelectView(key)}
+              >
+                <Icon name={icon} className="size-[18px]" />
+                <span>{label}</span>
+              </button>
+            ))}
           </div>
-        </div>
+        </nav>
 
         <div className="sidebar-footer border-t pt-3">
           <button
@@ -135,10 +224,27 @@ function Sidebar({
             <span className="theme-icon-dark"><Icon name="moon" className="size-[18px]" /></span>
             <span>Appearance</span>
           </button>
-          <div className="profile-row mt-2 flex items-center gap-3 rounded-xl px-2 py-3">
-            <span className="avatar flex size-8 items-center justify-center rounded-full text-xs font-semibold">EA</span>
-            <span className="text-xs font-medium">Customer support</span>
-          </div>
+          <label className="profile-row mt-2 flex items-center gap-3 rounded-xl px-2 py-3">
+            <span className="avatar flex size-8 shrink-0 items-center justify-center rounded-full text-xs font-semibold">
+              {customers.find((item) => item.customer_id === customerId)?.name.split(" ").map((part) => part[0]).join("").slice(0, 2) || "?"}
+            </span>
+            <span className="flex min-w-0 flex-1 flex-col gap-0.5">
+              <span className="text-[11px]">Signed in as (demo)</span>
+              <select
+                className="customer-select min-w-0 rounded-md bg-transparent text-xs font-medium outline-none"
+                value={customerId}
+                onChange={(event) => onSelectCustomer(event.target.value)}
+                aria-label="Demo customer"
+              >
+                <option value="">Guest</option>
+                {customers.map((customer) => (
+                  <option key={customer.customer_id} value={customer.customer_id}>
+                    {customer.name} · {customer.order_ids.join(", ")}
+                  </option>
+                ))}
+              </select>
+            </span>
+          </label>
         </div>
       </aside>
     </>
@@ -152,6 +258,12 @@ export default function Home() {
     { id: 0, role: "assistant", content: INITIAL_GREETING },
   ]);
   const [isRequesting, setIsRequesting] = useState(false);
+  const [view, setView] = useState<View>("chat");
+  const [customers, setCustomers] = useState<Customer[]>([]);
+  const [customerId, setCustomerId] = useState("");
+  const [tickets, setTickets] = useState<Ticket[]>([]);
+  const [ticketsStatus, setTicketsStatus] = useState<"idle" | "loading" | "error">("idle");
+  const [toast, setToast] = useState<Ticket | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const nextMessageId = useRef(1);
@@ -163,6 +275,72 @@ export default function Home() {
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
   }, [messages, isRequesting]);
+
+  useEffect(() => {
+    if (!CHAT_API_BASE_URL) return;
+    fetch(`${CHAT_API_BASE_URL}/api/customers`)
+      .then((response) => (response.ok ? response.json() : null))
+      .then((payload: unknown) => {
+        if (!isJsonObject(payload) || !Array.isArray(payload.customers)) return;
+        const loaded = payload.customers as Customer[];
+        setCustomers(loaded);
+        // Restore the last demo customer only if it still exists.
+        let saved: string | null = null;
+        try {
+          saved = localStorage.getItem(CUSTOMER_STORAGE_KEY);
+        } catch {
+          // Storage can be unavailable; the customer can still pick from the menu.
+        }
+        if (saved && loaded.some((item) => item.customer_id === saved)) setCustomerId(saved);
+      })
+      .catch(() => undefined);
+  }, []);
+
+  useEffect(() => {
+    if (!toast) return;
+    const timer = window.setTimeout(() => setToast(null), 8000);
+    return () => window.clearTimeout(timer);
+  }, [toast]);
+
+  const loadTickets = useCallback(async () => {
+    const sessionId = sessionIdRef.current;
+    if (!CHAT_API_BASE_URL || (!customerId && !sessionId)) {
+      setTickets([]);
+      setTicketsStatus("idle");
+      return;
+    }
+    setTicketsStatus("loading");
+    const query = customerId ? `customer_id=${encodeURIComponent(customerId)}` : `session_id=${encodeURIComponent(sessionId!)}`;
+    try {
+      const response = await fetch(`${CHAT_API_BASE_URL}/api/tickets?${query}`);
+      const payload: unknown = await response.json().catch(() => null);
+      if (!response.ok || !isJsonObject(payload) || !Array.isArray(payload.tickets)) throw new Error("tickets");
+      setTickets(payload.tickets.map(parseTicket).filter((item): item is Ticket => Boolean(item)));
+      setTicketsStatus("idle");
+    } catch {
+      setTicketsStatus("error");
+    }
+  }, [customerId]);
+
+  useEffect(() => {
+    if (view === "tickets") loadTickets();
+  }, [view, loadTickets]);
+
+  function selectView(next: View) {
+    setView(next);
+    setMobileOpen(false);
+  }
+
+  function selectCustomer(next: string) {
+    setCustomerId(next);
+    try {
+      if (next) localStorage.setItem(CUSTOMER_STORAGE_KEY, next);
+      else localStorage.removeItem(CUSTOMER_STORAGE_KEY);
+    } catch {
+      // Keep the selection for this page view only.
+    }
+    startNewChat();
+  }
 
   function startNewChat() {
     requestGenerationRef.current += 1;
@@ -178,8 +356,9 @@ export default function Home() {
     setMobileOpen(false);
   }
 
-  async function sendMessage() {
-    const content = draft.trim();
+  async function sendMessage(reply?: QuickReply) {
+    const content = reply ? reply.value : draft.trim();
+    const shown = reply ? reply.label : content;
     if (!content || requestInProgressRef.current) return;
 
     requestInProgressRef.current = true;
@@ -192,10 +371,12 @@ export default function Home() {
 
     setMessages((current) => [
       ...current,
-      { id: nextMessageId.current++, role: "user", content },
+      { id: nextMessageId.current++, role: "user", content: shown },
     ]);
-    setDraft("");
-    if (textareaRef.current) textareaRef.current.style.height = "auto";
+    if (!reply) {
+      setDraft("");
+      if (textareaRef.current) textareaRef.current.style.height = "auto";
+    }
 
     try {
       if (!CHAT_API_BASE_URL) {
@@ -205,7 +386,7 @@ export default function Home() {
       const response = await fetch(`${CHAT_API_BASE_URL}/api/chat`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ session_id: sessionId, message: content }),
+        body: JSON.stringify({ session_id: sessionId, message: content, ...(customerId ? { customer_id: customerId } : {}) }),
         signal: controller.signal,
       });
       const payload: unknown = await response.json().catch(() => null);
@@ -229,10 +410,19 @@ export default function Home() {
       }
 
       const turnId = typeof payload.turn_id === "string" ? payload.turn_id : undefined;
+      const quickReplies = parseQuickReplies(payload.quick_replies);
+      const ticket = parseTicket(payload.ticket);
       setMessages((current) => [
         ...current,
-        { id: nextMessageId.current++, role: "assistant", content: payload.answer as string, turnId, question: content },
+        {
+          id: nextMessageId.current++, role: "assistant", content: payload.answer as string,
+          turnId, question: content, quickReplies, ticket,
+        },
       ]);
+      if (ticket) {
+        setToast(ticket);
+        setTickets((current) => [ticket, ...current.filter((item) => item.ticket_id !== ticket.ticket_id)]);
+      }
     } catch (error) {
       if (generation !== requestGenerationRef.current) return;
 
@@ -283,6 +473,8 @@ export default function Home() {
     }
   }
 
+  const lastMessageId = messages[messages.length - 1]?.id;
+
   function toggleTheme() {
     const currentTheme = document.documentElement.dataset.theme === "dark" ? "dark" : "light";
     const nextTheme = currentTheme === "dark" ? "light" : "dark";
@@ -299,8 +491,16 @@ export default function Home() {
       <Sidebar
         mobileOpen={mobileOpen}
         onClose={() => setMobileOpen(false)}
-        onNewChat={startNewChat}
+        onNewChat={() => {
+          startNewChat();
+          setView("chat");
+        }}
         onToggleTheme={toggleTheme}
+        view={view}
+        onSelectView={selectView}
+        customers={customers}
+        customerId={customerId}
+        onSelectCustomer={selectCustomer}
       />
 
       <section className="chat-panel relative flex min-w-0 flex-1 flex-col">
@@ -315,6 +515,71 @@ export default function Home() {
           </button>
         </header>
 
+        <div className="view-tabs flex shrink-0 justify-center gap-1 border-b px-4 py-2" role="tablist" aria-label="Views">
+          {([["chat", "Chat"], ["tickets", "My tickets"]] as const).map(([key, label]) => (
+            <button
+              key={key}
+              type="button"
+              role="tab"
+              aria-selected={view === key}
+              className="view-tab rounded-lg px-3 py-1.5 text-sm font-medium transition-colors"
+              onClick={() => selectView(key)}
+            >
+              {label}
+              {key === "tickets" && tickets.length > 0 && (
+                <span className="tab-count ml-1.5 rounded-full px-1.5 text-[11px]">{tickets.length}</span>
+              )}
+            </button>
+          ))}
+        </div>
+
+        {toast && (
+          <div className="toast fixed bottom-24 left-1/2 z-50 flex w-[calc(100%-32px)] max-w-[420px] -translate-x-1/2 items-center gap-3 rounded-2xl border px-4 py-3 text-sm shadow-lg" role="status">
+            <Icon name="ticket" className="size-[18px] shrink-0" />
+            <span className="min-w-0 flex-1">
+              Ticket <span className="font-mono font-semibold">{toast.ticket_id}</span> raised
+            </span>
+            <button type="button" className="link-button shrink-0 text-xs font-semibold" onClick={() => { selectView("tickets"); setToast(null); }}>
+              View
+            </button>
+            <button type="button" className="icon-button inline-flex size-7 shrink-0" aria-label="Dismiss" onClick={() => setToast(null)}>
+              <Icon name="close" className="size-[14px]" />
+            </button>
+          </div>
+        )}
+
+        {view === "tickets" ? (
+          <div className="chat-scroll flex min-h-0 w-full flex-1 flex-col items-center overflow-y-auto px-4 sm:px-6">
+            <div className="w-full max-w-[720px] py-10">
+              <div className="mb-6 flex flex-wrap items-end justify-between gap-3">
+                <div>
+                  <h1 className="welcome-title text-[26px] font-semibold tracking-[-0.03em]">My tickets</h1>
+                  <p className="ticket-meta mt-1 text-sm">
+                    {customerId
+                      ? `Tickets for ${customers.find((item) => item.customer_id === customerId)?.name ?? customerId}`
+                      : "Tickets from this conversation. Pick a demo customer in the sidebar to see all of theirs."}
+                  </p>
+                </div>
+                <button type="button" className="new-chat-button h-9 rounded-xl px-3 text-sm font-medium" onClick={() => loadTickets()}>
+                  Refresh
+                </button>
+              </div>
+              {ticketsStatus === "error" ? (
+                <p className="error-message rounded-2xl border px-4 py-3 text-sm" role="alert">Tickets could not be loaded. Check that Flask is running.</p>
+              ) : ticketsStatus === "loading" && tickets.length === 0 ? (
+                <p className="ticket-meta text-sm">Loading tickets…</p>
+              ) : tickets.length === 0 ? (
+                <div className="history-placeholder rounded-xl px-4 py-6 text-center text-sm">
+                  No tickets yet. When the assistant raises one for you, it will appear here.
+                </div>
+              ) : (
+                <div className="flex flex-col gap-3">
+                  {tickets.map((ticket) => <TicketCard key={ticket.ticket_id} ticket={ticket} />)}
+                </div>
+              )}
+            </div>
+          </div>
+        ) : (
         <div className="chat-scroll flex min-h-0 min-w-0 w-full flex-1 flex-col items-center overflow-y-auto px-4 sm:px-6">
           <div className="chat-start my-auto w-full max-w-[720px] py-10 sm:py-14">
             <h1 className="welcome-title mb-8 text-center text-[28px] font-semibold leading-tight tracking-[-0.04em] sm:text-[40px]">
@@ -331,6 +596,21 @@ export default function Home() {
                       <p className="assistant-message whitespace-pre-wrap break-words rounded-2xl border px-4 py-3 text-[15px] leading-6">
                         {message.content}
                       </p>
+                      {message.ticket && <TicketCard ticket={message.ticket} onView={() => selectView("tickets")} />}
+                      {message.quickReplies && message.quickReplies.length > 0 && message.id === lastMessageId && !isRequesting && (
+                        <div className="flex flex-wrap gap-2 pt-1" role="group" aria-label="Suggested replies">
+                          {message.quickReplies.map((reply) => (
+                            <button
+                              key={reply.value}
+                              type="button"
+                              className="quick-reply rounded-full border px-3.5 py-1.5 text-[13px] font-medium transition-colors"
+                              onClick={() => sendMessage(reply)}
+                            >
+                              {reply.label}
+                            </button>
+                          ))}
+                        </div>
+                      )}
                       {message.turnId && (
                         <div className="feedback-row flex gap-1 pl-1" role="group" aria-label="Rate this answer">
                           {(["up", "down"] as const).map((rating) => (
@@ -416,6 +696,7 @@ export default function Home() {
             </footer>
           </div>
         </div>
+        )}
       </section>
     </main>
   );

@@ -7,7 +7,7 @@ from typing import Any
 
 from sqlalchemy import select
 
-from app.db.models import Order, Product, RefundRecord, ReturnRequestDraft, SupportCase
+from app.db.models import Order, Product, RefundRecord, ReturnRequestDraft, SupportCase, SupportTicket
 from app.db.session import session_scope
 
 
@@ -176,3 +176,31 @@ def import_refund(record: dict[str, Any]) -> bool:
                                  is_demo=True))
         session.commit()
         return True
+
+
+def _ticket_dict(row: SupportTicket) -> dict[str, Any]:
+    return {"ticket_id": row.ticket_id, "customer_id": row.customer_id, "session_id": row.session_id,
+            "category": row.category, "subject": row.subject, "description": row.description,
+            "order_id": row.order_id, "case_reference": row.case_reference, "status": row.status,
+            "priority": row.priority, "details": row.details or {},
+            "created_at": row.created_at.isoformat() if row.created_at else None,
+            "updated_at": row.updated_at.isoformat() if row.updated_at else None}
+
+
+def create_support_ticket(**fields: Any) -> dict[str, Any]:
+    with session_scope() as session:
+        row = SupportTicket(**fields, is_demo=True)
+        session.add(row)
+        session.commit()
+        session.refresh(row)
+        return _ticket_dict(row)
+
+
+def list_support_tickets(customer_id: str | None = None, session_id: str | None = None) -> list[dict[str, Any]]:
+    statement = select(SupportTicket).order_by(SupportTicket.created_at.desc(), SupportTicket.ticket_id)
+    if customer_id:
+        statement = statement.where(SupportTicket.customer_id == customer_id)
+    if session_id:
+        statement = statement.where(SupportTicket.session_id == session_id)
+    with session_scope() as session:
+        return [_ticket_dict(row) for row in session.scalars(statement).all()]

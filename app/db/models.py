@@ -98,3 +98,28 @@ class RefundRecord(Base):
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, server_default=func.now(), onupdate=func.now())
 
     order: Mapped[Order] = relationship(back_populates="refunds")
+
+
+class SupportTicket(Base):
+    """A customer-facing ticket raised at the end of a confirmed support conversation."""
+
+    __tablename__ = "support_tickets"
+    __table_args__ = (
+        Index("ix_support_tickets_customer_created", "customer_id", "created_at"),
+        Index("ix_support_tickets_session_created", "session_id", "created_at"),
+    )
+
+    ticket_id: Mapped[str] = mapped_column(String(32), primary_key=True)
+    customer_id: Mapped[str | None] = mapped_column(String(64))
+    session_id: Mapped[str] = mapped_column(String(255), nullable=False)
+    category: Mapped[str] = mapped_column(String(80), nullable=False)
+    subject: Mapped[str] = mapped_column(String(255), nullable=False)
+    description: Mapped[str] = mapped_column(Text, nullable=False)
+    order_id: Mapped[str | None] = mapped_column(String(32))
+    case_reference: Mapped[str | None] = mapped_column(String(80))
+    status: Mapped[str] = mapped_column(String(40), nullable=False)
+    priority: Mapped[str] = mapped_column(String(20), nullable=False)
+    details: Mapped[dict] = mapped_column(JSONB, nullable=False, default=dict, server_default="{}")
+    is_demo: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True, server_default="true")
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, server_default=func.now())
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, server_default=func.now(), onupdate=func.now())

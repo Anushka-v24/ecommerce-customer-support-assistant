@@ -70,6 +70,8 @@ class Config:
     # Structured Groq fallback for issue types and product names the rules miss.
     LLM_EXTRACTION_ENABLED = _as_bool(os.getenv("LLM_EXTRACTION_ENABLED"), default=True)
     LLM_EXTRACTION_TIMEOUT_SECONDS = float(os.getenv("LLM_EXTRACTION_TIMEOUT_SECONDS", "8"))
+    # Ask the customer to confirm the understood request before ticket-raising workflows run.
+    INTENT_CONFIRMATION_ENABLED = _as_bool(os.getenv("INTENT_CONFIRMATION_ENABLED"), default=True)
 
     # RAG providers are configured separately and instantiated only on demand.
     OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "").strip() or None

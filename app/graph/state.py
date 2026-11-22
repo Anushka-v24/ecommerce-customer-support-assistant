@@ -45,3 +45,6 @@ class AgentState(TypedDict, total=False):
     rag_status: NotRequired[str]
     rag_error: NotRequired[str | None]
     rag_error_kind: NotRequired[str | None]
+    customer_id: NotRequired[str | None]
+    quick_replies: NotRequired[list[dict[str, str]]]
+    ticket: NotRequired[dict[str, Any] | None]

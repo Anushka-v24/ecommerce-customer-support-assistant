@@ -1,6 +1,8 @@
 """Greeting, goodbye, recommendation, warranty, and exchange routes added with the 20-label model."""
 
+import tempfile
 import unittest
+from pathlib import Path
 from uuid import uuid4
 from unittest.mock import patch
 
@@ -9,9 +11,15 @@ from langgraph.checkpoint.memory import InMemorySaver
 from app.config import Config
 from app.graph import nodes
 from app.graph.workflow import build_graph, invoke_graph
+from app.services import case_repository
 
 
 patch.object(Config, "BUSINESS_DATA_BACKEND", "json").start()
+# These tests cover the exchange workflow itself; test_intent_confirmation covers its confirmation step.
+patch.object(Config, "INTENT_CONFIRMATION_ENABLED", False).start()
+# Exchanges raise tickets; keep them out of the developer's data/runtime database.
+_TICKET_DIR = tempfile.TemporaryDirectory()
+patch.object(case_repository, "DEFAULT_DB_PATH", Path(_TICKET_DIR.name) / "support.sqlite3").start()
 # Unit tests stay offline; the Groq extraction fallback has its own mocked tests.
 patch.object(Config, "LLM_EXTRACTION_ENABLED", False).start()
 

@@ -4,6 +4,7 @@ import json
 import re
 from pathlib import Path
 
+from app.config import Config
 from app.graph.state import AgentState
 
 
@@ -130,3 +131,15 @@ def route_classifier_result(state: AgentState) -> str:
         # destination for an explicit policy question to the existing RAG node.
         return "store_information"
     return INTENT_TO_ROUTE.get(final_intent, "unknown_intent")
+
+
+# Routes that end in a ticket ask the customer to confirm the understood request first.
+CONFIRMATION_ROUTES = {"issue_support", "customer_care", "exchange"}
+
+
+def route_with_intent_confirmation(state: AgentState) -> str:
+    """Send ticket-raising routes through the confirmation node; others go straight on."""
+    route = route_classifier_result(state)
+    if Config.INTENT_CONFIRMATION_ENABLED and route in CONFIRMATION_ROUTES:
+        return "confirm_intent"
+    return route
