@@ -15,6 +15,7 @@ from tests.test_graph import classifier_result
 patch.object(Config, "BUSINESS_DATA_BACKEND", "json").start()
 patch.object(Config, "LLM_EXTRACTION_ENABLED", False).start()
 patch.object(Config, "REPLY_TRANSLATION_ENABLED", False).start()
+patch.object(Config, "MULTI_INTENT_ENABLED", False).start()
 
 
 class EscalationTests(unittest.TestCase):

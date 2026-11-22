@@ -14,6 +14,7 @@ from tests.test_graph import classifier_result
 # Replies stay in English offline; translation has its own mocked tests.
 patch.object(Config, "REPLY_TRANSLATION_ENABLED", False).start()
 patch.object(Config, "ESCALATION_ENABLED", False).start()
+patch.object(Config, "MULTI_INTENT_ENABLED", False).start()
 
 
 class FeedbackContentTests(unittest.TestCase):

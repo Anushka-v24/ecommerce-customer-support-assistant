@@ -21,6 +21,7 @@ patch.object(Config, "CHECKPOINT_BACKEND", "memory").start()
 patch.object(Config, "LLM_EXTRACTION_ENABLED", False).start()
 patch.object(Config, "REPLY_TRANSLATION_ENABLED", False).start()
 patch.object(Config, "ESCALATION_ENABLED", False).start()
+patch.object(Config, "MULTI_INTENT_ENABLED", False).start()
 
 
 def classified(intent):

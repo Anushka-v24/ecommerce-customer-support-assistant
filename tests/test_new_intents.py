@@ -24,6 +24,7 @@ patch.object(case_repository, "DEFAULT_DB_PATH", Path(_TICKET_DIR.name) / "suppo
 patch.object(Config, "LLM_EXTRACTION_ENABLED", False).start()
 patch.object(Config, "REPLY_TRANSLATION_ENABLED", False).start()
 patch.object(Config, "ESCALATION_ENABLED", False).start()
+patch.object(Config, "MULTI_INTENT_ENABLED", False).start()
 
 
 def classified(intent):

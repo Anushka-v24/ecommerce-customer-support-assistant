@@ -19,6 +19,7 @@ from langgraph.checkpoint.memory import InMemorySaver
 # Replies stay in English offline; translation has its own mocked tests.
 patch.object(Config, "REPLY_TRANSLATION_ENABLED", False).start()
 patch.object(Config, "ESCALATION_ENABLED", False).start()
+patch.object(Config, "MULTI_INTENT_ENABLED", False).start()
 # Tests never share the developer's PostgreSQL checkpoints; .env may select them.
 patch.object(Config, "CHECKPOINT_BACKEND", "memory").start()
 # These modules test the workflows reached after a confirmed request; test_intent_confirmation covers the confirmation step.

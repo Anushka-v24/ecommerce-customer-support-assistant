@@ -313,6 +313,12 @@ def _previous_turns(history: list[dict[str, Any]] | None, limit: int = 4) -> lis
     return turns
 
 
+def predict_intent(query: str) -> tuple[str, float]:
+    """XLM-R only (no Groq): the top intent and its calibrated confidence in percent."""
+    prediction = _predict(query.strip(), load_model())
+    return prediction["predicted_intent"], prediction["confidence_score"]
+
+
 def classify_and_verify(query: str, history: list[dict[str, Any]] | None = None) -> dict[str, Any]:
     """Predict with XLM-R, then use Groq at confidence <= configured threshold."""
     started_at = time.perf_counter()

@@ -54,3 +54,4 @@ class AgentState(TypedDict, total=False):
     turn_history: NotRequired[list[dict[str, Any]]]
     frustration: NotRequired[dict[str, Any] | None]
     escalated: NotRequired[bool]
+    queued_request: NotRequired[str | None]

@@ -9,11 +9,14 @@ from typing import Any, Iterator
 from langgraph.graph import END, START, StateGraph
 from langgraph.types import Command
 
+from app.classifier.classifier_service import predict_intent
+from app.config import Config
 from app.graph import nodes
 from app.graph.checkpointer import close_postgres_checkpointer, get_configured_checkpointer
 from app.graph.risk import ABANDON, approval_answer
 from app.graph.routing import ROUTE_TO_NODE, route_with_intent_confirmation
 from app.graph.state import AgentState
+from app.services.multi_intent import plan_requests
 
 
 def build_graph(checkpointer: Any | None = None):
@@ -96,27 +99,76 @@ def invoke_graph(
     query: str, session_id: str, graph: Any | None = None, customer_id: str | None = None,
 ) -> AgentState:
     """Invoke a conversation with its session ID as the checkpointer thread ID."""
-    if not isinstance(session_id, str) or not session_id.strip():
-        raise ValueError("session_id is required to isolate conversation memory.")
-    if not isinstance(query, str):
-        raise ValueError("query must be a string.")
-    runnable = graph or get_graph()
-    config = {"configurable": {"thread_id": session_id}}
-    payload = _turn_payload(runnable, config, query, session_id, customer_id)
-    return _surface_approval(runnable.invoke(payload, config), query)
+    turn = _conversation_turn(query, session_id, graph, customer_id)
+    while True:
+        try:
+            next(turn)
+        except StopIteration as finished:
+            return finished.value
 
 
 def stream_graph(
     query: str, session_id: str, graph: Any | None = None, customer_id: str | None = None,
 ) -> Iterator[tuple[str, Any]]:
     """Like invoke_graph, but yield ("node", name) as each node finishes, then ("result", state)."""
+    state = yield from _conversation_turn(query, session_id, graph, customer_id)
+    yield "result", state
+
+
+_WAITING_STATUSES = {"awaiting_input", "awaiting_confirmation", "awaiting_approval"}
+
+
+def _conversation_turn(query: str, session_id: str, graph: Any | None, customer_id: str | None):
+    """Run one customer message; a second request in it (or one queued earlier) runs once the first is done."""
     if not isinstance(session_id, str) or not session_id.strip():
         raise ValueError("session_id is required to isolate conversation memory.")
     if not isinstance(query, str):
         raise ValueError("query must be a string.")
     runnable = graph or get_graph()
     config = {"configurable": {"thread_id": session_id}}
-    payload = _turn_payload(runnable, config, query, session_id, customer_id)
+    parts = _plan_split(runnable, config, query)
+    first = parts[0] if parts else query
+    payload = _turn_payload(runnable, config, first, session_id, customer_id)
+    if parts and isinstance(payload, dict):
+        # Stored with the turn so it survives a pause for input or approval.
+        payload["queued_request"] = parts[1]
+    state = _surface_approval((yield from _execute(runnable, config, payload)), first)
+
+    queued = state.get("queued_request")
+    if not queued:
+        return state
+    if state.get("workflow_status") in _WAITING_STATUSES:
+        if parts:
+            state["response"] = f"{state.get('response') or ''}\n\nI'll handle your other request (\"{queued}\") right after this."
+        return state
+    yield "node", "queued_request"
+    second_payload = _turn_payload(runnable, config, queued, session_id, customer_id)
+    second_payload["queued_request"] = None
+    second = _surface_approval((yield from _execute(runnable, config, second_payload)), queued)
+    return {**second, "response": f"{state.get('response') or ''}\n\n{second.get('response') or ''}".strip()}
+
+
+def _plan_split(runnable: Any, config: dict[str, Any], query: str) -> list[str] | None:
+    """Two requests in one message, only for a fresh message (not a slot answer or approval reply)."""
+    if not Config.MULTI_INTENT_ENABLED or _pending_approval(runnable, config) is not None:
+        return None
+    try:
+        current = runnable.get_state(config).values
+    except ValueError:
+        current = {}
+    pending = current.get("pending_workflow")
+    if isinstance(pending, dict) and pending.get("status") in {"awaiting_input", "awaiting_confirmation", "suspended"}:
+        return None
+    try:
+        return plan_requests(query, predict_intent, Config.MULTI_INTENT_MIN_CONFIDENCE)
+    except Exception:
+        return None  # a classifier problem must not block the normal single-request path
+
+
+def _execute(runnable: Any, config: dict[str, Any], payload: Any):
+    """Stream one graph run, yielding node names; return the final state (with any interrupt)."""
+    if getattr(runnable, "checkpointer", None) is None:
+        return runnable.invoke(payload, config)
     interrupts = None
     for chunk in runnable.stream(payload, config, stream_mode="updates"):
         for name, update in chunk.items():
@@ -127,7 +179,7 @@ def stream_graph(
     state = dict(runnable.get_state(config).values)
     if interrupts:
         state["__interrupt__"] = interrupts
-    yield "result", _surface_approval(state, query)
+    return state
 
 
 def _turn_payload(runnable: Any, config: dict[str, Any], query: str, session_id: str, customer_id: str | None) -> Any:

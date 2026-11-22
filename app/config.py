@@ -77,6 +77,9 @@ class Config:
     ESCALATION_ENABLED = _as_bool(os.getenv("ESCALATION_ENABLED"), default=True)
     # Damage-photo evidence. Llama 4 Scout is not on every Groq account; any Groq vision model works.
     VISION_MODEL = os.getenv("VISION_MODEL", "qwen/qwen3.8-27b")
+    # Two requests in one message ("track ORD-1001 and cancel ORD-1002").
+    MULTI_INTENT_ENABLED = _as_bool(os.getenv("MULTI_INTENT_ENABLED"), default=True)
+    MULTI_INTENT_MIN_CONFIDENCE = float(os.getenv("MULTI_INTENT_MIN_CONFIDENCE", "90"))
     EVIDENCE_MAX_BYTES = int(os.getenv("EVIDENCE_MAX_BYTES", str(4 * 1024 * 1024)))
     EVIDENCE_TIMEOUT_SECONDS = float(os.getenv("EVIDENCE_TIMEOUT_SECONDS", "20"))
     # Ask the customer to confirm the understood request before ticket-raising workflows run.
