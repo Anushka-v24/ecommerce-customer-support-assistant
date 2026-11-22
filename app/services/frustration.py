@@ -100,7 +100,8 @@ _LEXICON: tuple[tuple[str, float, tuple[str, ...]], ...] = (
         (
             "still", "again", "third time", "3rd time", "second time", "fourth time",
             "multiple times", "so many times", "how many times", "phir se", "fir se",
-            "abhi tak", "ab tak", "kitni baar", "kitni bar", "kab tak",
+            "abhi tak", "ab tak", "kitni baar", "kitni bar", "kab tak", "baar baar",
+            "teesri baar", "tisri baar", "dusri baar", "doosri baar",
             "फिर से", "अभी तक", "अब तक", "कितनी बार", "तीसरी बार", "कब तक",
         ),
     ),
@@ -136,7 +137,12 @@ _COMPILED_LEXICON = _compile_lexicon()
 def _is_shouting(text: str) -> bool:
     words = [word for word in _LATIN_WORD.findall(_ORDER_ID_PATTERN.sub(" ", text)) if len(word) >= 3]
     caps = [word for word in words if word.isupper()]
-    return len(caps) >= 2 and len(caps) / len(words) >= 0.5
+    if len(caps) < 2:
+        return False
+    # Mostly-caps text, or two capitalised words in a row ("WORST SERVICE");
+    # a lone acronym such as COD or UPI does not count.
+    consecutive = any(a.isupper() and b.isupper() for a, b in zip(words, words[1:]))
+    return consecutive or len(caps) / len(words) >= 0.5
 
 
 def rule_signals(text: str) -> tuple[list[str], float]:
