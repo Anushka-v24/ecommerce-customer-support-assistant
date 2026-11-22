@@ -24,6 +24,7 @@ def build_graph(checkpointer: Any | None = None):
         "resume_pending_node": nodes.resume_pending_node,
         "pending_clarification_node": nodes.pending_clarification_node,
         "finalize_turn_node": nodes.finalize_turn_node,
+        "localize_reply_node": nodes.localize_reply_node,
         "order_tracking_node": nodes.order_tracking_node,
         "order_cancellation_node": nodes.order_cancellation_node,
         "greeting_node": nodes.greeting_node,
@@ -31,6 +32,7 @@ def build_graph(checkpointer: Any | None = None):
         "product_recommendation_node": nodes.product_recommendation_node,
         "warranty_node": nodes.warranty_node,
         "exchange_node": nodes.exchange_node,
+        "feedback_node": nodes.feedback_node,
         "product_inquiry_node": nodes.product_inquiry_node,
         "payment_node": nodes.payment_node,
         "issue_resolver_node": nodes.issue_resolver_node,
@@ -61,7 +63,8 @@ def build_graph(checkpointer: Any | None = None):
     )
     for node_name in set(ROUTE_TO_NODE.values()) | {"confirm_intent_node", "resume_pending_node", "pending_clarification_node"}:
         builder.add_edge(node_name, "finalize_turn_node")
-    builder.add_edge("finalize_turn_node", END)
+    builder.add_edge("finalize_turn_node", "localize_reply_node")
+    builder.add_edge("localize_reply_node", END)
     selected_checkpointer = checkpointer if checkpointer is not None else get_configured_checkpointer()
     return builder.compile(checkpointer=selected_checkpointer)
 

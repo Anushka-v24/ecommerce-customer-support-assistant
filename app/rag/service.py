@@ -8,6 +8,7 @@ from functools import lru_cache
 from typing import Any
 
 from app.config import Config
+from app.services.pii import mask_obj
 from app.rag.documents import load_chunks
 
 
@@ -301,7 +302,7 @@ class RAGService:
         try:
             response = self._ensure_generation_client().chat.completions.create(
                 model=Config.DEEPSEEK_MODEL,
-                messages=messages,
+                messages=mask_obj(messages),
                 temperature=0,
             )
             content = _value(_value(_value(response, "choices", [])[0], "message", {}), "content", "")
@@ -416,7 +417,7 @@ class RAGService:
         try:
             response = self._ensure_generation_client().chat.completions.create(
                 model=Config.DEEPSEEK_MODEL,
-                messages=messages,
+                messages=mask_obj(messages),
                 temperature=0,
             )
             content = _value(_value(_value(response, "choices", [])[0], "message", {}), "content", "")

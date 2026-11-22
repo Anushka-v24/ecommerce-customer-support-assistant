@@ -16,6 +16,7 @@ from uuid import uuid4
 
 from app.config import Config
 from app.services import case_repository
+from app.services.pii import mask_obj, mask_pii
 
 
 CATEGORY_SUBJECTS = {
@@ -90,12 +91,12 @@ def create_ticket(
         "session_id": session_id.strip(),
         "category": category,
         "subject": subject,
-        "description": description.strip()[:2000],
+        "description": mask_pii(description.strip())[:2000],
         "order_id": order_id,
         "case_reference": case_reference,
         "status": "open",
         "priority": CATEGORY_PRIORITY[category],
-        "details": details or {},
+        "details": mask_obj(details or {}),
     }
     if Config.BUSINESS_DATA_BACKEND == "postgres":
         from app.db.repositories import create_support_ticket

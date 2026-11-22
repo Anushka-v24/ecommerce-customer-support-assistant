@@ -48,3 +48,4 @@ class AgentState(TypedDict, total=False):
     customer_id: NotRequired[str | None]
     quick_replies: NotRequired[list[dict[str, str]]]
     ticket: NotRequired[dict[str, Any] | None]
+    reply_language: NotRequired[str | None]

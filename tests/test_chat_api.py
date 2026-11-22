@@ -15,6 +15,9 @@ from app.graph.workflow import build_graph, invoke_graph
 from app.services import case_repository
 from app.services.case_repository import list_demo_records
 from langgraph.checkpoint.memory import InMemorySaver
+
+# Replies stay in English offline; translation has its own mocked tests.
+patch.object(Config, "REPLY_TRANSLATION_ENABLED", False).start()
 # Tests never share the developer's PostgreSQL checkpoints; .env may select them.
 patch.object(Config, "CHECKPOINT_BACKEND", "memory").start()
 # These modules test the workflows reached after a confirmed request; test_intent_confirmation covers the confirmation step.
@@ -66,6 +69,7 @@ class FlaskChatApiTests(unittest.TestCase):
             "answer": "Please provide your order ID.",
             "intent": "order_tracking",
             "workflow_status": "awaiting_input",
+            "reply_language": "en",
         })
         invoke.assert_called_once_with("Where is my order?", "customer-a")
 

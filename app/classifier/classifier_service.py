@@ -11,6 +11,7 @@ from typing import Any
 
 from app.classifier.model_loader import ModelBundle, load_model
 from app.config import Config
+from app.services.pii import mask_obj
 
 
 logger = logging.getLogger(__name__)
@@ -257,14 +258,15 @@ def _verify_with_groq(
         user_payload["previous_turns"] = previous_turns
     response = Groq(api_key=api_key).chat.completions.create(
         model=os.getenv("GROQ_MODEL", Config.GROQ_MODEL),
-        messages=[
+        # Personal data never leaves the app; order IDs stay readable.
+        messages=mask_obj([
             {"role": "system", "content": SYSTEM_PROMPT},
             {
                 "role": "user",
                 "content": "Verify this intent using the supplied labels and descriptions:\n"
                 + json.dumps(user_payload, ensure_ascii=False, indent=2),
             },
-        ],
+        ]),
         temperature=0,
         response_format={
             "type": "json_schema",

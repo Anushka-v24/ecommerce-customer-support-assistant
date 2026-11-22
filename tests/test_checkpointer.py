@@ -14,6 +14,9 @@ from app.graph.checkpointer import (
 )
 from app.graph.workflow import build_graph, close_graph_resources
 
+# Replies stay in English offline; translation has its own mocked tests.
+patch.object(Config, "REPLY_TRANSLATION_ENABLED", False).start()
+
 
 class CheckpointerConfigurationTests(unittest.TestCase):
     def tearDown(self):

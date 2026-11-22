@@ -15,6 +15,7 @@ from app.rag.service import RAGConfigurationError
 patch.object(Config, "BUSINESS_DATA_BACKEND", "json").start()
 # Unit tests stay offline; the Groq extraction fallback has its own mocked tests.
 patch.object(Config, "LLM_EXTRACTION_ENABLED", False).start()
+patch.object(Config, "REPLY_TRANSLATION_ENABLED", False).start()
 patch.object(nodes, "get_rag_service", side_effect=RAGConfigurationError("OPENAI_API_KEY is not configured")).start()
 # Tests never share the developer's PostgreSQL checkpoints; .env may select them.
 patch.object(Config, "CHECKPOINT_BACKEND", "memory").start()
@@ -108,14 +109,13 @@ class LangGraphRoutingTests(unittest.TestCase):
         self.assertEqual(result["selected_route"], "out_of_scope")
         self.assertEqual(result["tool_result"]["status"], "not_executed")
 
-    def test_all_six_unsupported_intents_are_explicitly_not_executed(self):
+    def test_all_five_unsupported_intents_are_explicitly_not_executed(self):
         expected = {
             "account_management",
             "add_to_cart",
             "order_management",
             "place_order",
             "remove_from_cart",
-            "submit_feedback",
         }
         for intent in sorted(expected):
             with self.subTest(intent=intent):

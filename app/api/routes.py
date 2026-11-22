@@ -8,6 +8,7 @@ from flask import Blueprint, current_app, jsonify, request
 from werkzeug.exceptions import BadRequest, RequestEntityTooLarge
 
 from app.services.customer_service import get_customer, list_customers
+from app.services.pii import mask_pii
 from app.services.ticket_service import list_tickets, public_ticket
 from app.services.turn_log import append_record
 
@@ -90,6 +91,7 @@ def chat():
         "answer": answer,
         "intent": result.get("final_intent"),
         "workflow_status": result.get("workflow_status"),
+        "reply_language": result.get("reply_language") or "en",
     }
     quick_replies = _safe_quick_replies(result.get("quick_replies"))
     if quick_replies:
@@ -137,7 +139,7 @@ def tickets():
 def _log_turn(turn_id: str, session_id: str, message: str, answer: str, result: dict, latency_ms: float) -> None:
     """Record what the monitoring and retraining loop needs; never fail the chat turn."""
     record = {
-        "turn_id": turn_id, "session_id": session_id, "message": message, "answer": answer,
+        "turn_id": turn_id, "session_id": session_id, "message": mask_pii(message), "answer": mask_pii(answer),
         "predicted_intent": result.get("predicted_intent"), "confidence": result.get("confidence_score"),
         "final_intent": result.get("final_intent"), "verifier_status": result.get("verifier_status"),
         "classifier_routing": result.get("classifier_routing"), "route": result.get("selected_route"),
@@ -181,7 +183,7 @@ def feedback():
             continue
         if not isinstance(value, str) or not value.strip() or len(value) > limit:
             return jsonify({"error": f"invalid_{field}", "message": f"{field} must be a non-empty string up to {limit} characters."}), 400
-        record[field] = value.strip()
+        record[field] = mask_pii(value.strip()) if field in {"message", "answer", "comment"} else value.strip()
     if current_app.config.get("TURN_LOG_ENABLED"):
         try:
             append_record(current_app.config["TURN_LOG_DIR"], "feedback.jsonl", record)

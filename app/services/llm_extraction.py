@@ -17,6 +17,7 @@ from functools import lru_cache
 from typing import Any
 
 from app.config import Config
+from app.services.pii import mask_obj
 
 logger = logging.getLogger(__name__)
 
@@ -72,10 +73,10 @@ def _structured_call(system_prompt: str, payload: dict[str, Any], schema: dict[s
         )
         response = client.chat.completions.create(
             model=os.getenv("GROQ_MODEL", Config.GROQ_MODEL),
-            messages=[
+            messages=mask_obj([
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": json.dumps(payload, ensure_ascii=False)},
-            ],
+            ]),
             temperature=0,
             response_format={
                 "type": "json_schema",

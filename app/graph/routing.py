@@ -35,10 +35,11 @@ INTENT_TO_ROUTE = {
     "product_recommendation": "product_recommendation",
     "warranty_inquiry": "warranty",
     "exchange_request": "exchange",
+    "submit_feedback": "feedback",
 }
 UNSUPPORTED_INTENTS = {
     "account_management", "add_to_cart", "order_management",
-    "place_order", "remove_from_cart", "submit_feedback",
+    "place_order", "remove_from_cart",
 }
 
 if set(INTENT_LABELS) != set(INTENT_TO_ROUTE) | UNSUPPORTED_INTENTS | {"out_of_scope"}:
@@ -62,6 +63,7 @@ ROUTE_TO_NODE = {
     "product_recommendation": "product_recommendation_node",
     "warranty": "warranty_node",
     "exchange": "exchange_node",
+    "feedback": "feedback_node",
 }
 _VERIFIED_STATUSES = {"ACCEPTED_BY_CLASSIFIER", "CORRECT_INTENT", "CORRECTED_INTENT"}
 

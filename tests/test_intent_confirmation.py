@@ -19,6 +19,7 @@ from app.services.ticket_service import list_tickets
 patch.object(Config, "BUSINESS_DATA_BACKEND", "json").start()
 patch.object(Config, "CHECKPOINT_BACKEND", "memory").start()
 patch.object(Config, "LLM_EXTRACTION_ENABLED", False).start()
+patch.object(Config, "REPLY_TRANSLATION_ENABLED", False).start()
 
 
 def classified(intent):

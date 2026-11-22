@@ -12,6 +12,7 @@ from app.graph.workflow import build_graph, invoke_graph
 patch.object(Config, "BUSINESS_DATA_BACKEND", "json").start()
 # Unit tests stay offline; the Groq extraction fallback has its own mocked tests.
 patch.object(Config, "LLM_EXTRACTION_ENABLED", False).start()
+patch.object(Config, "REPLY_TRANSLATION_ENABLED", False).start()
 # Tests never share the developer's PostgreSQL checkpoints; .env may select them.
 patch.object(Config, "CHECKPOINT_BACKEND", "memory").start()
 

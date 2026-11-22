@@ -17,8 +17,10 @@ from app.rag.service import (
     get_rag_service,
 )
 from app.rag.workflow import run_agentic_rag
+from app.services.feedback_service import has_feedback_content, record_customer_feedback
 from app.services.issue_resolver import resolve_issue_type
 from app.services.product_service import search_products
+from app.services.reply_translation import translate_reply
 from app.services.catalog_help_service import answer_warranty_question, recommend_products
 from app.services.shipping_payment_service import answer_payment_question, answer_shipping_question
 from app.services.store_response import format_store_information
@@ -398,6 +400,9 @@ def continuity_node(state: AgentState) -> dict[str, Any]:
             accepted = query[:1000]
     elif slot == "intent_choice":
         accepted = _intent_choice(query)
+    elif slot == "feedback_text":
+        if len(query) >= 3:
+            accepted = query[:2000]
 
     if accepted is None:
         return _classify_pending_message(state, pending)
@@ -462,6 +467,8 @@ def resume_pending_node(state: AgentState) -> dict[str, Any]:
         return order_cancellation_node(state)
     if workflow == "exchange":
         return exchange_node(state)
+    if workflow == "feedback":
+        return feedback_node(state)
     if workflow == "intent_confirmation":
         collected = pending.get("collected") or {}
         return _run_confirmed_request(
@@ -596,6 +603,20 @@ def finalize_turn_node(state: AgentState) -> dict[str, Any]:
         "response": response,
         "messages": messages,
         "resuming_pending": False,
+    }
+
+
+def localize_reply_node(state: AgentState) -> dict[str, Any]:
+    """Rewrite the finished reply in the customer's script; keep English on any failure."""
+    translated = translate_reply(state.get("query") or "", state.get("response") or "", state.get("quick_replies") or [])
+    if not translated:
+        return {"reply_language": "en" if state.get("response") else None}
+    messages = list(state.get("messages") or [])
+    if messages and messages[-1].get("role") == "assistant":
+        messages[-1] = {**messages[-1], "content": translated["response"]}
+    return {
+        "response": translated["response"], "quick_replies": translated["quick_replies"],
+        "reply_language": translated["lang"], "messages": messages,
     }
 
 
@@ -1250,13 +1271,57 @@ SUPPORTED_ALTERNATIVES = (
     "I can check an order's status, help with a return, refund, damaged or missing item, "
     "look up product availability, or connect you with a support agent."
 )
+_FEEDBACK_TEXT = {
+    "en": {
+        "ask": "I'd love to hear it. What would you like to tell us? You can share what you liked, what went wrong, or a suggestion.",
+        "thanks": "Thank you for your feedback. I've passed it on to our team (reference {reference}).",
+        "problem": " If something needs fixing, such as a damaged, missing or wrong item, tell me and I'll raise it as an issue.",
+    },
+    "hi": {
+        "ask": "ज़रूर, हम सुनना चाहेंगे। आप क्या बताना चाहते हैं? आपको क्या अच्छा लगा, क्या गलत हुआ, या कोई सुझाव।",
+        "thanks": "आपके फ़ीडबैक के लिए धन्यवाद। मैंने इसे हमारी टीम तक पहुँचा दिया है (संदर्भ {reference})।",
+        "problem": " अगर कुछ ठीक करवाना है, जैसे खराब, गुम या गलत सामान, तो बताइए, मैं उसकी शिकायत दर्ज कर दूँगा।",
+    },
+}
+
+
+def feedback_node(state: AgentState) -> dict[str, Any]:
+    """Record an opinion or suggestion; ask for it first if the message only announces it."""
+    pending = state.get("pending_workflow") or {}
+    collected = (pending.get("collected") or {}) if pending.get("workflow") == "feedback" else {}
+    query = state.get("query") or ""
+    text = collected.get("feedback_text") or (query if has_feedback_content(query) else None)
+    lang = _language(collected.get("original_query") or query)
+    copy = _FEEDBACK_TEXT[lang]
+    if not text:
+        prompt = copy["ask"]
+        return {
+            **_workflow_pending(state, "feedback", prompt),
+            "pending_workflow": _pending("feedback", "feedback_text", {"original_query": query}, prompt,
+                                         required_slots=["feedback_text"]),
+        }
+    try:
+        reference = record_customer_feedback(text, state.get("session_id"), state.get("customer_id"))
+    except OSError as exc:
+        logger.warning("Could not store customer feedback (%s)", type(exc).__name__)
+        reference = "not saved"
+    response = copy["thanks"].format(reference=reference) + copy["problem"]
+    return {
+        "selected_route": "feedback",
+        "tool_result": {"status": "recorded", "reference": reference, "executed": True},
+        "response": response, "error": None,
+        "pending_workflow": None, "workflow_status": "completed", "pending_clarification": None,
+        "resuming_pending": False,
+        "messages": _append_message(state, "assistant", response),
+    }
+
+
 UNSUPPORTED_RESPONSES = {
     "account_management": "I can't make changes to your account here yet.",
     "add_to_cart": "I can't add items to your cart from this chat yet.",
     "order_management": "I can cancel an order that hasn't shipped yet, but I can't change the items in an order from this chat.",
     "place_order": "I can't place orders from this chat yet.",
     "remove_from_cart": "I can't change your cart from this chat yet.",
-    "submit_feedback": "Thanks for sharing that. I can't record feedback from this chat yet.",
 }
 
 

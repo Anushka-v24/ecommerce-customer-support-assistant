@@ -22,6 +22,7 @@ _TICKET_DIR = tempfile.TemporaryDirectory()
 patch.object(case_repository, "DEFAULT_DB_PATH", Path(_TICKET_DIR.name) / "support.sqlite3").start()
 # Unit tests stay offline; the Groq extraction fallback has its own mocked tests.
 patch.object(Config, "LLM_EXTRACTION_ENABLED", False).start()
+patch.object(Config, "REPLY_TRANSLATION_ENABLED", False).start()
 
 
 def classified(intent):
